@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI LaTeX Resume Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="header">
+        <h1>AI LaTeX Resume Builder</h1>
+        <div class="upload-row"><input type="file" id="pdfInput" accept="application/pdf"><button id="uploadBtn">Upload
+                PDF</button><span id="status" class="status">Ready</span></div>
+    </header>
+    <main class="main">
+        <section class="left">
+            <div class="panel-header">
+                <h2>LaTeX Editor</h2>
+                <div class="panel-actions"><button id="recompileBtn" disabled>Recompile</button><button id="downloadBtn"
+                        disabled>Download PDF</button></div>
+            </div><textarea id="latexEditor" placeholder="LaTeX will appear here after upload..."
+                spellcheck="false"></textarea>
+            <div class="log">
+                <h3>Compile Log</h3>
+                <pre id="compileLog"></pre>
+            </div>
+        </section>
+        <section class="right">
+            <div class="panel-header">
+                <h2>PDF Preview</h2>
+            </div><iframe id="pdfFrame" title="Resume PDF Preview" class="pdf-frame"></iframe>
+            <div class="hint">If preview does not show, ensure LaTeX (pdflatex) is installed and try recompile.</div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>
