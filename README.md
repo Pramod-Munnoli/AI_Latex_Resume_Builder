@@ -98,4 +98,4 @@ Distributed under the **ISC License**. See `package.json` for details.
 
 ---
 
-Developed with ❤️ by [Pramod Munnoli](https://github.com/Pramod-Munnoli)
+Developed with ❤️ by [Pramod Munnoli](https://github.com/Pramod-Munnoli) And [Snjeev Koshti](https://github.com/sanjeevkoshti)
