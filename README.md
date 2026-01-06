@@ -1,3 +1,15 @@
+💡 Next Steps (Optional Improvements)
+If you want to enhance the project, consider:
+
+Add better error messages in the frontend
+Implement loading animations
+Add resume templates
+Create user authentication
+Add resume history/storage
+Improve mobile responsiveness
+But these are enhancements, not fixes - your project works perfectly as is!
+
+
 # 📄 AI LaTeX Resume Builder
 
 > **Transform your PDF resumes into professional, ATS-optimized LaTeX masterpieces using the power of AI.**
