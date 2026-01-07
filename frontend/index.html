@@ -6,22 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI LaTeX Resume Builder</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
     <header class="header">
-        <h1>AI LaTeX Resume Builder</h1>
-        <div class="upload-row"><input type="file" id="pdfInput" accept="application/pdf"><button id="uploadBtn">Upload
-                PDF</button><span id="status" class="status">Ready</span></div>
+        <div class="header-top">
+            <h1>AI LaTeX Resume Builder</h1>
+            <div id="authContainer" class="auth-container">
+                <button id="authBtn" class="btn-secondary">Login / Sign Up</button>
+                <div id="userProfile" class="user-profile" style="display: none;">
+                    <span class="user-icon">👤</span>
+                    <span id="displayUserName"></span>
+                    <button id="logoutBtn" class="btn-link">Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="pdfInput" accept=".pdf">
+            </div>
+            <button id="uploadBtn" class="btn-primary">
+                <span>⚡</span> Upload PDF
+            </button>
+            <span id="statusBadge" class="status-badge status-ready">Ready</span>
+        </div>
     </header>
     <div id="toastContainer" class="toast-container"></div>
     <main class="main">
         <section class="left">
             <div class="panel-header">
                 <h2>LaTeX Editor</h2>
-                <div class="panel-actions"><button id="recompileBtn" disabled>Recompile</button><button id="downloadBtn"
-                        disabled>Download PDF</button></div>
-            </div><textarea id="latexEditor" placeholder="LaTeX will appear here after upload..."
+                <div class="panel-actions">
+                    <button id="recompileBtn" disabled>Recompile</button>
+                    <button id="downloadBtn" disabled>Download PDF</button>
+                </div>
+            </div>
+            <textarea id="latexEditor" placeholder="LaTeX will appear here after upload..."
                 spellcheck="false"></textarea>
             <div class="log">
                 <h3>Compile Log</h3>
@@ -31,11 +52,43 @@
         <section class="right">
             <div class="panel-header">
                 <h2>PDF Preview</h2>
-            </div><iframe id="pdfFrame" title="Resume PDF Preview" class="pdf-frame"></iframe>
-            <div class="hint">If preview does not show, ensure LaTeX (pdflatex) is installed and try recompile.</div>
+            </div>
+            <iframe id="pdfFrame" class="pdf-iframe"></iframe>
+            <div class="hint">Generating your professional resume. Click Recompile if preview is blank.</div>
         </section>
-    </main>
-    <script src="script.js"></script>
+
+        <!-- Auth Modal -->
+        <div id="authModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Login</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="authForm" class="auth-form">
+                    <div id="authMessage" class="auth-message" style="display: none;"></div>
+                    <div id="authErrorMsg" class="auth-error" style="display: none;"></div>
+
+                    <input type="text" id="username" placeholder="Full Name" style="display: none;" autocomplete="name">
+                    <input type="email" id="email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="password" placeholder="Password" required
+                        autocomplete="current-password">
+                    <input type="password" id="confirmPassword" placeholder="Confirm New Password"
+                        style="display: none;" autocomplete="new-password">
+
+                    <div id="forgotPasswordLink" class="auth-helper">
+                        <span id="forgotBtn">Forgot Password?</span>
+                    </div>
+
+                    <button type="submit" id="submitBtn">Login</button>
+                </form>
+                <div class="auth-toggle">
+                    <p id="toggleText">Don't have an account? <span id="toggleAuth">Sign Up</span></p>
+                    <p id="backToLogin" style="display: none;"><span id="backBtn">Back to Login</span></p>
+                </div>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
 </body>
 
 </html>

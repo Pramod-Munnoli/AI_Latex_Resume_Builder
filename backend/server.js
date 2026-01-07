@@ -14,9 +14,16 @@ const recompileRouter = require("./routes/recompile");
 const frontendDir = path.join(__dirname, "..", "frontend");
 const tempDir = path.join(__dirname, "temp");
 
-// API routes
 app.use("/api", uploadRouter);
 app.use("/api", recompileRouter);
+
+// Serve public config for frontend
+app.get("/api/config", (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+  });
+});
 
 // Serve compiled files (PDF) with no-cache for fresh reloads
 app.use("/files", express.static(tempDir, {
