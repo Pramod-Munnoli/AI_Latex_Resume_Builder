@@ -12,19 +12,20 @@
     const downloadBtn = $("downloadBtn");
     const compileLog = $("compileLog");
     const pdfFrame = $("pdfFrame");
+    const mobilePdfLink = $("mobilePdfLink");
     const toastContainer = $("toastContainer");
 
     // --- CLOUD CONFIGURATION ---
     // Change this to your Render URL when it is Live!
-    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-        ? "" 
-        : "https://ai-latex-resume-builder.onrender.com"; 
+    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? ""
+        : "https://ai-latex-resume-builder.onrender.com";
 
     async function initSupabase() {
         try {
             console.log("Connecting to backend at:", API_BASE || "local");
             const resp = await fetch(`${API_BASE}/api/config`);
-            
+
             if (!resp.ok) throw new Error(`Server responded with ${resp.status}`);
             const config = await resp.json();
 
@@ -203,9 +204,10 @@
     function setPdfSrc(url) {
         if (!url) {
             pdfFrame.setAttribute("src", "");
+            mobilePdfLink.style.display = "none";
             return;
         }
-        
+
         let fullUrl = url;
         // If it's a relative path (like /files/resume.pdf), add the API_BASE
         if (url.startsWith("/files/")) {
@@ -215,7 +217,15 @@
         // Remove old timestamp if it exists to avoid double ???
         const cleanUrl = fullUrl.split("?")[0];
         const bust = cleanUrl + "?t=" + Date.now();
+
         pdfFrame.setAttribute("src", bust);
+
+        // Update Mobile link
+        mobilePdfLink.href = bust;
+        // Show if on small screen (the CSS media query handles visibility too, but this adds control)
+        if (window.innerWidth < 600) {
+            mobilePdfLink.style.display = "block";
+        }
     }
 
     // Error categorization and user-friendly messages
