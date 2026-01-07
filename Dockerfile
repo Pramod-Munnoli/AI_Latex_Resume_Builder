@@ -1,5 +1,5 @@
-# Use a lightweight Node image
-FROM node:18-slim
+# Use a modern Node image (v20 matches Supabase/PDF requirements)
+FROM node:20-slim
 
 # Install TeX Live and essential LaTeX packages
 # We use a minimal set to keep the image size down
