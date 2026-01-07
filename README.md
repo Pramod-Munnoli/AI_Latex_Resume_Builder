@@ -1,113 +1,79 @@
-💡 Next Steps (Optional Improvements)
-If you want to enhance the project, consider:
+# 📄 AI LaTeX Resume Builder (Final Version)
 
-Add better error messages in the frontend
-Implement loading animations
-Add resume templates
-Create user authentication
-Add resume history/storage
-Improve mobile responsiveness
-But these are enhancements, not fixes - your project works perfectly as is!
+> **The ultimate resume transformation tool. From static PDF to professional LaTeX, backed by AI and secured in the cloud.**
 
-
-# 📄 AI LaTeX Resume Builder
-
-> **Transform your PDF resumes into professional, ATS-optimized LaTeX masterpieces using the power of AI.**
-
-AI LaTeX Resume Builder is a sophisticated web application that leverages advanced AI models (Groq Llama 3 & Gemini Flash) to parse existing PDF resumes and reconstruct them into clean, high-quality LaTeX source code. It features a real-time side-by-side editor and PDF previewer, ensuring your resume looks perfect before you download.
+AI LaTeX Resume Builder is a full-featured web application that leverages **Groq (Llama 3.3)** and **Google Gemini 1.5 Flash** to reconstruct PDF resumes into high-quality, ATS-optimized LaTeX. This final version includes secure user authentication, real-time cloud synchronization, and a premium productivity-focused UI.
 
 ---
 
-## ✨ Key Features
+## 🔥 New & Advanced Features
 
-- 🤖 **Multi-Model AI Engine**: Intelligent routing between **Groq (Llama 3.3)** and **Google Gemini** with automatic fallback for maximum reliability.
-- ⚡ **Real-time Preview**: Instant PDF recompilation and preview as you edit your LaTeX code.
-- 📈 **ATS-Optimized**: Generates LaTeX specifically designed to pass through Applicant Tracking Systems (ATS) with ease.
-- 🎨 **Minimalist Design**: A clean, modern UI focused on productivity and pixel-perfect results.
-- 🔄 **Smart Sanitization**: Automatically fixes common AI-generated LaTeX formatting errors and ensures compilation safety.
-- 📥 **One-Click Download**: Instantly export your final resume as a production-ready PDF.
-
----
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Node.js & Express**: High-performance API handling.
-- **AI Integrations**: Groq Cloud (Llama 3.3) & Google Gemini 1.5 Flash.
-- **File Processing**: Multer for uploads & PDF-parse for text extraction.
-- **LaTeX Compilation**: Integrated `pdflatex` workflow.
-
-### Frontend
-- **Vanilla JavaScript**: Lightweight and blazing-fast interface.
-- **Modern CSS**: Custom responsive layout with a premium aesthetic.
+- 🔐 **Secure Authentication**: Power by **Supabase Auth**. Create an account to save and access your resumes from anywhere.
+- ☁️ **Cloud synchronization**: Automatically syncs your LaTeX source and generated PDFs to **Supabase Storage** and **PostgreSQL**. Never lose your progress.
+- 🛠️ **Intelligent AI Routing**: Uses Groq as the primary engine for speed and Gemini as a robust fallback for high reliability.
+- 🔔 **Premium UI Components**: Modern Toast notification system and real-time status badges for a seamless user experience.
+- ⚡ **Side-by-Side Live Editor**: Edit LaTeX code on the left and see the PDF update instantly on the right.
+- 🛡️ **Advanced Sanitization**: Built-in protection against LaTeX injection and automatic fixes for AI-generated formatting quirks.
 
 ---
 
-## 🚀 Getting Started
+## 🏗️ Technical Architecture
 
-### Prerequisites
+### Tech Stack
+- **Frontend**: Vanilla JS, Modern CSS (Glassmorphism), Supabase Auth UI.
+- **Backend**: Node.js, Express, Multer (Memory Storage).
+- **Database/Storage**: Supabase (PostgreSQL & S3-compatible storage).
+- **AI Models**: Groq Cloud (Llama 3.3), Gemini 1.5 Flash.
+- **Compilation**: TeX Live / pdflatex.
 
-- [Node.js](https://nodejs.org/) (v16+)
-- [TeX Live](https://www.tug.org/texlive/) or [MiKTeX](https://miktex.org/) (must have `pdflatex` in your system PATH)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Pramod-Munnoli/AI_Latex_Resume_Builder.git
-   cd AI_Latex_Resume_Builder
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables**
-   Create a `.env` file in the root directory:
-   ```env
-   PORT=3000
-   GROQ_API_KEY=your_groq_api_key
-   GEMINI_API_KEY=your_gemini_api_key
-   ```
-
-4. **Run the application**
-   ```bash
-   # Development mode (with nodemon)
-   npm run dev
-
-   # Production mode
-   npm start
-   ```
-
----
-
-## 📸 Project Workflow
-
+### Visual Workflow
 ```mermaid
-graph LR
-    A[Upload PDF] --> B[Text Extraction]
-    B --> C{AI Generator}
-    C -->|Priority| D[Groq Llama 3]
-    C -->|Fallback| E[Gemini Flash]
-    D --> F[Sanitize LaTeX]
-    E --> F[Sanitize LaTeX]
-    F --> G[Live Editor & Preview]
-    G --> H[Download PDF]
+graph TD
+    User((User)) -->|Upload PDF| FE[Frontend]
+    FE -->|Extract Text| BE[Backend API]
+    BE -->|Query| AI{AI Router}
+    AI -->|High Speed| Groq[Groq Llama 3]
+    AI -->|Reliable| Gemini[Gemini Flash]
+    Groq --> Sant[Sanitization & Compile]
+    Gemini --> Sant
+    Sant -->|Result| FE
+    FE -->|Auth Context| Sync{Cloud Sync}
+    Sync -->|Save| DB[(Supabase DB)]
+    Sync -->|Upload| S3[(Supabase Store)]
 ```
 
 ---
 
-## 🤝 Contributing
+## 🚀 Deployment & Hosting
 
-Contributions are welcome! If you have suggestions for improvement or find any bugs, please open an issue or submit a pull request.
+### 1. Local Setup
+1. **Clone & Install**:
+   ```bash
+   git clone https://github.com/Pramod-Munnoli/AI_Latex_Resume_Builder.git
+   npm install
+   ```
+2. **Environment Variables (.env)**:
+   ```env
+   PORT=3000
+   GROQ_API_KEY=your_key
+   GEMINI_API_KEY=your_key
+   SUPABASE_URL=your_project_url
+   SUPABASE_ANON_KEY=your_anon_key
+   ```
+3. **Run**: `npm run dev`
+
+### 2. Hosting (Final Version)
+To host this app on platforms like **Render**, **Railway**, or **DigitalOcean**:
+- **System Dependencies**: Ensure the hosting environment has `texlive-latex-extra` and `texlive-fonts-recommended` installed.
+- **Persistent Storage**: Not required for the PDF results as they are synced to Supabase Cloud, but ensure the `backend/temp` directory exists and is writable.
+- **Environment**: Set all `.env` variables in your provider's dashboard.
 
 ---
 
-## 📄 License
+## 🤝 Contributing & License
 
-Distributed under the **ISC License**. See `package.json` for details.
+Feel free to fork and submit PRs. The project is licensed under the **ISC License**.
 
 ---
 
-Developed with ❤️ by [Pramod Munnoli](https://github.com/Pramod-Munnoli) And [Snjeev Koshti](https://github.com/sanjeevkoshti)
+Designed and Developed by [Pramod Munnoli](https://github.com/Pramod-Munnoli)
