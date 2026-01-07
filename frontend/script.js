@@ -14,15 +14,21 @@
     const pdfFrame = $("pdfFrame");
     const toastContainer = $("toastContainer");
 
-    // Supabase Initialization
-    let supabase = null;
+    // --- CLOUD CONFIGURATION ---
+    // Change this to your Render URL when it is Live!
+    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
+        ? "" 
+        : "https://ai-latex-resume-builder.onrender.com"; 
 
     async function initSupabase() {
         try {
-            const resp = await fetch("/api/config");
+            console.log("Connecting to backend at:", API_BASE || "local");
+            const resp = await fetch(`${API_BASE}/api/config`);
+            
+            if (!resp.ok) throw new Error(`Server responded with ${resp.status}`);
             const config = await resp.json();
 
-            if (config.supabaseUrl && config.supabaseAnonKey && (config.supabaseAnonKey.trim().length > 20)) {
+            if (config.supabaseUrl && config.supabaseAnonKey) {
                 const url = config.supabaseUrl.trim();
                 const key = config.supabaseAnonKey.trim();
                 supabase = window.supabase.createClient(url, key);
@@ -199,8 +205,15 @@
             pdfFrame.setAttribute("src", "");
             return;
         }
+        
+        let fullUrl = url;
+        // If it's a relative path (like /files/resume.pdf), add the API_BASE
+        if (url.startsWith("/files/")) {
+            fullUrl = API_BASE + url;
+        }
+
         // Remove old timestamp if it exists to avoid double ???
-        const cleanUrl = url.split("?")[0];
+        const cleanUrl = fullUrl.split("?")[0];
         const bust = cleanUrl + "?t=" + Date.now();
         pdfFrame.setAttribute("src", bust);
     }
@@ -284,7 +297,7 @@
         compileLog.classList.remove("has-error");
 
         try {
-            const resp = await fetch("/api/upload", { method: "POST", body: fd });
+            const resp = await fetch(`${API_BASE}/api/upload`, { method: "POST", body: fd });
             const data = await resp.json();
 
             if (!resp.ok) {
@@ -341,7 +354,7 @@
         compileLog.classList.remove("has-error");
 
         try {
-            const resp = await fetch("/api/recompile", {
+            const resp = await fetch(`${API_BASE}/api/recompile`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ latex })
@@ -383,7 +396,7 @@
     }
 
     function downloadPdf() {
-        window.open("/api/download", "_blank");
+        window.open(`${API_BASE}/api/download`, "_blank");
     }
 
     async function saveToSupabase(latex, pdfUrl) {

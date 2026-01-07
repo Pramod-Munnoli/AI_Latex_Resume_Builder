@@ -1,0 +1,12 @@
+{
+    "watch": [
+        "backend",
+        "frontend"
+    ],
+    "ext": "js,json,css,html",
+    "ignore": [
+        "backend/temp/*",
+        "node_modules"
+    ],
+    "delay": "2500"
+}
