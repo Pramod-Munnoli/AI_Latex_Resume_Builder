@@ -1,0 +1,2 @@
+# This file exists to ensure the temp directory is tracked by Git.
+# The actual files inside this folder are ignored via .gitignore.
