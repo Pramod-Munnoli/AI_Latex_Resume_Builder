@@ -43,9 +43,21 @@
 
                     if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
                         if (session?.user) {
-                            // CLOSE MODAL IMMEDIATELY - Don't wait for data
-                            closeModal();
-                            loadLastSavedResume(); // No await here to prevent blocking UI
+                            // Check if this is a password recovery flow
+                            const isRecovery = window.location.hash && window.location.hash.includes("type=recovery");
+
+                            if (isRecovery) {
+                                // FORCE password update UI and keep modal open
+                                setAuthUI("update");
+                                authMessage.textContent = "Please set a new password to secure your account.";
+                                authMessage.style.display = "block";
+                                openModal();
+                                // We do NOT clear the hash here; let Supabase process it or clear it after successful update
+                            } else {
+                                // Normal Login: Close modal
+                                closeModal();
+                            }
+                            loadLastSavedResume();
                         }
                     } else if (event === "SIGNED_OUT") {
                         latexEditor.value = "";
