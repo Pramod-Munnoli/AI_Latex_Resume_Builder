@@ -623,17 +623,29 @@
     }
 
     async function handleLogout() {
-        if (supabase) {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                showToast("Logged Out", "See you again!", "info");
-            } catch (err) {
+        if (!supabase) return;
+
+        try {
+            // Attempt standard sign out
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            showToast("Logged Out", "See you again!", "info");
+        } catch (err) {
+            // If session is already missing, that's fine - just clear local state
+            if (err.message && err.message.includes("Auth session missing")) {
+                console.warn("Session already expired, clearing local state.");
+            } else {
                 console.error("Logout error:", err);
-                // Force UI update even on error
-                currentUser = null;
-                updateAuthUI(null);
             }
+        } finally {
+            // ALWAYS Force UI update to ensure user is logged out locally
+            currentUser = null;
+            updateAuthUI(null);
+            latexEditor.value = "";
+            setPdfSrc(null);
+            recompileBtn.disabled = true;
+            downloadBtn.disabled = true;
+            closeModal();
         }
     }
 
