@@ -517,14 +517,30 @@
 
             if (data) {
                 latexEditor.value = data.latex_content || "";
-                if (data.pdf_url) {
-                    setPdfSrc(data.pdf_url);
-                    downloadBtn.disabled = false;
+
+                // Valid PDF URL check - Don't load expired temp files
+                let validPdf = data.pdf_url;
+                if (validPdf && (validPdf.includes("/files/") || validPdf.includes("localhost") || validPdf.startsWith("http://127.0.0.1"))) {
+                    console.warn("Ignoring stale/local PDF URL:", validPdf);
+                    validPdf = null;
+                    showToast("Resume Loaded", "Old PDF expired. Please click Recompile.", "info");
                 }
+
+                if (validPdf) {
+                    setPdfSrc(validPdf);
+                    downloadBtn.disabled = false;
+                    setStatus("Latest version loaded", "success");
+                } else {
+                    // Start clean if no valid PDF
+                    setPdfSrc(null);
+                    setStatus("Ready to Compile", "ready");
+                }
+
                 recompileBtn.disabled = !latexEditor.value.trim();
-                compileLog.textContent = "Welcome back! Your previously saved resume has been loaded successfully.";
+                if (!compileLog.textContent) {
+                    compileLog.textContent = "Previous session loaded. Click Recompile to generate PDF.";
+                }
                 compileLog.classList.remove("has-error");
-                setStatus("Latest version loaded", "success");
             }
         } catch (err) {
             console.error("Failed to load resume:", err);
