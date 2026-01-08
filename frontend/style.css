@@ -44,11 +44,18 @@ body {
     height: 100%
 }
 
-body {
+* {
+    box-sizing: border-box;
     margin: 0;
+    padding: 0;
+}
+
+body {
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
     background: var(--bg);
-    color: var(--text)
+    color: var(--text);
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .header {
@@ -68,6 +75,9 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    /* Allow wrapping of title and auth */
+    gap: 8px;
 }
 
 .auth-container {
@@ -624,16 +634,21 @@ body {
     gap: 16px;
     padding: 16px;
     height: calc(100vh - 110px);
-    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
 }
 
-.editor-container,
-.preview-container {
-    background-color: white;
+.left,
+.right {
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    /* Crucial for grid/flex shrinking */
+    box-shadow: var(--shadow-1);
     overflow: hidden;
 }
 
@@ -849,34 +864,15 @@ body {
 
 #latexEditor {
     flex: 1;
-    min-height: 0;
-    height: 100%;
+    width: 100%;
     padding: 12px 16px;
     border: none;
     border-bottom: 1px solid var(--border);
     resize: none;
-    font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
     font-size: 13px;
     line-height: 1.5;
     background: #fcfcff;
-    border-radius: 0 0 12px 12px
-}
-
-#latexEditor:focus {
-    outline: none;
-    background: #ffffff;
-    box-shadow: inset 0 0 0 2px rgba(147, 197, 253, .45)
-}
-
-.log {
-    border-top: 1px solid var(--border);
-    padding: 8px 16px
-}
-
-.log h3 {
-    margin: 8px 0 6px 0;
-    font-size: 14px;
-    color: var(--muted)
 }
 
 #compileLog {
@@ -887,33 +883,20 @@ body {
     padding: 10px;
     max-height: 160px;
     overflow: auto;
-    font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
     font-size: 12px;
     line-height: 1.45;
-    transition: border-color 0.3s ease;
+    white-space: pre-wrap;
+    /* Wrap long lines */
+    word-break: break-all;
 }
 
-#compileLog.has-error {
-    border: 2px solid var(--danger);
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.pdf-frame {
+.pdf-iframe {
     flex: 1;
     width: 100%;
     height: 100%;
-    min-height: 0;
     border: none;
-    border-bottom: 1px solid var(--border);
     background: #fff;
-    border-radius: 0 0 12px 12px;
-    box-shadow: inset 0 0 0 1px #f1f5f9
-}
-
-.hint {
-    padding: 8px 16px;
-    font-size: 12px;
-    color: var(--muted)
 }
 
 /* Ultra-Premium Global Scrollbars */
@@ -945,12 +928,43 @@ body {
     scrollbar-color: #94a3b8 transparent;
 }
 
+body,
+.main {
+    overflow-x: hidden;
+}
+
+/* Custom button for mobile PDF viewing - Compact version */
+.mobile-pdf-link {
+    display: none;
+    /* Hidden by default, shown in header on small screens */
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white !important;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.15);
+    white-space: nowrap;
+    margin-left: auto;
+    /* Pushes it to the right in the header */
+}
+
+.mobile-pdf-link:hover {
+    filter: brightness(110%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+}
+
+/* Responsive Design Strategy */
+
 @media (max-width: 1024px) {
     .main {
         grid-template-columns: 1fr;
         height: auto;
         padding: 12px;
-        gap: 20px;
+        gap: 16px;
     }
 
     .pdf-iframe {
@@ -967,7 +981,26 @@ body {
     }
 }
 
+@media (max-width: 768px) {
+    .mobile-pdf-link {
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
+/* Mobile Enhancements */
 @media (max-width: 600px) {
+
+    #displayUserName {
+        max-width: 70px;
+        font-size: 11px;
+    }
+
+    .main {
+        padding: 8px;
+        gap: 12px;
+    }
+
     .header {
         padding: 10px;
         gap: 8px;
@@ -977,18 +1010,20 @@ body {
         flex-direction: row;
         flex-wrap: wrap;
         align-items: center;
+        justify-content: space-between;
         gap: 8px;
     }
 
     .header h1 {
-        font-size: 16px;
+        font-size: 15px;
+        margin: 0;
         flex: 1;
-        min-width: 150px;
+        min-width: 120px;
     }
 
     .auth-container {
         width: auto;
-        gap: 6px;
+        gap: 4px;
     }
 
     .upload-section {
@@ -1001,6 +1036,7 @@ body {
     .file-input-wrapper {
         width: 100%;
         padding: 4px;
+        overflow: hidden;
     }
 
     .upload-section button {
@@ -1009,20 +1045,30 @@ body {
     }
 
     .panel-header {
-        flex-direction: column;
-        align-items: stretch;
+        padding: 10px;
+        flex-wrap: wrap;
         gap: 8px;
     }
 
+    .panel-header h2 {
+        font-size: 14px;
+        margin: 0;
+    }
+
     .panel-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
         gap: 6px;
+        width: 100%;
     }
 
     .panel-actions button {
-        padding: 8px;
-        font-size: 11px;
+        flex: 1;
+        padding: 8px 4px;
+        font-size: 10px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .toast-container {
@@ -1030,61 +1076,41 @@ body {
         right: 10px;
         top: 10px;
     }
-}
 
-/* Custom button for mobile PDF viewing - Compact version */
-.mobile-pdf-link {
-    display: none;
-    background: var(--primary);
-    color: white !important;
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-}
+    #latexEditor {
+        font-size: 12px;
+        padding: 10px;
+    }
 
-.mobile-pdf-link:hover {
-    filter: brightness(110%);
-    transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-    .mobile-pdf-link {
-        display: inline-block;
+    #compileLog {
+        font-size: 11px;
     }
 }
 
 @media (max-width: 400px) {
-    .header {
-        padding: 8px 10px;
-    }
-
     .header h1 {
-        font-size: 14px;
+        font-size: 13px;
         min-width: 100px;
     }
 
-    .btn-secondary,
-    #authBtn {
-        padding: 6px 10px;
-        font-size: 11px;
+    #authBtn,
+    .btn-secondary {
+        padding: 6px 8px;
+        font-size: 10px;
     }
 
     .user-profile {
-        padding: 4px 10px;
-        gap: 6px;
+        padding: 4px 8px;
+        gap: 4px;
     }
 
     #displayUserName {
-        max-width: 80px;
-        font-size: 12px;
+        max-width: 70px;
+        font-size: 11px;
     }
 
     .btn-link {
-        padding: 4px 10px;
+        padding: 4px 8px;
         font-size: 10px;
     }
 }

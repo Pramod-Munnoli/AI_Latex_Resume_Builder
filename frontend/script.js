@@ -56,7 +56,11 @@
                         updateAuthUI(null);
                         closeModal();
                     } else if (event === "PASSWORD_RECOVERY") {
+                        // Clear the URL hash so the token doesn't persist in the address bar
+                        window.history.replaceState(null, null, window.location.pathname);
                         setAuthUI("update");
+                        authMessage.textContent = "You've been logged in. Please set a new password below.";
+                        authMessage.style.display = "block";
                         openModal();
                     }
                 });
