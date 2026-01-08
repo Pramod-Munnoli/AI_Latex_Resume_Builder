@@ -217,13 +217,22 @@
         downloadBtn.disabled = isLoading;
     }
 
-    function setPdfSrc(url) {
+    function setPdfSrc(url, isHtml = false) {
         if (!url) {
+            pdfFrame.removeAttribute("srcdoc");
             pdfFrame.setAttribute("src", "");
             mobilePdfLink.style.display = "none";
             return;
         }
 
+        if (isHtml) {
+            pdfFrame.removeAttribute("src");
+            pdfFrame.setAttribute("srcdoc", url);
+            mobilePdfLink.style.display = "none";
+            return;
+        }
+
+        pdfFrame.removeAttribute("srcdoc");
         let fullUrl = url;
         // If it's a relative path (like /files/resume.pdf), add the API_BASE
         if (url.startsWith("/files/")) {
@@ -531,8 +540,16 @@
                     downloadBtn.disabled = false;
                     setStatus("Latest version loaded", "success");
                 } else {
-                    // Start clean if no valid PDF
-                    setPdfSrc(null);
+                    // Start clean if no valid PDF - Show friendly message
+                    const msg = `
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#64748b;font-family:system-ui,sans-serif;text-align:center;padding:20px;background:#f8fafc;">
+                            <div style="font-size:48px;margin-bottom:16px;">📄</div>
+                            <h3 style="margin:0 0 8px 0;color:#334155;">Preview Unavailable</h3>
+                            <p style="margin:0;font-size:14px;line-height:1.5;">The previously generated PDF has expired.</p>
+                            <p style="margin:4px 0 0 0;font-size:14px;font-weight:600;color:#2563eb;">Click "Recompile" to generate a new one.</p>
+                        </div>
+                    `;
+                    setPdfSrc(msg, true);
                     setStatus("Ready to Compile", "ready");
                 }
 
