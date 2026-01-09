@@ -481,25 +481,60 @@
                     // Construct proper URL with API_BASE for deployed environments
                     const fetchUrl = `${API_BASE}/files/resume.pdf?v=${Date.now()}`;
 
-                    const pdfBlob = await fetch(fetchUrl, { cache: "no-store" }).then(r => r.blob());
+                    console.log("Fetching PDF blob from:", fetchUrl);
+
+                    // Fetch the PDF with proper error handling
+                    const response = await fetch(fetchUrl, {
+                        cache: "no-store",
+                        headers: {
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch PDF: ${response.status} ${response.statusText}`);
+                    }
+
+                    const pdfBlob = await response.blob();
+
+                    // Validate the blob before upload
+                    if (!pdfBlob || pdfBlob.size === 0) {
+                        throw new Error("PDF blob is empty or invalid");
+                    }
+
+                    console.log(`PDF blob fetched successfully: ${pdfBlob.size} bytes, type: ${pdfBlob.type}`);
+
                     // Fixed filename: one PDF per user
                     const fileName = `${currentUser.id}/resume.pdf`;
 
-                    // 1a. Explicitly remove old file to ensure clean replacement (bypasses upsert quirks)
-                    await supabase.storage
+                    // 1a. Explicitly remove old file to ensure clean replacement
+                    const { error: removeError } = await supabase.storage
                         .from('resumes')
                         .remove([fileName]);
 
-                    // 1b. Upload fresh blob
+                    if (removeError) {
+                        console.warn("Old file removal warning (might not exist):", removeError);
+                    }
+
+                    // Wait a moment to ensure removal is complete
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // 1b. Upload fresh blob with proper options
+                    console.log("Uploading PDF to Supabase Storage...");
                     const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('resumes')
                         .upload(fileName, pdfBlob, {
                             contentType: 'application/pdf',
-                            cacheControl: '0', // Tell Supabase not to cache this
+                            cacheControl: '3600', // Cache for 1 hour (not 0, as that can cause issues)
                             upsert: true
                         });
 
-                    if (uploadError) throw uploadError;
+                    if (uploadError) {
+                        console.error("Upload error details:", uploadError);
+                        throw uploadError;
+                    }
+
+                    console.log("Upload successful:", uploadData);
 
                     const { data: urlData } = supabase.storage
                         .from('resumes')
@@ -507,8 +542,12 @@
 
                     // Add cache buster to the URL for immediate UI update
                     permanentPdfUrl = urlData.publicUrl + "?t=" + Date.now();
+                    console.log("PDF stored at:", permanentPdfUrl);
                 } catch (storageErr) {
-                    console.warn("Storage upload failed, using local link:", storageErr);
+                    console.error("Storage upload failed:", storageErr);
+                    showToast("Upload Failed", "Could not save PDF to cloud storage. Resume not saved.", "error");
+                    // Don't save to database if storage upload failed - this prevents invalid URLs
+                    return;
                 }
             }
 
@@ -556,12 +595,27 @@
             if (data) {
                 latexEditor.value = data.latex_content || "";
 
-                // Valid PDF URL check - Don't load expired temp files
+                // Comprehensive PDF URL validation - reject invalid/temporary URLs
                 let validPdf = data.pdf_url;
-                if (validPdf && (validPdf.includes("/files/") || validPdf.includes("localhost") || validPdf.startsWith("http://127.0.0.1"))) {
-                    console.warn("Ignoring stale/local PDF URL:", validPdf);
+
+                // Check for various invalid URL patterns
+                const invalidPatterns = [
+                    "/files/",           // Local temp files
+                    "localhost",         // Localhost URLs
+                    "127.0.0.1",         // Local IP
+                    "vercel.app",        // Vercel preview deployments (often expire)
+                    "::"                 // Vercel deployment IDs (e.g., bom1::7hdpj...)
+                ];
+
+                const isInvalidUrl = validPdf && invalidPatterns.some(pattern => validPdf.includes(pattern));
+
+                // Only accept Supabase Storage URLs as valid
+                const isSupabaseUrl = validPdf && validPdf.includes("supabase.co/storage");
+
+                if (validPdf && (!isSupabaseUrl || isInvalidUrl)) {
+                    console.warn("Ignoring invalid/expired PDF URL:", validPdf);
                     validPdf = null;
-                    showToast("Resume Loaded", "Old PDF expired. Please click Recompile.", "info");
+                    showToast("PDF Unavailable", "Previous PDF expired. Click Recompile to generate new.", "info");
                 }
 
                 if (validPdf) {
