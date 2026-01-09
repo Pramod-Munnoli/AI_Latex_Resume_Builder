@@ -21,6 +21,9 @@
         ? ""
         : "https://ai-latex-resume-builder.onrender.com";
 
+    // Global Supabase client (must be declared at module scope)
+    let supabase = null;
+
     async function initSupabase() {
         try {
             console.log("Connecting to backend at:", API_BASE || "local");
@@ -32,55 +35,80 @@
             if (config.supabaseUrl && config.supabaseAnonKey) {
                 const url = config.supabaseUrl.trim();
                 const key = config.supabaseAnonKey.trim();
-                supabase = window.supabase.createClient(url, key);
 
-                // Set up listener immediately after initialization
-                supabase.auth.onAuthStateChange(async (event, session) => {
+                try {
+                    supabase = window.supabase.createClient(url, key);
 
-                    // Unified state update
-                    currentUser = session?.user || null;
-                    updateAuthUI(session);
+                    // Set up listener immediately after initialization
+                    supabase.auth.onAuthStateChange(async (event, session) => {
 
-                    if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-                        if (session?.user) {
-                            // Check if this is a password recovery flow
-                            const isRecovery = window.location.hash && window.location.hash.includes("type=recovery");
+                        // Unified state update
+                        currentUser = session?.user || null;
+                        updateAuthUI(session);
 
-                            if (isRecovery) {
-                                // FORCE password update UI and keep modal open
-                                setAuthUI("update");
-                                authMessage.textContent = "Please set a new password to secure your account.";
-                                authMessage.style.display = "block";
-                                openModal();
-                                // We do NOT clear the hash here; let Supabase process it or clear it after successful update
-                            } else {
-                                // Normal Login: Close modal
-                                closeModal();
+                        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+                            if (session?.user) {
+                                // Check if this is a password recovery flow
+                                const isRecovery = window.location.hash && window.location.hash.includes("type=recovery");
+
+                                if (isRecovery) {
+                                    // FORCE password update UI and keep modal open
+                                    setAuthUI("update");
+                                    authMessage.textContent = "Please set a new password to secure your account.";
+                                    authMessage.style.display = "block";
+                                    openModal();
+                                    // We do NOT clear the hash here; let Supabase process it or clear it after successful update
+                                } else {
+                                    // Normal Login: Close modal
+                                    closeModal();
+                                }
+                                loadLastSavedResume();
                             }
-                            loadLastSavedResume();
+                        } else if (event === "SIGNED_OUT") {
+                            latexEditor.value = "";
+                            setPdfSrc(null);
+                            recompileBtn.disabled = true;
+                            downloadBtn.disabled = true;
+                            currentUser = null;
+                            updateAuthUI(null);
+                            closeModal();
+                        } else if (event === "PASSWORD_RECOVERY") {
+                            // Clear the URL hash so the token doesn't persist in the address bar
+                            window.history.replaceState(null, null, window.location.pathname);
+                            setAuthUI("update");
+                            authMessage.textContent = "You've been logged in. Please set a new password below.";
+                            authMessage.style.display = "block";
+                            openModal();
                         }
-                    } else if (event === "SIGNED_OUT") {
-                        latexEditor.value = "";
-                        setPdfSrc(null);
-                        recompileBtn.disabled = true;
-                        downloadBtn.disabled = true;
-                        currentUser = null;
-                        updateAuthUI(null);
-                        closeModal();
-                    } else if (event === "PASSWORD_RECOVERY") {
-                        // Clear the URL hash so the token doesn't persist in the address bar
-                        window.history.replaceState(null, null, window.location.pathname);
-                        setAuthUI("update");
-                        authMessage.textContent = "You've been logged in. Please set a new password below.";
-                        authMessage.style.display = "block";
-                        openModal();
+                    });
+                } catch (authError) {
+                    // Handle stale/invalid refresh token errors
+                    if (authError.message && authError.message.includes("refresh_token")) {
+                        console.warn("Detected stale refresh token, clearing localStorage...", authError);
+
+                        // Clear all Supabase-related keys from localStorage
+                        const storageKeys = Object.keys(localStorage);
+                        storageKeys.forEach(key => {
+                            if (key.startsWith('sb-')) {
+                                localStorage.removeItem(key);
+                            }
+                        });
+
+                        // Re-initialize the client with clean state
+                        supabase = window.supabase.createClient(url, key);
+                        console.log("Supabase re-initialized with clean state.");
+                        showToast("Session Cleared", "Please log in again.", "info");
+                    } else {
+                        throw authError;
                     }
-                });
+                }
             } else {
                 console.warn("Supabase credentials missing in .env");
+                showToast("Configuration Error", "Supabase credentials not configured. Authentication disabled.", "warning");
             }
         } catch (err) {
             console.error("Failed to load Supabase config:", err);
+            showToast("Connection Error", "Failed to connect to authentication service. Please refresh the page.", "error");
         }
     }
 
@@ -450,7 +478,8 @@
             if (pdfUrl.startsWith("/files/") || pdfUrl.includes("localhost") || pdfUrl.startsWith("http://127.0.0.1")) {
                 try {
                     // Use a very unique URL to bypass ANY browser caching
-                    const fetchUrl = `/files/resume.pdf?v=${Date.now()}`;
+                    // Construct proper URL with API_BASE for deployed environments
+                    const fetchUrl = `${API_BASE}/files/resume.pdf?v=${Date.now()}`;
 
                     const pdfBlob = await fetch(fetchUrl, { cache: "no-store" }).then(r => r.blob());
                     // Fixed filename: one PDF per user
@@ -572,8 +601,8 @@
         isAuthenticating = true;
 
         if (!supabase) {
-            console.error("Supabase client not ready yet.");
-            showToast("Connecting...", "Still establishing connection to the server. Please wait.", "info");
+            console.error("Supabase client not initialized. Check if initSupabase() completed successfully.");
+            showToast("Connection Error", "Authentication service unavailable. Please refresh the page and try again.", "error");
             isAuthenticating = false;
             return;
         }
