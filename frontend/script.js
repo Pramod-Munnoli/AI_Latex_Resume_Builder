@@ -711,14 +711,26 @@
         try {
             // Attempt standard sign out
             const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            showToast("Logged Out", "See you again!", "info");
+
+            // Handle different error types
+            if (error) {
+                // 403 Forbidden means session already expired/invalid - this is fine
+                if (error.status === 403 || error.message?.includes("403")) {
+                    console.warn("Session already expired (403), clearing local state.");
+                } else {
+                    throw error;
+                }
+            } else {
+                showToast("Logged Out", "See you again!", "info");
+            }
         } catch (err) {
             // If session is already missing, that's fine - just clear local state
-            if (err.message && err.message.includes("Auth session missing")) {
+            if (err.message && (err.message.includes("Auth session missing") || err.message.includes("403"))) {
                 console.warn("Session already expired, clearing local state.");
             } else {
                 console.error("Logout error:", err);
+                // Show error toast for unexpected issues
+                showToast("Logout", "Logged out locally (session expired).", "info");
             }
         } finally {
             // ALWAYS Force UI update to ensure user is logged out locally
