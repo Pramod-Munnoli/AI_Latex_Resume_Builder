@@ -518,8 +518,9 @@
             showToast("Success!", "LaTeX compiled successfully.", "success");
             if (downloadBtn) downloadBtn.disabled = false;
 
-            // Save updated version to Database if logged in
-            if (currentUser) {
+            // Save updated version to Database ONLY if logged in and on the AI Builder page
+            // We do NOT save template experiments from the Editor to the primary "My Resume" slot
+            if (currentUser && window.location.pathname.includes('ai-builder.html')) {
                 updateLoaderMessage('Saving to cloud...');
                 await saveToSupabase(latex, data.pdfUrl || "/files/resume.pdf");
             }
