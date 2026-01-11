@@ -241,37 +241,8 @@
 
     // Toast notification system
     function showToast(title, message, type = "info") {
-        const toast = document.createElement("div");
-        toast.className = `toast toast-${type}`;
-
-        const icons = {
-            success: "✓",
-            error: "✕",
-            warning: "⚠",
-            info: "ℹ"
-        };
-
-        toast.innerHTML = `
-            <div class="toast-icon">${icons[type] || icons.info}</div>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                ${message ? `<div class="toast-message">${message}</div>` : ""}
-            </div>
-        `;
-
-        if (toastContainer) toastContainer.appendChild(toast);
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            toast.classList.add("toast-hiding");
-            setTimeout(() => {
-                if (toast.parentNode && toastContainer) {
-                    toastContainer.removeChild(toast);
-                } else if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 300);
-        }, 5000);
+        // Disabled per user request to remove all popups
+        console.log(`Toast suppressed: [${type}] ${title} - ${message}`);
     }
 
     // Enhanced status update with type
@@ -317,6 +288,14 @@
 
     function updateLoaderMessage(message) {
         if (loaderMessage) loaderMessage.textContent = message;
+    }
+
+    // Scroll to workspace helper
+    function scrollToWorkspace() {
+        const workspace = document.querySelector('.ai-builder-workspace');
+        if (workspace) {
+            workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
 
@@ -477,6 +456,9 @@
             if (currentUser) {
                 await saveToSupabase(data.latex, data.pdfUrl || "/files/resume.pdf");
             }
+
+            // Scroll to preview after generation
+            scrollToWorkspace();
         } catch (err) {
             setStatus("Upload failed", "error");
             if (compileLog) {
@@ -538,6 +520,9 @@
                 updateLoaderMessage('Saving to cloud...');
                 await saveToSupabase(latex, data.pdfUrl || "/files/resume.pdf");
             }
+
+            // Scroll to preview after compilation
+            scrollToWorkspace();
         } catch (err) {
             setStatus("Compilation failed", "error");
             if (compileLog) {
