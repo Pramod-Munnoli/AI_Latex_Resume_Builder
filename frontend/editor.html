@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX Editor - AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="editor.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body class="editor-body">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">AI Resume</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="templates.html" class="nav-link">Templates</a>
+                <a href="ai-builder.html" class="nav-link">AI Builder</a>
+                <a href="editor.html" class="nav-link active">Editor</a>
+                <a href="docs.html" class="nav-link">Docs</a>
+            </div>
+            <div id="authContainer" class="auth-container" style="display: none;">
+                <a href="login.html" id="authBtn" class="btn-auth">Login / Sign Up</a>
+                <div id="userProfile" class="user-profile" style="display: none;">
+                    <span class="user-icon">👤</span>
+                    <span id="displayUserName" class="user-name"></span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </div>
+            </div>
+            <div class="editor-actions">
+                <button id="recompileBtn" class="btn btn-primary btn-sm">
+                    <span>⚡</span> Recompile
+                </button>
+                <button id="downloadBtn" class="btn btn-secondary btn-sm" disabled>
+                    <span>📥</span> Download PDF
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="editor-container">
+        <!-- Left Panel: LaTeX Editor -->
+        <section class="editor-panel">
+            <div class="panel-label">LaTeX Source</div>
+            <textarea id="latexEditor" spellcheck="false" autocomplete="off"
+                placeholder="Enter your LaTeX code here...">\documentclass{article}
+\begin{document}
+Hello World!
+\end{document}</textarea>
+        </section>
+
+        <!-- Right Panel: PDF Preview -->
+        <section class="preview-panel">
+            <div class="panel-label" style="display: flex; justify-content: space-between; align-items: center;">
+                Live Preview
+                <span id="statusBadge" class="status-badge status-ready" style="font-size: 0.65rem;">Ready</span>
+            </div>
+            <div class="pdf-viewer">
+                <iframe id="pdfFrame" class="pdf-iframe" style="width: 100%; height: 100%; border: none;"></iframe>
+                <a id="mobilePdfLink" class="btn btn-secondary btn-sm" target="_blank"
+                    style="display: none; position: absolute; bottom: 20px; right: 20px; z-index: 100;">View Full
+                    PDF</a>
+            </div>
+        </section>
+
+        <!-- Bottom Panel: Compilation Errors -->
+        <section id="errorPanel" class="error-panel" style="display: none;">
+            <div class="error-header">
+                <h3>Compilation Errors</h3>
+                <button id="closeError" class="btn-close">&times;</button>
+            </div>
+            <div id="compileLog" class="error-list"></div>
+        </section>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Templates - AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="templates.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">AI LaTeX Resume Builder</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="templates.html" class="nav-link active">Templates</a>
+                <a href="ai-builder.html" class="nav-link">AI Builder</a>
+                <a href="editor.html" class="nav-link">Editor</a>
+                <a href="docs.html" class="nav-link">Docs</a>
+            </div>
+            <div id="authContainer" class="auth-container">
+                <a href="login.html" id="authBtn" class="btn-auth">Login / Sign Up</a>
+                <!-- Modern Profile Dropdown -->
+                <div id="profileDropdown" class="profile-dropdown" style="display: none;">
+                    <div id="profileAvatar" class="profile-avatar">PM</div>
+                    <div id="profileMenu" class="profile-menu">
+                        <div class="profile-menu-header">
+                            <span id="profileName" class="profile-menu-name">User Name</span>
+                            <span id="profileEmail" class="profile-menu-email">user@example.com</span>
+                        </div>
+                        <div class="profile-menu-items">
+                            <button id="logoutBtn" class="profile-menu-item logout">
+                                <span>🚪</span>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="templates-page">
+        <header class="templates-header">
+            <h1 class="page-title">Resume Templates</h1>
+            <p class="page-subtitle">Choose a professionally designed LaTeX template and customize it with your own
+                information.</p>
+        </header>
+
+        <section class="filters-section">
+            <div class="filter-wrapper">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="templateSearch" placeholder="Search templates...">
+                </div>
+                <div class="filter-chips">
+                    <button class="filter-chip active" data-filter="all">All</button>
+                    <button class="filter-chip" data-filter="ats">ATS Friendly</button>
+                    <button class="filter-chip" data-filter="minimal">Minimal</button>
+                    <button class="filter-chip" data-filter="academic">Academic</button>
+                    <button class="filter-chip" data-filter="developer">Developer</button>
+                    <button class="filter-chip" data-filter="student">Student / Fresher</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="templates-grid-section">
+            <div class="template-grid" id="templateGrid">
+                <!-- Template 1 -->
+                <div class="template-card" data-category="ats">
+                    <div class="template-preview">
+                        <img src="images/template_ats_modern.png" alt="ATS Modern">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">ATS Modern</h3>
+                        <p class="template-desc">Optimized for machine reading and clarity.</p>
+                        <div class="template-tags">
+                            <span class="tag">ATS</span>
+                            <span class="tag">Professional</span>
+                        </div>
+                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 2 -->
+                <div class="template-card" data-category="minimal">
+                    <div class="template-preview">
+                        <img src="images/template_clean_minimalist.png" alt="Clean Minimalist">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Clean Minimalist</h3>
+                        <p class="template-desc">A focus on content with elegant white space.</p>
+                        <div class="template-tags">
+                            <span class="tag">Minimal</span>
+                            <span class="tag">Elegant</span>
+                        </div>
+                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 3 -->
+                <div class="template-card" data-category="academic">
+                    <div class="template-preview">
+                        <img src="images/template_academic_preview_1768038357375.png" alt="Academic Excellence">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Academic Excellence</h3>
+                        <p class="template-desc">Traditional layout for research and academia.</p>
+                        <div class="template-tags">
+                            <span class="tag">Academic</span>
+                            <span class="tag">Multi-page</span>
+                        </div>
+                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 4 -->
+                <div class="template-card" data-category="developer">
+                    <div class="template-preview">
+                        <img src="images/template_ats_preview_1768038291005.png" alt="Tech Focused">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Tech Focused</h3>
+                        <p class="template-desc">Modern design with tech-stack emphasis.</p>
+                        <div class="template-tags">
+                            <span class="tag">Developer</span>
+                            <span class="tag">Tech</span>
+                        </div>
+                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                    </div>
+                </div>
+                <!-- Template 5 -->
+                <div class="template-card" data-category="student">
+                    <div class="template-preview">
+                        <img src="images/template_minimal_preview_1768038333667.png" alt="Entry Level / Student">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Entry Level / Student</h3>
+                        <p class="template-desc">Highlight education and projects for those starting their career.
+                        </p>
+                        <div class="template-tags">
+                            <span class="tag">Student</span>
+                            <span class="tag">Fresher</span>
+                        </div>
+                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noTemplates" class="empty-state" style="display: none;">
+                <span class="empty-icon">📂</span>
+                <h3>More templates coming soon.</h3>
+                <p>Try searching for something else or browse another category.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p class="footer-copyright">© 2026 AI LaTeX Resume Builder</p>
+    </footer>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+
+    <script src="templates.js"></script>
+</body>
+
+</html>

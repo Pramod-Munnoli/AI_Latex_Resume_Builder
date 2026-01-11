@@ -15,6 +15,33 @@
     const mobilePdfLink = $("mobilePdfLink");
     const toastContainer = $("toastContainer");
 
+    // Auth elements
+    const authBtn = $("authBtn");
+    const logoutBtn = $("logoutBtn");
+    const userProfile = $("userProfile");
+    const displayUserName = $("displayUserName");
+    const authModal = $("authModal");
+    const authForm = $("authForm");
+    const modalTitle = $("modalTitle");
+    const submitBtn = $("submitBtn");
+    const toggleAuth = $("toggleAuth");
+    const toggleText = $("toggleText");
+    const closeBtn = document.querySelector(".close");
+
+    // Form fields
+    const usernameField = $("username");
+    const emailField = $("email");
+    const passwordField = $("password");
+    const confirmPasswordField = $("confirmPassword");
+    const authMessage = $("authMessage");
+    const authErrorMsg = $("authErrorMsg");
+    const forgotBtn = $("forgotBtn");
+    const errorPanel = $("errorPanel");
+    const closeError = $("closeError");
+    const backBtn = $("backBtn");
+    const backToLogin = $("backToLogin");
+    const forgotPasswordLink = $("forgotPasswordLink");
+
     // --- CLOUD CONFIGURATION ---
     // Change this to your Render URL when it is Live!
     const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
@@ -61,14 +88,20 @@
                                 } else {
                                     // Normal Login: Close modal
                                     closeModal();
+
+                                    // Redirect to home if on standalone auth pages
+                                    const path = window.location.pathname;
+                                    if (path.includes("login.html") || path.includes("signup.html")) {
+                                        window.location.href = "index.html";
+                                    }
                                 }
                                 loadLastSavedResume();
                             }
                         } else if (event === "SIGNED_OUT") {
-                            latexEditor.value = "";
+                            if (latexEditor) latexEditor.value = "";
                             setPdfSrc(null);
-                            recompileBtn.disabled = true;
-                            downloadBtn.disabled = true;
+                            if (recompileBtn) recompileBtn.disabled = true;
+                            if (downloadBtn) downloadBtn.disabled = true;
                             currentUser = null;
                             updateAuthUI(null);
                             closeModal();
@@ -112,30 +145,7 @@
         }
     }
 
-    // Auth Elements
-    const authBtn = $("authBtn");
-    const logoutBtn = $("logoutBtn");
-    const userProfile = $("userProfile");
-    const displayUserName = $("displayUserName");
-    const authModal = $("authModal");
-    const authForm = $("authForm");
-    const modalTitle = $("modalTitle");
-    const submitBtn = $("submitBtn");
-    const toggleAuth = $("toggleAuth");
-    const toggleText = $("toggleText");
-    const closeBtn = document.querySelector(".close");
 
-    // New Auth Elements
-    const usernameField = $("username");
-    const emailField = $("email");
-    const passwordField = $("password");
-    const confirmPasswordField = $("confirmPassword");
-    const authMessage = $("authMessage");
-    const authErrorMsg = $("authErrorMsg");
-    const forgotBtn = $("forgotBtn");
-    const backBtn = $("backBtn");
-    const backToLogin = $("backToLogin");
-    const forgotPasswordLink = $("forgotPasswordLink");
 
     let authMode = "login"; // 'login', 'signup', 'forgot'
     let currentUser = null;
@@ -143,60 +153,89 @@
 
     function setAuthUI(mode) {
         authMode = mode;
-        authErrorMsg.style.display = "none";
-        authMessage.style.display = "none";
-        submitBtn.style.display = "block";
-        emailField.style.display = "block";
+        if (authErrorMsg) authErrorMsg.style.display = "none";
+        if (authMessage) authMessage.style.display = "none";
+        if (submitBtn) submitBtn.style.display = "block";
+        if (emailField) emailField.style.display = "block";
 
         if (mode === "login") {
-            modalTitle.textContent = "Login";
-            submitBtn.textContent = "Login";
-            usernameField.style.display = "none";
-            usernameField.required = false;
-            passwordField.style.display = "block";
-            passwordField.required = true;
-            toggleText.style.display = "block";
-            toggleText.innerHTML = "Don't have an account? <span id='toggleAuth'>Sign Up</span>";
-            backToLogin.style.display = "none";
-            forgotPasswordLink.style.display = "block";
-            $("toggleAuth").onclick = () => setAuthUI("signup");
+            if (modalTitle) modalTitle.textContent = "Login";
+            if (submitBtn) submitBtn.textContent = "Login";
+            if (usernameField) {
+                usernameField.style.display = "none";
+                usernameField.required = false;
+            }
+            if (passwordField) {
+                passwordField.style.display = "block";
+                passwordField.required = true;
+            }
+            if (toggleText) {
+                toggleText.style.display = "block";
+                toggleText.innerHTML = "Don't have an account? <span id='toggleAuth'>Sign Up</span>";
+                const tAuth = $("toggleAuth");
+                if (tAuth) tAuth.onclick = () => setAuthUI("signup");
+            }
+            if (backToLogin) backToLogin.style.display = "none";
+            if (forgotPasswordLink) forgotPasswordLink.style.display = "block";
         } else if (mode === "signup") {
-            modalTitle.textContent = "Sign Up";
-            submitBtn.textContent = "Create Account";
-            usernameField.style.display = "block";
-            usernameField.required = true;
-            passwordField.style.display = "block";
-            passwordField.required = true;
-            toggleText.style.display = "block";
-            toggleText.innerHTML = "Already have an account? <span id='toggleAuth'>Login</span>";
-            backToLogin.style.display = "none";
-            forgotPasswordLink.style.display = "none";
-            $("toggleAuth").onclick = () => setAuthUI("login");
+            if (modalTitle) modalTitle.textContent = "Sign Up";
+            if (submitBtn) submitBtn.textContent = "Create Account";
+            if (usernameField) {
+                usernameField.style.display = "block";
+                usernameField.required = true;
+            }
+            if (passwordField) {
+                passwordField.style.display = "block";
+                passwordField.required = true;
+            }
+            if (toggleText) {
+                toggleText.style.display = "block";
+                toggleText.innerHTML = "Already have an account? <span id='toggleAuth'>Login</span>";
+                const tAuth = $("toggleAuth");
+                if (tAuth) tAuth.onclick = () => setAuthUI("login");
+            }
+            if (backToLogin) backToLogin.style.display = "none";
+            if (forgotPasswordLink) forgotPasswordLink.style.display = "none";
         } else if (mode === "forgot") {
-            modalTitle.textContent = "Reset Password";
-            submitBtn.textContent = "Send Reset Link";
-            usernameField.style.display = "none";
-            usernameField.required = false;
-            passwordField.style.display = "none";
-            passwordField.required = false;
-            toggleText.style.display = "none";
-            backToLogin.style.display = "block";
-            forgotPasswordLink.style.display = "none";
-            $("backBtn").onclick = () => setAuthUI("login");
+            if (modalTitle) modalTitle.textContent = "Reset Password";
+            if (submitBtn) submitBtn.textContent = "Send Reset Link";
+            if (usernameField) {
+                usernameField.style.display = "none";
+                usernameField.required = false;
+            }
+            if (passwordField) {
+                passwordField.style.display = "none";
+                passwordField.required = false;
+            }
+            if (toggleText) toggleText.style.display = "none";
+            if (backToLogin) {
+                backToLogin.style.display = "block";
+                const bBtn = $("backBtn");
+                if (bBtn) bBtn.onclick = () => setAuthUI("login");
+            }
+            if (forgotPasswordLink) forgotPasswordLink.style.display = "none";
         } else if (mode === "update") {
-            modalTitle.textContent = "Update Password";
-            submitBtn.textContent = "Save New Password";
-            usernameField.style.display = "none";
-            usernameField.required = false;
-            emailField.style.display = "none";
-            emailField.required = false;
-            passwordField.style.display = "block";
-            passwordField.placeholder = "New Password";
-            confirmPasswordField.style.display = "block";
-            confirmPasswordField.required = true;
-            toggleText.style.display = "none";
-            backToLogin.style.display = "none";
-            forgotPasswordLink.style.display = "none";
+            if (modalTitle) modalTitle.textContent = "Update Password";
+            if (submitBtn) submitBtn.textContent = "Save New Password";
+            if (usernameField) {
+                usernameField.style.display = "none";
+                usernameField.required = false;
+            }
+            if (emailField) {
+                emailField.style.display = "none";
+                emailField.required = false;
+            }
+            if (passwordField) {
+                passwordField.style.display = "block";
+                passwordField.placeholder = "New Password";
+            }
+            if (confirmPasswordField) {
+                confirmPasswordField.style.display = "block";
+                confirmPasswordField.required = true;
+            }
+            if (toggleText) toggleText.style.display = "none";
+            if (backToLogin) backToLogin.style.display = "none";
+            if (forgotPasswordLink) forgotPasswordLink.style.display = "none";
         }
     }
 
@@ -220,14 +259,16 @@
             </div>
         `;
 
-        toastContainer.appendChild(toast);
+        if (toastContainer) toastContainer.appendChild(toast);
 
         // Auto-remove after 5 seconds
         setTimeout(() => {
             toast.classList.add("toast-hiding");
             setTimeout(() => {
-                if (toast.parentNode) {
+                if (toast.parentNode && toastContainer) {
                     toastContainer.removeChild(toast);
+                } else if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
                 }
             }, 300);
         }, 5000);
@@ -235,28 +276,64 @@
 
     // Enhanced status update with type
     function setStatus(text, type) {
+        if (!statusBadge) return;
         statusBadge.textContent = text;
         statusBadge.className = "status-badge status-" + type;
     }
 
     function setLoading(isLoading) {
-        uploadBtn.disabled = isLoading;
-        recompileBtn.disabled = isLoading || !latexEditor.value.trim();
-        downloadBtn.disabled = isLoading;
+        if (uploadBtn) uploadBtn.disabled = isLoading;
+        if (recompileBtn) recompileBtn.disabled = isLoading || (latexEditor && !latexEditor.value.trim());
+        if (downloadBtn) downloadBtn.disabled = isLoading;
     }
 
-    function setPdfSrc(url, isHtml = false) {
+    // ========================================
+    // MODERN LOADING SYSTEM
+    // ========================================
+
+    let appLoader = null;
+    let loaderMessage = null;
+
+    function initLoader() {
+        appLoader = document.getElementById('appLoader');
+        loaderMessage = document.getElementById('appLoaderMessage');
+    }
+
+    function showLoader(message = 'Processing, please wait...') {
+        if (!appLoader) initLoader();
+        if (!appLoader) return;
+
+        if (loaderMessage) loaderMessage.textContent = message;
+        appLoader.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+
+    function hideLoader() {
+        if (!appLoader) return;
+
+        appLoader.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    function updateLoaderMessage(message) {
+        if (loaderMessage) loaderMessage.textContent = message;
+    }
+
+
+    function setPdfSrc(url, isHtml = false, forceRefresh = false) {
+        if (!pdfFrame) return;
+
         if (!url) {
             pdfFrame.removeAttribute("srcdoc");
             pdfFrame.setAttribute("src", "");
-            mobilePdfLink.style.display = "none";
+            if (mobilePdfLink) mobilePdfLink.style.display = "none";
             return;
         }
 
         if (isHtml) {
             pdfFrame.removeAttribute("src");
             pdfFrame.setAttribute("srcdoc", url);
-            mobilePdfLink.style.display = "none";
+            if (mobilePdfLink) mobilePdfLink.style.display = "none";
             return;
         }
 
@@ -267,17 +344,29 @@
             fullUrl = API_BASE + url;
         }
 
-        // Remove old timestamp if it exists to avoid double ???
-        const cleanUrl = fullUrl.split("?")[0];
-        const bust = cleanUrl + "?t=" + Date.now();
+        // Only append cache-buster if forceRefresh is true or if it's a relative path (always refresh local temp)
+        const isLocal = url.startsWith("/files/");
+        let bust = fullUrl;
 
-        pdfFrame.setAttribute("src", bust);
+        if (forceRefresh || isLocal) {
+            const cleanUrl = fullUrl.split("?")[0];
+            bust = cleanUrl + "?t=" + Date.now();
+        }
+
+        // Prevent redundant reloads if the URL hasn't changed and no refresh forced
+        if (pdfFrame.getAttribute("src") === (bust + "#toolbar=0&navpanes=0") && !forceRefresh) {
+            return;
+        }
+
+        const finalUrl = bust + "#toolbar=0&navpanes=0";
+        pdfFrame.setAttribute("src", finalUrl);
 
         // Update Mobile link
-        mobilePdfLink.href = bust;
-        // Show if on small screen (the CSS media query handles visibility too, but this adds control)
-        if (window.innerWidth < 600) {
-            mobilePdfLink.style.display = "block";
+        if (mobilePdfLink) {
+            mobilePdfLink.href = finalUrl;
+            if (window.innerWidth < 600) {
+                mobilePdfLink.style.display = "block";
+            }
         }
     }
 
@@ -355,12 +444,15 @@
         fd.append("pdf", file);
 
         setLoading(true);
+        showLoader('Uploading LinkedIn PDF...');
         setStatus("Uploading and generating LaTeX...", "loading");
-        compileLog.textContent = "";
-        compileLog.classList.remove("has-error");
+        if (compileLog) compileLog.textContent = "";
+        if (compileLog) compileLog.classList.remove("has-error");
+        if (errorPanel) errorPanel.style.display = "none";
 
         try {
             const resp = await fetch(`${API_BASE}/api/upload`, { method: "POST", body: fd });
+            updateLoaderMessage('Generating LaTeX resume...');
             const data = await resp.json();
 
             if (!resp.ok) {
@@ -368,16 +460,16 @@
                 throw { info: errorInfo, data };
             }
 
-            latexEditor.value = (data.latex || "").trim();
-            setPdfSrc(data.pdfUrl || "/files/resume.pdf");
+            if (latexEditor) latexEditor.value = (data.latex || "").trim();
+            setPdfSrc(data.pdfUrl || "/files/resume.pdf", false, true);
 
             setStatus("Compiled successfully", "success");
             showToast("Success!", "Resume generated successfully.", "success");
 
-            recompileBtn.disabled = !latexEditor.value.trim();
-            downloadBtn.disabled = false;
+            if (recompileBtn) recompileBtn.disabled = (latexEditor && !latexEditor.value.trim());
+            if (downloadBtn) downloadBtn.disabled = false;
 
-            if (!compileLog.textContent) {
+            if (compileLog && !compileLog.textContent) {
                 compileLog.textContent = "Initial compile completed successfully.";
             }
 
@@ -387,25 +479,30 @@
             }
         } catch (err) {
             setStatus("Upload failed", "error");
-            compileLog.classList.add("has-error");
-
-            if (err.info) {
+            if (compileLog) {
+                compileLog.classList.add("has-error");
+                if (err.info) {
+                    showToast(err.info.title, err.info.message, err.info.type);
+                    compileLog.textContent = err.data?.details || err.info.message;
+                    if (errorPanel) errorPanel.style.display = "block";
+                } else if (err.message) {
+                    showToast("Upload Failed", err.message, "error");
+                    compileLog.textContent = err.message;
+                } else {
+                    showToast("Upload Failed", "An unexpected error occurred.", "error");
+                    compileLog.textContent = "Upload processing failed. Please try again.";
+                }
+            } else if (err.info) {
                 showToast(err.info.title, err.info.message, err.info.type);
-                compileLog.textContent = err.data?.details || err.info.message;
-            } else if (err.message) {
-                showToast("Upload Failed", err.message, "error");
-                compileLog.textContent = err.message;
-            } else {
-                showToast("Upload Failed", "An unexpected error occurred.", "error");
-                compileLog.textContent = "Upload processing failed. Please try again.";
             }
         } finally {
             setLoading(false);
+            hideLoader();
         }
     }
 
     async function recompileLatex() {
-        const latex = latexEditor.value || "";
+        const latex = latexEditor ? latexEditor.value : "";
         if (!latex.trim()) {
             setStatus("Enter LaTeX before recompiling", "warning");
             showToast("Empty Editor", "Please enter LaTeX code before recompiling.", "warning");
@@ -413,6 +510,7 @@
         }
 
         setLoading(true);
+        showLoader('Compiling PDF...');
         setStatus("Compiling LaTeX...", "loading");
         compileLog.classList.remove("has-error");
 
@@ -429,32 +527,38 @@
                 throw { info: errorInfo, data };
             }
 
-            setPdfSrc(data.pdfUrl || "/files/resume.pdf");
-            compileLog.textContent = (data.log || "Compilation successful.").trim();
+            setPdfSrc(data.pdfUrl || "/files/resume.pdf", false, true);
+            if (compileLog) compileLog.textContent = (data.log || "Compilation successful.").trim();
             setStatus("Compiled successfully", "success");
             showToast("Success!", "LaTeX compiled successfully.", "success");
-            downloadBtn.disabled = false;
+            if (downloadBtn) downloadBtn.disabled = false;
 
             // Save updated version to Database if logged in
             if (currentUser) {
+                updateLoaderMessage('Saving to cloud...');
                 await saveToSupabase(latex, data.pdfUrl || "/files/resume.pdf");
             }
         } catch (err) {
             setStatus("Compilation failed", "error");
-            compileLog.classList.add("has-error");
-
-            if (err.info) {
+            if (compileLog) {
+                compileLog.classList.add("has-error");
+                if (err.info) {
+                    showToast(err.info.title, err.info.message, err.info.type);
+                    compileLog.textContent = err.data?.log || err.data?.details || err.info.message;
+                    if (errorPanel) errorPanel.style.display = "block";
+                } else if (err.message) {
+                    showToast("Compilation Failed", err.message, "error");
+                    compileLog.textContent = err.message;
+                } else {
+                    showToast("Compilation Failed", "An unexpected error occurred.", "error");
+                    compileLog.textContent = "Recompile failed. Please check your LaTeX syntax.";
+                }
+            } else if (err.info) {
                 showToast(err.info.title, err.info.message, err.info.type);
-                compileLog.textContent = err.data?.log || err.data?.details || err.info.message;
-            } else if (err.message) {
-                showToast("Compilation Failed", err.message, "error");
-                compileLog.textContent = err.message;
-            } else {
-                showToast("Compilation Failed", "An unexpected error occurred.", "error");
-                compileLog.textContent = "Recompile failed. Please check your LaTeX syntax.";
             }
         } finally {
             setLoading(false);
+            hideLoader();
         }
     }
 
@@ -593,7 +697,7 @@
             }
 
             if (data) {
-                latexEditor.value = data.latex_content || "";
+                if (latexEditor) latexEditor.value = data.latex_content || "";
 
                 // Comprehensive PDF URL validation - reject invalid/temporary URLs
                 let validPdf = data.pdf_url;
@@ -619,8 +723,8 @@
                 }
 
                 if (validPdf) {
-                    setPdfSrc(validPdf);
-                    downloadBtn.disabled = false;
+                    setPdfSrc(validPdf, false, false); // No force refresh on resume load
+                    if (downloadBtn) downloadBtn.disabled = false;
                     setStatus("Latest version loaded", "success");
                 } else {
                     // Start clean if no valid PDF - Show friendly message
@@ -636,11 +740,13 @@
                     setStatus("Ready to Compile", "ready");
                 }
 
-                recompileBtn.disabled = !latexEditor.value.trim();
-                if (!compileLog.textContent) {
-                    compileLog.textContent = "Previous session loaded. Click Recompile to generate PDF.";
+                if (recompileBtn) recompileBtn.disabled = (latexEditor && !latexEditor.value.trim());
+                if (compileLog) {
+                    if (!compileLog.textContent) {
+                        compileLog.textContent = "Previous session loaded. Click Recompile to generate PDF.";
+                    }
+                    compileLog.classList.remove("has-error");
                 }
-                compileLog.classList.remove("has-error");
             }
         } catch (err) {
             console.error("Failed to load resume:", err);
@@ -661,46 +767,60 @@
             return;
         }
 
-        const email = emailField.value;
-        const password = passwordField.value;
-        const username = usernameField.value;
+        const email = emailField ? emailField.value : "";
+        const password = passwordField ? passwordField.value : "";
+        const username = usernameField ? usernameField.value : "";
 
-        authErrorMsg.style.display = "none";
-        authMessage.style.display = "none";
+        if (authErrorMsg) authErrorMsg.style.display = "none";
+        if (authMessage) authMessage.style.display = "none";
         setLoading(true);
+        showLoader('Processing, please wait...');
 
         try {
             if (authMode === "login") {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
             } else if (authMode === "signup") {
-                if (!username.trim()) throw new Error("Full Name is mandatory.");
+                if (!username || !username.trim()) throw new Error("Full Name is mandatory.");
                 const { data, error } = await supabase.auth.signUp({
                     email, password, options: { data: { username } }
                 });
                 if (error) throw error;
 
                 if (!data.session) {
-                    authMessage.textContent = "Confirmation email sent! Check " + email;
-                    authMessage.style.display = "block";
+                    if (authMessage) {
+                        authMessage.textContent = "Confirmation email sent! Check " + email;
+                        authMessage.style.display = "block";
+                    } else {
+                        showToast("Account Created", "Please check your email to verify your account.", "success");
+                    }
                 }
             } else if (authMode === "forgot") {
                 const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
                 if (error) throw error;
-                authMessage.textContent = "Reset link sent! Check " + email;
-                authMessage.style.display = "block";
+                if (authMessage) {
+                    authMessage.textContent = "Reset link sent! Check " + email;
+                    authMessage.style.display = "block";
+                } else {
+                    showToast("Email Sent", "Reset link sent! Check " + email, "success");
+                }
             } else if (authMode === "update") {
-                if (password !== confirmPasswordField.value) throw new Error("Passwords mismatch.");
+                if (password !== (confirmPasswordField ? confirmPasswordField.value : "")) throw new Error("Passwords mismatch.");
                 const { error } = await supabase.auth.updateUser({ password });
                 if (error) throw error;
                 showToast("Updated", "Password changed.", "success");
             }
         } catch (err) {
             console.error("Auth Exception:", err);
-            authErrorMsg.textContent = err.message;
-            authErrorMsg.style.display = "block";
+            if (authErrorMsg) {
+                authErrorMsg.textContent = err.message;
+                authErrorMsg.style.display = "block";
+            } else {
+                showToast("Auth Error", err.message, "error");
+            }
         } finally {
             setLoading(false);
+            hideLoader();
             isAuthenticating = false;
         }
     }
@@ -709,6 +829,15 @@
         if (!supabase) return;
 
         try {
+            // First, clear localStorage BEFORE attempting logout
+            // This ensures session is cleared even if API call fails
+            const storageKeys = Object.keys(localStorage);
+            storageKeys.forEach(key => {
+                if (key.startsWith('sb-')) {
+                    localStorage.removeItem(key);
+                }
+            });
+
             // Attempt standard sign out
             const { error } = await supabase.auth.signOut();
 
@@ -716,7 +845,7 @@
             if (error) {
                 // 403 Forbidden means session already expired/invalid - this is fine
                 if (error.status === 403 || error.message?.includes("403")) {
-                    console.warn("Session already expired (403), clearing local state.");
+                    console.warn("Session already expired (403), local state cleared.");
                 } else {
                     throw error;
                 }
@@ -726,7 +855,7 @@
         } catch (err) {
             // If session is already missing, that's fine - just clear local state
             if (err.message && (err.message.includes("Auth session missing") || err.message.includes("403"))) {
-                console.warn("Session already expired, clearing local state.");
+                console.warn("Session already expired, local state cleared.");
             } else {
                 console.error("Logout error:", err);
                 // Show error toast for unexpected issues
@@ -736,11 +865,16 @@
             // ALWAYS Force UI update to ensure user is logged out locally
             currentUser = null;
             updateAuthUI(null);
-            latexEditor.value = "";
+            if (latexEditor) latexEditor.value = "";
             setPdfSrc(null);
-            recompileBtn.disabled = true;
-            downloadBtn.disabled = true;
+            if (recompileBtn) recompileBtn.disabled = true;
+            if (downloadBtn) downloadBtn.disabled = true;
             closeModal();
+
+            // Force page reload to ensure clean state
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
         }
     }
 
@@ -751,9 +885,15 @@
         const user = sessionData?.user || currentUser;
         currentUser = user;
 
+        // Get new dropdown elements
+        const profileDropdown = $("profileDropdown");
+        const profileAvatar = $("profileAvatar");
+        const profileName = $("profileName");
+        const profileEmail = $("profileEmail");
+
         if (user) {
-            authBtn.style.display = "none";
-            userProfile.style.display = "flex";
+            if (authBtn) authBtn.style.display = "none";
+            if (profileDropdown) profileDropdown.style.display = "block";
 
             let displayName = user.user_metadata?.username ||
                 user.user_metadata?.full_name ||
@@ -763,22 +903,58 @@
             if (displayName && !displayName.includes("@")) {
                 displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
             }
-            displayUserName.textContent = displayName;
+
+            // Extract initials for avatar
+            const initials = getInitials(displayName);
+            if (profileAvatar) profileAvatar.textContent = initials;
+            if (profileName) profileName.textContent = displayName;
+            if (profileEmail) profileEmail.textContent = user.email || "";
         } else {
-            authBtn.style.display = "block";
-            userProfile.style.display = "none";
-            displayUserName.textContent = "";
+            if (authBtn) authBtn.style.display = "block";
+            if (profileDropdown) profileDropdown.style.display = "none";
+        }
+    }
+
+    // Extract initials from name
+    function getInitials(name) {
+        if (!name) return "U";
+        const parts = name.trim().split(" ");
+        if (parts.length === 1) {
+            return parts[0].substring(0, 2).toUpperCase();
+        }
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    // Toggle profile dropdown
+    function toggleProfileDropdown() {
+        const profileMenu = $("profileMenu");
+        if (!profileMenu) return;
+        profileMenu.classList.toggle("active");
+    }
+
+    // Close dropdown when clicking outside
+    function closeProfileDropdown(event) {
+        const profileDropdown = $("profileDropdown");
+        const profileMenu = $("profileMenu");
+        if (!profileDropdown || !profileMenu) return;
+
+        if (!profileDropdown.contains(event.target)) {
+            profileMenu.classList.remove("active");
         }
     }
 
     function openModal() {
+        if (!authModal) return;
         setAuthUI("login");
         authModal.style.display = "block";
     }
 
     function closeModal() {
+        if (!authModal) return;
         authModal.style.display = "none";
-        authForm.reset();
+        if (authMessage) authMessage.style.display = "none";
+        if (authErrorMsg) authErrorMsg.style.display = "none";
+        if (authForm) authForm.reset();
     }
 
 
@@ -787,34 +963,94 @@
         if (hasInitialized) return;
         hasInitialized = true;
 
-        setStatus("Ready", "ready");
-        recompileBtn.disabled = true;
-        downloadBtn.disabled = true;
+        // Initialize loader
+        initLoader();
+
+        // Detect standalone auth pages and set authMode
+        const path = window.location.pathname;
+        if (path.includes('signup.html')) {
+            authMode = 'signup';
+            if (usernameField) {
+                usernameField.style.display = 'block';
+                usernameField.required = true;
+            }
+        } else if (path.includes('login.html')) {
+            authMode = 'login';
+            if (usernameField) {
+                usernameField.style.display = 'none';
+                usernameField.required = false;
+            }
+        }
+
+        if (statusBadge) setStatus("Ready", "ready");
+        if (recompileBtn) recompileBtn.disabled = true;
+        if (downloadBtn) downloadBtn.disabled = true;
 
         initSupabase();
 
-        uploadBtn.addEventListener("click", uploadPdf);
-        recompileBtn.addEventListener("click", recompileLatex);
-        downloadBtn.addEventListener("click", downloadPdf);
+        if (uploadBtn) uploadBtn.addEventListener("click", uploadPdf);
+        if (recompileBtn) recompileBtn.addEventListener("click", recompileLatex);
+        if (downloadBtn) downloadBtn.addEventListener("click", downloadPdf);
 
-        authBtn.addEventListener("click", openModal);
-        logoutBtn.addEventListener("click", handleLogout);
-        closeBtn.addEventListener("click", closeModal);
-        window.addEventListener("click", (e) => { if (e.target === authModal) closeModal(); });
+        // Only open modal if it's NOT a link-based auth button
+        if (authBtn) {
+            authBtn.addEventListener("click", (e) => {
+                if (authModal && authBtn.tagName !== "A") {
+                    e.preventDefault();
+                    openModal();
+                }
+            });
+        }
 
-        forgotBtn.onclick = () => setAuthUI("forgot");
-        authForm.addEventListener("submit", handleAuth);
-
-        pdfInput.addEventListener("change", function () {
-            if (pdfInput.files && pdfInput.files.length) {
-                setStatus("PDF selected", "ready");
-            } else {
-                setStatus("Ready", "ready");
-            }
+        if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        if (closeError) closeError.addEventListener("click", () => {
+            if (errorPanel) errorPanel.style.display = "none";
+        });
+        window.addEventListener("click", (e) => {
+            if (authModal && e.target === authModal) closeModal();
         });
 
-        latexEditor.addEventListener("input", function () {
-            recompileBtn.disabled = !latexEditor.value.trim();
+        if (forgotBtn) forgotBtn.onclick = () => setAuthUI("forgot");
+        if (authForm) authForm.addEventListener("submit", handleAuth);
+
+        // Profile dropdown event listeners
+        const profileAvatar = $("profileAvatar");
+        if (profileAvatar) {
+            profileAvatar.addEventListener("click", toggleProfileDropdown);
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", closeProfileDropdown);
+
+        if (pdfInput) {
+            pdfInput.addEventListener("change", function () {
+                if (pdfInput.files && pdfInput.files.length) {
+                    setStatus("PDF selected", "ready");
+                } else {
+                    setStatus("Ready", "ready");
+                }
+            });
+        }
+
+        if (latexEditor) {
+            latexEditor.addEventListener("input", function () {
+                if (recompileBtn) recompileBtn.disabled = !latexEditor.value.trim();
+            });
+        }
+
+        // Smooth scroll for internal anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const targetId = this.getAttribute('href');
+                if (targetId && targetId.startsWith('#') && targetId.length > 1) {
+                    const target = document.querySelector(targetId);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
         });
     }
 

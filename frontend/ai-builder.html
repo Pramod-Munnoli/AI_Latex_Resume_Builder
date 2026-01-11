@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Builder | AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="editor.css">
+    <link rel="stylesheet" href="ai-builder.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body class="ai-builder-body">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">AI Resume</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="templates.html" class="nav-link">Templates</a>
+                <a href="ai-builder.html" class="nav-link active">AI Builder</a>
+                <a href="editor.html" class="nav-link">Editor</a>
+                <a href="docs.html" class="nav-link">Docs</a>
+            </div>
+            <div id="authContainer" class="auth-container">
+                <a href="login.html" id="authBtn" class="btn-auth">Login / Sign Up</a>
+                <!-- Modern Profile Dropdown -->
+                <div id="profileDropdown" class="profile-dropdown" style="display: none;">
+                    <div id="profileAvatar" class="profile-avatar">PM</div>
+                    <div id="profileMenu" class="profile-menu">
+                        <div class="profile-menu-header">
+                            <span id="profileName" class="profile-menu-name">User Name</span>
+                            <span id="profileEmail" class="profile-menu-email">user@example.com</span>
+                        </div>
+                        <div class="profile-menu-items">
+                            <button id="logoutBtn" class="profile-menu-item logout">
+                                <span>🚪</span>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="ai-builder-hero">
+            <h1>Generate Resume from LinkedIn PDF</h1>
+            <p>Upload your LinkedIn profile PDF and automatically generate a professional LaTeX resume in seconds.</p>
+
+            <div class="instruction-grid">
+                <div class="instruction-step">
+                    <span class="step-number">1</span>
+                    <p>Download your LinkedIn profile as a PDF.</p>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">2</span>
+                    <p>Upload the PDF to our AI engine below.</p>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">3</span>
+                    <p>Review and edit the generated LaTeX code.</p>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">4</span>
+                    <p>Recompile and download your polished resume.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="upload-container">
+            <div class="drop-zone" id="dropZone">
+                <span class="drop-zone-icon">☁️</span>
+                <span class="drop-zone-text">Drop your LinkedIn PDF here</span>
+                <span class="drop-zone-subtext">or click to browse files</span>
+                <input type="file" id="pdfInput" accept=".pdf">
+                <div id="selectedFileName" class="selected-file-name"></div>
+            </div>
+
+            <div style="display: flex; justify-content: center; margin-top: 32px; gap: 20px; align-items: center;">
+                <button id="uploadBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                    ⚡ Start Generation
+                </button>
+                <span id="statusBadge" class="status-badge status-ready">Ready</span>
+            </div>
+        </section>
+
+        <!-- Workspace Section (Reusing Editor Structure) -->
+        <section class="workspace ai-builder-workspace">
+            <!-- Left: Editor Panel -->
+            <div class="editor-panel">
+                <div class="panel-label">LaTeX Source</div>
+                <textarea id="latexEditor" placeholder="Your generated LaTeX will appear here..." spellcheck="false"
+                    autocomplete="off"></textarea>
+
+                <section id="errorPanel" class="error-panel" style="display: none;">
+                    <div class="error-header">
+                        <h3>Compilation Errors</h3>
+                        <button id="closeError" class="btn-close">&times;</button>
+                    </div>
+                    <div id="compileLog" class="error-list"></div>
+                </section>
+            </div>
+
+            <!-- Right: Preview Panel -->
+            <div class="preview-panel">
+                <div class="panel-label" style="display: flex; justify-content: space-between; align-items: center;">
+                    Live Preview
+                    <div style="display: flex; gap: 8px;">
+                        <button id="recompileBtn" class="btn btn-primary btn-sm" disabled>⚡ Recompile</button>
+                        <button id="downloadBtn" class="btn btn-secondary btn-sm" disabled>📥 Download</button>
+                    </div>
+                </div>
+                <div class="pdf-viewer">
+                    <iframe id="pdfFrame" class="pdf-iframe" style="width: 100%; height: 100%; border: none;"></iframe>
+                    <a id="mobilePdfLink" class="btn btn-secondary btn-sm" target="_blank"
+                        style="display: none; position: absolute; bottom: 20px; right: 20px; z-index: 100;">View Full
+                        PDF</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        // File name display and drag-drop visual feedback
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('pdfInput');
+            const fileNameDisplay = document.getElementById('selectedFileName');
+            const dropZone = document.getElementById('dropZone');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        fileNameDisplay.textContent = `Selected: ${e.target.files[0].name}`;
+                        fileNameDisplay.style.display = 'inline-block';
+                    }
+                });
+            }
+
+            if (dropZone) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.add('drag-over');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.remove('drag-over');
+                    }, false);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
