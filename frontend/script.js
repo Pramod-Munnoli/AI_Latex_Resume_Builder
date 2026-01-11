@@ -95,7 +95,10 @@
                                         window.location.href = "index.html";
                                     }
                                 }
-                                loadLastSavedResume();
+                                // Only load last AI resume if on the AI Builder page
+                                if (window.location.pathname.includes('ai-builder.html')) {
+                                    loadLastSavedResume();
+                                }
                             }
                         } else if (event === "SIGNED_OUT") {
                             if (latexEditor) latexEditor.value = "";
@@ -973,7 +976,30 @@
 
         initSupabase();
 
-        if (uploadBtn) uploadBtn.addEventListener("click", uploadPdf);
+        // Handle template loading for Editor page
+        if (window.location.pathname.includes('editor.html')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const templateId = urlParams.get('template');
+
+            if (templateId && window.TEMPLATES_DATA && window.TEMPLATES_DATA[templateId]) {
+                if (latexEditor) {
+                    latexEditor.value = window.TEMPLATES_DATA[templateId];
+                    // Trigger recompile automatically for templates if possible, or just enable button
+                    if (recompileBtn) recompileBtn.disabled = false;
+
+                    // Show a helpful message in the log
+                    if (compileLog) compileLog.textContent = `Loaded ${templateId.replace(/-/g, ' ')} template. Click Recompile to generate PDF.`;
+                }
+            } else {
+                // If no template and no AI code, show default
+                if (latexEditor && !latexEditor.value.trim()) {
+                    latexEditor.value = `\\documentclass{article}\n\\begin{document}\nHello World!\n\\end{document}`;
+                }
+            }
+        } else if (window.location.pathname.includes('ai-builder.html')) {
+            // AI Builder specific initialization
+            if (uploadBtn) uploadBtn.addEventListener("click", uploadPdf);
+        }
         if (recompileBtn) recompileBtn.addEventListener("click", recompileLatex);
         if (downloadBtn) downloadBtn.addEventListener("click", downloadPdf);
 
