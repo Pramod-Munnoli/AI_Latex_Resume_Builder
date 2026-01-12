@@ -21,10 +21,10 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
+            <a href="index.html" class="nav-logo">
                 <span class="logo-icon">📄</span>
                 <span class="logo-text">AI LaTeX Resume Builder</span>
-            </div>
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="templates.html" class="nav-link active">Templates</a>
@@ -81,7 +81,7 @@
         <section class="templates-grid-section">
             <div class="template-grid" id="templateGrid">
                 <!-- Template 1 -->
-                <div class="template-card" data-category="ats">
+                <div class="template-card" data-category="ats" data-template-name="ats-modern">
                     <div class="template-preview">
                         <img src="images/template_ats_modern.png" alt="ATS Modern">
                     </div>
@@ -92,12 +92,12 @@
                             <span class="tag">ATS</span>
                             <span class="tag">Professional</span>
                         </div>
-                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
 
                 <!-- Template 2 -->
-                <div class="template-card" data-category="minimal">
+                <div class="template-card" data-category="minimal" data-template-name="clean-minimalist">
                     <div class="template-preview">
                         <img src="images/template_clean_minimalist.png" alt="Clean Minimalist">
                     </div>
@@ -108,12 +108,12 @@
                             <span class="tag">Minimal</span>
                             <span class="tag">Elegant</span>
                         </div>
-                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
 
                 <!-- Template 3 -->
-                <div class="template-card" data-category="academic">
+                <div class="template-card" data-category="academic" data-template-name="academic-excellence">
                     <div class="template-preview">
                         <img src="images/template_academic_preview_1768038357375.png" alt="Academic Excellence">
                     </div>
@@ -124,12 +124,12 @@
                             <span class="tag">Academic</span>
                             <span class="tag">Multi-page</span>
                         </div>
-                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
 
                 <!-- Template 4 -->
-                <div class="template-card" data-category="developer">
+                <div class="template-card" data-category="developer" data-template-name="tech-focused">
                     <div class="template-preview">
                         <img src="images/template_ats_preview_1768038291005.png" alt="Tech Focused">
                     </div>
@@ -140,30 +140,30 @@
                             <span class="tag">Developer</span>
                             <span class="tag">Tech</span>
                         </div>
-                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
+
                 <!-- Template 5 -->
-                <div class="template-card" data-category="student">
+                <div class="template-card" data-category="student" data-template-name="student">
                     <div class="template-preview">
                         <img src="images/template_minimal_preview_1768038333667.png" alt="Entry Level / Student">
                     </div>
                     <div class="template-info">
                         <h3 class="template-name">Entry Level / Student</h3>
-                        <p class="template-desc">Highlight education and projects for those starting their career.
-                        </p>
+                        <p class="template-desc">Highlight education and projects for those starting their career.</p>
                         <div class="template-tags">
                             <span class="tag">Student</span>
                             <span class="tag">Fresher</span>
                         </div>
-                        <a href="editor.html" class="btn btn-template">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
             </div>
 
             <div id="noTemplates" class="empty-state" style="display: none;">
                 <span class="empty-icon">📂</span>
-                <h3>More templates coming soon.</h3>
+                <h3>No templates found</h3>
                 <p>Try searching for something else or browse another category.</p>
             </div>
         </section>

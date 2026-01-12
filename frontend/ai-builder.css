@@ -142,16 +142,118 @@
 
 /* Workspace Overrides to match Editor */
 .ai-builder-workspace {
-    flex: 1;
-    min-height: 700px;
+    height: 800px;
+    /* Fixed height for consistency */
     width: 100%;
     border-top: 1px solid var(--glass-border);
+    background: #2f3a4c;
+    position: relative;
+    display: flex;
+    overflow: hidden;
+}
+
+.ai-builder-workspace .editor-panel {
+    width: 50%;
+    /* Initial width as in Editor */
+    flex: none;
+    height: 100%;
+}
+
+.ai-builder-workspace .preview-panel {
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+}
+
+.ai-builder-workspace .editor-panel,
+.ai-builder-workspace .preview-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ai-builder-workspace .editor-view.active {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.ai-builder-workspace .CodeMirror {
+    flex: 1;
+    height: 100% !important;
+}
+
+.ai-builder-workspace .preview-toolbar {
+    order: -1;
+    /* Ensure it stays at the top */
+    background: #2f3a4c;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    height: 44px;
+    /* Exact size as Editor */
+}
+
+.ai-builder-workspace .pdf-viewer {
+    flex: 1;
+    background: #2f3a4c;
+}
+
+.ai-builder-workspace .panel-label {
+    background: #2f3a4c;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    color: #b1bdce;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.ai-builder-workspace .resizer-dots-top,
+.ai-builder-workspace .resizer-dots-bottom {
+    width: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    line-height: 1;
+}
+
+.ai-builder-workspace .resizer-handle {
+    background: #334155;
+    /* Default state as in Editor */
+}
+
+/* Adjustments for AI Builder specific flow */
+.status-badge {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.status-ready {
+    background: rgba(20, 184, 166, 0.1);
+    color: #14b8a6;
+}
+
+.status-generating {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
 }
 
 @media (max-width: 1024px) {
     .ai-builder-workspace {
         flex-direction: column;
         height: auto;
+    }
+
+    .resizer {
+        display: none;
+        /* Hide resizer on mobile */
     }
 }
 

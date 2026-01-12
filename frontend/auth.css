@@ -74,6 +74,41 @@ body.auth-page {
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
+/* Password Visibility Toggle */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper .auth-input {
+    padding-right: 50px;
+    /* Space for the eye icon */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    transition: var(--transition);
+}
+
+.password-toggle:hover {
+    color: var(--white);
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
 .btn-auth-submit {
     width: 100%;
     background: var(--primary-gradient);

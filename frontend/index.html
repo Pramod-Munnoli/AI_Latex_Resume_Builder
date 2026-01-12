@@ -17,17 +17,19 @@
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js" defer></script>
+    <script src="home.js" defer></script>
 </head>
 
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
+            <a href="index.html" class="nav-logo">
                 <span class="logo-icon">📄</span>
                 <span class="logo-text">AI LaTeX Resume Builder</span>
-            </div>
+            </a>
             <div class="nav-links">
+                <a href="index.html" class="nav-link active">Home</a>
                 <a href="templates.html" class="nav-link">Templates</a>
                 <a href="ai-builder.html" class="nav-link">AI Builder</a>
                 <a href="editor.html" class="nav-link">Editor</a>
@@ -44,19 +46,20 @@
                             <span id="profileEmail" class="profile-menu-email">user@example.com</span>
                         </div>
                         <div class="profile-menu-items">
-                            <!-- Future: Dashboard link (commented out until feature is ready)
-                            <a href="dashboard.html" class="profile-menu-item">
+
+                            <!-- Future: Dashboard link (commented out until feature is ready) -->
+                            <a href="#" class="profile-menu-item" disabled>
                                 <span>📊</span>
                                 <span>Dashboard</span>
                             </a>
-                            -->
-                            <!-- Future: My Resumes link (commented out until feature is ready)
-                            <a href="my-resumes.html" class="profile-menu-item">
+
+                            <!-- Future: My Resumes link (commented out until feature is ready) -->
+                            <a href="#" class="profile-menu-item" disabled>
                                 <span>📄</span>
                                 <span>My Resumes</span>
                             </a>
+
                             <div class="profile-menu-divider"></div>
-                            -->
                             <button id="logoutBtn" class="profile-menu-item logout">
                                 <span>🚪</span>
                                 <span>Logout</span>
@@ -128,45 +131,45 @@
             <h2 class="section-title">Popular Templates</h2>
             <p class="section-subtitle">Choose from our most-used professional templates</p>
             <div class="template-grid">
-                <div class="template-card">
+                <div class="template-card" data-template-name="ats-modern">
                     <div class="template-preview">
                         <img src="images/template_ats_modern.png" alt="ATS-Friendly Template">
                     </div>
                     <div class="template-info">
                         <h3 class="template-name">ATS-Friendly</h3>
                         <span class="template-tag tag-ats">ATS Optimized</span>
-                        <button class="btn btn-template">Use Template</button>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
-                <div class="template-card">
+                <div class="template-card" data-template-name="clean-minimalist">
                     <div class="template-preview">
                         <img src="images/template_clean_minimalist.png" alt="Minimal Template">
                     </div>
                     <div class="template-info">
                         <h3 class="template-name">Minimal</h3>
                         <span class="template-tag tag-minimal">Clean Design</span>
-                        <button class="btn btn-template">Use Template</button>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
 
-                <div class="template-card">
+                <div class="template-card" data-template-name="student">
                     <div class="template-preview">
                         <img src="images/template_minimal_preview_1768038333667.png" alt="Student Template">
                     </div>
                     <div class="template-info">
                         <h3 class="template-name">Student</h3>
                         <span class="template-tag tag-student">Academic Focused</span>
-                        <button class="btn btn-template">Use Template</button>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
-                <div class="template-card">
+                <div class="template-card" data-template-name="tech-focused">
                     <div class="template-preview">
                         <img src="images/template_ats_preview_1768038291005.png" alt="Developer Template">
                     </div>
                     <div class="template-info">
                         <h3 class="template-name">Developer</h3>
                         <span class="template-tag tag-developer">Tech Optimized</span>
-                        <button class="btn btn-template">Use Template</button>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
                     </div>
                 </div>
             </div>

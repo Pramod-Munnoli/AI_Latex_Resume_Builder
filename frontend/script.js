@@ -28,6 +28,19 @@
     const toggleText = $("toggleText");
     const closeBtn = document.querySelector(".close");
 
+    // CodeMirror state
+    let cm = null;
+
+    // PDF.js state
+    let pdfDoc = null;
+    let currentScale = 1.0;
+    const PDF_PADDING = 80;
+
+    // Safely configure PDF.js if library is loaded
+    if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
     // Form fields
     const usernameField = $("username");
     const emailField = $("email");
@@ -160,6 +173,8 @@
         if (authMessage) authMessage.style.display = "none";
         if (submitBtn) submitBtn.style.display = "block";
         if (emailField) emailField.style.display = "block";
+        const passwordGroup = $("passwordGroup");
+        const forgotHelper = document.querySelector('.auth-helper-forgot');
 
         if (mode === "login") {
             if (modalTitle) modalTitle.textContent = "Login";
@@ -172,6 +187,7 @@
                 passwordField.style.display = "block";
                 passwordField.required = true;
             }
+            if (passwordGroup) passwordGroup.style.display = "block";
             if (toggleText) {
                 toggleText.style.display = "block";
                 toggleText.innerHTML = "Don't have an account? <span id='toggleAuth'>Sign Up</span>";
@@ -180,6 +196,7 @@
             }
             if (backToLogin) backToLogin.style.display = "none";
             if (forgotPasswordLink) forgotPasswordLink.style.display = "block";
+            if (forgotHelper) forgotHelper.style.display = "block";
         } else if (mode === "signup") {
             if (modalTitle) modalTitle.textContent = "Sign Up";
             if (submitBtn) submitBtn.textContent = "Create Account";
@@ -191,6 +208,7 @@
                 passwordField.style.display = "block";
                 passwordField.required = true;
             }
+            if (passwordGroup) passwordGroup.style.display = "block";
             if (toggleText) {
                 toggleText.style.display = "block";
                 toggleText.innerHTML = "Already have an account? <span id='toggleAuth'>Login</span>";
@@ -199,6 +217,7 @@
             }
             if (backToLogin) backToLogin.style.display = "none";
             if (forgotPasswordLink) forgotPasswordLink.style.display = "none";
+            if (forgotHelper) forgotHelper.style.display = "none";
         } else if (mode === "forgot") {
             if (modalTitle) modalTitle.textContent = "Reset Password";
             if (submitBtn) submitBtn.textContent = "Send Reset Link";
@@ -210,6 +229,7 @@
                 passwordField.style.display = "none";
                 passwordField.required = false;
             }
+            if (passwordGroup) passwordGroup.style.display = "none";
             if (toggleText) toggleText.style.display = "none";
             if (backToLogin) {
                 backToLogin.style.display = "block";
@@ -257,8 +277,45 @@
 
     function setLoading(isLoading) {
         if (uploadBtn) uploadBtn.disabled = isLoading;
-        if (recompileBtn) recompileBtn.disabled = isLoading || (latexEditor && !latexEditor.value.trim());
+        if (recompileBtn) recompileBtn.disabled = isLoading || (cm && !cm.getValue().trim());
         if (downloadBtn) downloadBtn.disabled = isLoading;
+    }
+
+    // --- CODEMIRROR HELPERS ---
+    function initCodeMirror() {
+        if (!latexEditor) return;
+
+        cm = CodeMirror.fromTextArea(latexEditor, {
+            mode: "stex",
+            theme: "dracula",
+            lineNumbers: true,
+            lineWrapping: true,
+            tabSize: 4,
+            indentUnit: 4,
+            viewportMargin: Infinity
+        });
+
+        cm.on('change', () => {
+            if (recompileBtn) {
+                recompileBtn.disabled = !cm.getValue().trim();
+            }
+        });
+
+        cm.setSize("100%", "100%");
+
+        // Ensure refresh after initial render
+        setTimeout(() => {
+            if (cm) cm.refresh();
+        }, 100);
+    }
+
+    function setEditorValue(val) {
+        if (cm) cm.setValue(val || "");
+        else if (latexEditor) latexEditor.value = val || "";
+    }
+
+    function getEditorValue() {
+        return cm ? cm.getValue() : (latexEditor ? latexEditor.value : "");
     }
 
     // ========================================
@@ -302,54 +359,243 @@
     }
 
 
-    function setPdfSrc(url, isHtml = false, forceRefresh = false) {
-        if (!pdfFrame) return;
+    // --- PDF.js VIEWER LOGIC ---
+    let currentRenderId = 0;
 
-        if (!url) {
-            pdfFrame.removeAttribute("srcdoc");
-            pdfFrame.setAttribute("src", "");
-            if (mobilePdfLink) mobilePdfLink.style.display = "none";
-            return;
-        }
-
+    async function setPdfSrc(url, isHtml = false, forceRefresh = false) {
         if (isHtml) {
-            pdfFrame.removeAttribute("src");
-            pdfFrame.setAttribute("srcdoc", url);
-            if (mobilePdfLink) mobilePdfLink.style.display = "none";
+            // Re-implement if HTML fallback is needed for text messages, 
+            // but usually we just want to show a message in the viewer.
+            console.warn("setPdfSrc isHtml=true not supported in PDF.js mode");
             return;
         }
 
-        pdfFrame.removeAttribute("srcdoc");
+        if (!url) return;
         let fullUrl = url;
-        // If it's a relative path (like /files/resume.pdf), add the API_BASE
         if (url.startsWith("/files/")) {
             fullUrl = API_BASE + url;
         }
 
-        // Only append cache-buster if forceRefresh is true or if it's a relative path (always refresh local temp)
-        const isLocal = url.startsWith("/files/");
-        let bust = fullUrl;
+        const separator = fullUrl.includes('?') ? '&' : '?';
+        const fetchUrl = forceRefresh ? `${fullUrl}${separator}t=${Date.now()}` : fullUrl;
 
-        if (forceRefresh || isLocal) {
-            const cleanUrl = fullUrl.split("?")[0];
-            bust = cleanUrl + "?t=" + Date.now();
+        await loadPDF(fetchUrl);
+    }
+
+    async function loadPDF(url) {
+        const loader = document.getElementById('pdfPreviewLoader');
+        const status = document.getElementById('pdfLoaderStatus');
+        if (loader) loader.style.display = 'flex';
+        if (status) status.textContent = 'Loading Document...';
+
+        try {
+            const loadingTask = pdfjsLib.getDocument(url);
+            pdfDoc = await loadingTask.promise;
+
+            if (status) status.textContent = 'Rendering Pages...';
+            const pageCountEl = document.getElementById('pageCount');
+            const pageNumEl = document.getElementById('pageNum');
+            if (pageCountEl) pageCountEl.textContent = pdfDoc.numPages;
+            if (pageNumEl) pageNumEl.textContent = 1;
+
+            await renderAllPages();
+            fitToWidth();
+
+        } catch (err) {
+            console.error('Error loading PDF:', err);
+        } finally {
+            if (loader) loader.style.display = 'none';
+        }
+    }
+
+    async function renderAllPages() {
+        const renderId = ++currentRenderId;
+        const container = document.getElementById('pdfCanvasContainer');
+        if (!container || !pdfDoc) return;
+
+        container.innerHTML = '';
+
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+            // If a new render has started, abort this one
+            if (renderId !== currentRenderId) return;
+
+            const page = await pdfDoc.getPage(i);
+            const canvas = document.createElement('canvas');
+            canvas.className = 'pdf-page-canvas';
+            container.appendChild(canvas);
+
+            const viewport = page.getViewport({ scale: 2.0 });
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+        }
+    }
+
+    function updateVisualScale() {
+        const container = document.getElementById('pdfCanvasContainer');
+        const zoomValue = document.getElementById('zoomValue');
+        if (!container) return;
+
+        const visualScale = currentScale / 2.0;
+        container.style.transform = `scale(${visualScale})`;
+        if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
+    }
+
+    function fitToWidth() {
+        if (!pdfDoc) return;
+        const viewer = document.getElementById('pdfViewer');
+        if (!viewer) return;
+
+        pdfDoc.getPage(1).then(page => {
+            const viewport = page.getViewport({ scale: 1.0 });
+            const availableWidth = viewer.clientWidth - PDF_PADDING;
+            currentScale = availableWidth / viewport.width;
+            updateVisualScale();
+        });
+    }
+
+    function fitToPage() {
+        if (!pdfDoc) return;
+        const viewer = document.getElementById('pdfViewer');
+        if (!viewer) return;
+
+        pdfDoc.getPage(1).then(page => {
+            const viewport = page.getViewport({ scale: 1.0 });
+            const availableHeight = viewer.clientHeight - PDF_PADDING;
+            currentScale = availableHeight / viewport.height;
+            updateVisualScale();
+        });
+    }
+
+    function setupToolbarFeatures() {
+        const zoomIn = document.getElementById('zoomIn');
+        const zoomOut = document.getElementById('zoomOut');
+        const fitWidthBtn = document.getElementById('fitWidthBtn');
+        const fitPageBtn = document.getElementById('fitPageBtn');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const toggleTheme = document.getElementById('toggleTheme');
+
+        if (zoomIn) zoomIn.onclick = () => { currentScale = Math.min(currentScale + 0.1, 3.0); updateVisualScale(); };
+        if (zoomOut) zoomOut.onclick = () => { currentScale = Math.max(currentScale - 0.1, 0.4); updateVisualScale(); };
+        if (fitWidthBtn) fitWidthBtn.onclick = fitToWidth;
+        if (fitPageBtn) fitPageBtn.onclick = fitToPage;
+
+        if (toggleTheme) {
+            toggleTheme.onclick = () => {
+                const container = document.getElementById('pdfCanvasContainer');
+                if (container) container.classList.toggle('pdf-dark-mode');
+            };
         }
 
-        // Prevent redundant reloads if the URL hasn't changed and no refresh forced
-        if (pdfFrame.getAttribute("src") === (bust + "#toolbar=0&navpanes=0") && !forceRefresh) {
-            return;
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
+        const pageNum = document.getElementById('pageNum');
+
+        if (prevPage) {
+            prevPage.onclick = () => {
+                const current = parseInt(pageNum.textContent);
+                if (current > 1) scrollToPage(current - 1);
+            };
+        }
+        if (nextPage) {
+            nextPage.onclick = () => {
+                const current = parseInt(pageNum.textContent);
+                const totalText = document.getElementById('pageCount')?.textContent;
+                const total = parseInt(totalText) || 1;
+                if (current < total) scrollToPage(current + 1);
+            };
         }
 
-        const finalUrl = bust + "#toolbar=0&navpanes=0";
-        pdfFrame.setAttribute("src", finalUrl);
-
-        // Update Mobile link
-        if (mobilePdfLink) {
-            mobilePdfLink.href = finalUrl;
-            if (window.innerWidth < 600) {
-                mobilePdfLink.style.display = "block";
+        function scrollToPage(num) {
+            const container = document.getElementById('pdfCanvasContainer');
+            const canvases = container.querySelectorAll('.pdf-page-canvas');
+            if (canvases[num - 1]) {
+                canvases[num - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (pageNum) pageNum.textContent = num;
             }
         }
+
+        if (pdfViewer) {
+            pdfViewer.addEventListener('scroll', () => {
+                const canvases = pdfViewer.querySelectorAll('.pdf-page-canvas');
+                const viewerRect = pdfViewer.getBoundingClientRect();
+                canvases.forEach((canvas, index) => {
+                    const rect = canvas.getBoundingClientRect();
+                    if (rect.top < viewerRect.bottom && rect.bottom > viewerRect.top) {
+                        if (rect.top < viewerRect.top + viewerRect.height / 2 && pageNum) {
+                            pageNum.textContent = index + 1;
+                        }
+                    }
+                });
+            });
+
+            pdfViewer.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    const oldScale = currentScale;
+                    currentScale = Math.min(Math.max(currentScale + delta, 0.4), 3.0);
+                    const rect = pdfViewer.getBoundingClientRect();
+                    const ratio = currentScale / oldScale;
+                    updateVisualScale();
+                    pdfViewer.scrollLeft = (pdfViewer.scrollLeft + (e.clientX - rect.left)) * ratio - (e.clientX - rect.left);
+                    pdfViewer.scrollTop = (pdfViewer.scrollTop + (e.clientY - rect.top)) * ratio - (e.clientY - rect.top);
+                }
+            }, { passive: false });
+
+            let isPanning = false, startX, startY, sL, sT;
+            pdfViewer.addEventListener('mousedown', (e) => {
+                if (e.button === 0) {
+                    isPanning = true;
+                    pdfViewer.classList.add('grabbing');
+                    pdfViewer.classList.remove('grab');
+                    startX = e.clientX; startY = e.clientY; sL = pdfViewer.scrollLeft; sT = pdfViewer.scrollTop;
+                }
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!isPanning) return;
+                pdfViewer.scrollLeft = sL - (e.clientX - startX);
+                pdfViewer.scrollTop = sT - (e.clientY - startY);
+            });
+            document.addEventListener('mouseup', () => {
+                if (isPanning) {
+                    isPanning = false;
+                    pdfViewer.classList.remove('grabbing');
+                    pdfViewer.classList.add('grab');
+                }
+            });
+        }
+    }
+
+    function setupResizer() {
+        const resizer = document.getElementById('resizer');
+        const leftPanel = document.querySelector('.editor-panel');
+        const container = document.querySelector('.editor-container');
+        if (!resizer || !leftPanel || !container) return;
+
+        let isResizing = false;
+        resizer.addEventListener('mousedown', () => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            container.style.userSelect = 'none';
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const rect = container.getBoundingClientRect();
+            const width = Math.min(Math.max(e.clientX - rect.left, rect.width * 0.2), rect.width * 0.8);
+            leftPanel.style.width = `${width}px`;
+            leftPanel.style.flex = 'none';
+            if (cm) cm.refresh();
+            fitToWidth();
+        });
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false; document.body.style.cursor = ''; container.style.userSelect = '';
+                if (cm) cm.refresh();
+            }
+        });
     }
 
     // Error categorization and user-friendly messages
@@ -415,6 +661,12 @@
     }
 
     async function uploadPdf() {
+        // Redirect if not logged in
+        if (!currentUser) {
+            window.location.href = 'login.html';
+            return;
+        }
+
         const file = pdfInput.files && pdfInput.files[0];
         if (!file) {
             setStatus("Please select a PDF first", "warning");
@@ -442,13 +694,13 @@
                 throw { info: errorInfo, data };
             }
 
-            if (latexEditor) latexEditor.value = (data.latex || "").trim();
+            if (latexEditor) setEditorValue((data.latex || "").trim());
             setPdfSrc(data.pdfUrl || "/files/resume.pdf", false, true);
 
             setStatus("Compiled successfully", "success");
             showToast("Success!", "Resume generated successfully.", "success");
 
-            if (recompileBtn) recompileBtn.disabled = (latexEditor && !latexEditor.value.trim());
+            if (recompileBtn) recompileBtn.disabled = (cm && !cm.getValue().trim());
             if (downloadBtn) downloadBtn.disabled = false;
 
             if (compileLog && !compileLog.textContent) {
@@ -487,7 +739,13 @@
     }
 
     async function recompileLatex() {
-        const latex = latexEditor ? latexEditor.value : "";
+        // Redirect if not logged in
+        if (!currentUser) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const latex = getEditorValue();
         if (!latex.trim()) {
             setStatus("Enter LaTeX before recompiling", "warning");
             showToast("Empty Editor", "Please enter LaTeX code before recompiling.", "warning");
@@ -686,7 +944,7 @@
             }
 
             if (data) {
-                if (latexEditor) latexEditor.value = data.latex_content || "";
+                if (latexEditor) setEditorValue(data.latex_content || "");
 
                 // Comprehensive PDF URL validation - reject invalid/temporary URLs
                 let validPdf = data.pdf_url;
@@ -716,20 +974,11 @@
                     if (downloadBtn) downloadBtn.disabled = false;
                     setStatus("Latest version loaded", "success");
                 } else {
-                    // Start clean if no valid PDF - Show friendly message
-                    const msg = `
-                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#64748b;font-family:system-ui,sans-serif;text-align:center;padding:20px;background:#f8fafc;">
-                            <div style="font-size:48px;margin-bottom:16px;">📄</div>
-                            <h3 style="margin:0 0 8px 0;color:#334155;">Preview Unavailable</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.5;">The previously generated PDF has expired.</p>
-                            <p style="margin:4px 0 0 0;font-size:14px;font-weight:600;color:#2563eb;">Click "Recompile" to generate a new one.</p>
-                        </div>
-                    `;
-                    setPdfSrc(msg, true);
+                    // Start clean if no valid PDF
                     setStatus("Ready to Compile", "ready");
                 }
 
-                if (recompileBtn) recompileBtn.disabled = (latexEditor && !latexEditor.value.trim());
+                if (recompileBtn) recompileBtn.disabled = (cm && !cm.getValue().trim());
                 if (compileLog) {
                     if (!compileLog.textContent) {
                         compileLog.textContent = "Previous session loaded. Click Recompile to generate PDF.";
@@ -785,8 +1034,16 @@
                     }
                 }
             } else if (authMode === "forgot") {
+                // Check if user exists before sending reset link
                 const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-                if (error) throw error;
+
+                if (error) {
+                    if (error.message.includes("User not found")) {
+                        throw new Error("This email is not registered with us.");
+                    }
+                    throw error;
+                }
+
                 if (authMessage) {
                     authMessage.textContent = "Reset link sent! Check " + email;
                     authMessage.style.display = "block";
@@ -946,6 +1203,25 @@
         if (authForm) authForm.reset();
     }
 
+    // Password Visibility Toggle
+    function setupPasswordToggle() {
+        const toggleBtn = $("toggleVisibility");
+        const passwordInput = $("password");
+
+        if (!toggleBtn || !passwordInput) return;
+
+        toggleBtn.addEventListener("click", () => {
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
+
+            const icon = toggleBtn.querySelector("i");
+            if (icon && window.lucide) {
+                icon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
+                lucide.createIcons();
+            }
+        });
+    }
+
 
     let hasInitialized = false;
     function init() {
@@ -970,6 +1246,9 @@
                 usernameField.required = false;
             }
         }
+
+        // Setup password visibility toggle
+        setupPasswordToggle();
 
         if (statusBadge) setStatus("Ready", "ready");
         if (recompileBtn) recompileBtn.disabled = true;
@@ -999,6 +1278,9 @@
             }
         } else if (window.location.pathname.includes('ai-builder.html')) {
             // AI Builder specific initialization
+            initCodeMirror();
+            setupToolbarFeatures();
+            setupResizer();
             if (uploadBtn) uploadBtn.addEventListener("click", uploadPdf);
         }
         if (recompileBtn) recompileBtn.addEventListener("click", recompileLatex);
@@ -1047,7 +1329,7 @@
 
         if (latexEditor) {
             latexEditor.addEventListener("input", function () {
-                if (recompileBtn) recompileBtn.disabled = !latexEditor.value.trim();
+                if (recompileBtn) recompileBtn.disabled = !getEditorValue().trim();
             });
         }
 
