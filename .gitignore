@@ -1,4 +1,5 @@
 ﻿database/
+!database/registration_check.sql
 node_modules/
 .env
 backend/temp/*

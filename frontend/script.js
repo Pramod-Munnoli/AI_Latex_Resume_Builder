@@ -23,6 +23,7 @@
     const authModal = $("authModal");
     const authForm = $("authForm");
     const modalTitle = $("modalTitle");
+    const modalSubtitle = $("modalSubtitle");
     const submitBtn = $("submitBtn");
     const toggleAuth = $("toggleAuth");
     const toggleText = $("toggleText");
@@ -174,10 +175,12 @@
         if (submitBtn) submitBtn.style.display = "block";
         if (emailField) emailField.style.display = "block";
         const passwordGroup = $("passwordGroup");
-        const forgotHelper = document.querySelector('.auth-helper-forgot');
+        const fBtn = $("forgotBtn");
+        const forgotHelper = fBtn ? fBtn.parentElement : null;
 
         if (mode === "login") {
             if (modalTitle) modalTitle.textContent = "Login";
+            if (modalSubtitle) modalSubtitle.textContent = "Login to sync your resumes to the cloud.";
             if (submitBtn) submitBtn.textContent = "Login";
             if (usernameField) {
                 usernameField.style.display = "none";
@@ -195,10 +198,11 @@
                 if (tAuth) tAuth.onclick = () => setAuthUI("signup");
             }
             if (backToLogin) backToLogin.style.display = "none";
-            if (forgotPasswordLink) forgotPasswordLink.style.display = "block";
+            if (fBtn) fBtn.style.display = "inline";
             if (forgotHelper) forgotHelper.style.display = "block";
         } else if (mode === "signup") {
             if (modalTitle) modalTitle.textContent = "Sign Up";
+            if (modalSubtitle) modalSubtitle.textContent = "Start building professional resumes for free.";
             if (submitBtn) submitBtn.textContent = "Create Account";
             if (usernameField) {
                 usernameField.style.display = "block";
@@ -216,10 +220,11 @@
                 if (tAuth) tAuth.onclick = () => setAuthUI("login");
             }
             if (backToLogin) backToLogin.style.display = "none";
-            if (forgotPasswordLink) forgotPasswordLink.style.display = "none";
+            if (fBtn) fBtn.style.display = "none";
             if (forgotHelper) forgotHelper.style.display = "none";
         } else if (mode === "forgot") {
             if (modalTitle) modalTitle.textContent = "Reset Password";
+            if (modalSubtitle) modalSubtitle.textContent = "Enter your email to receive a password reset link.";
             if (submitBtn) submitBtn.textContent = "Send Reset Link";
             if (usernameField) {
                 usernameField.style.display = "none";
@@ -236,9 +241,11 @@
                 const bBtn = $("backBtn");
                 if (bBtn) bBtn.onclick = () => setAuthUI("login");
             }
-            if (forgotPasswordLink) forgotPasswordLink.style.display = "none";
+            if (fBtn) fBtn.style.display = "none";
+            if (forgotHelper) forgotHelper.style.display = "none";
         } else if (mode === "update") {
             if (modalTitle) modalTitle.textContent = "Update Password";
+            if (modalSubtitle) modalSubtitle.textContent = "Please set a new password for your account.";
             if (submitBtn) submitBtn.textContent = "Save New Password";
             if (usernameField) {
                 usernameField.style.display = "none";
@@ -1005,7 +1012,7 @@
             return;
         }
 
-        const email = emailField ? emailField.value : "";
+        const email = emailField ? emailField.value.trim().toLowerCase() : "";
         const password = passwordField ? passwordField.value : "";
         const username = usernameField ? usernameField.value : "";
 
@@ -1034,15 +1041,29 @@
                     }
                 }
             } else if (authMode === "forgot") {
-                // Check if user exists before sending reset link
-                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+                // 1. Check if email is registered in our public tracking table
+                const { data: emailData, error: checkError } = await supabase
+                    .from('user_emails')
+                    .select('email')
+                    .eq('email', email)
+                    .maybeSingle();
 
-                if (error) {
-                    if (error.message.includes("User not found")) {
-                        throw new Error("This email is not registered with us.");
+                if (checkError) {
+                    if (checkError.message.includes("relation \"user_emails\" does not exist")) {
+                        throw new Error("Registration check is being configured. Please contact admin to run the database setup.");
                     }
-                    throw error;
+                    console.warn("Registration check warning:", checkError);
                 }
+
+                if (!emailData) {
+                    throw new Error("This email is not registered with us. Please sign up first.");
+                }
+
+                // 2. Only if registered, send reset email link
+                const currentUrl = window.location.href.split('#')[0];
+                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: currentUrl });
+
+                if (error) throw error;
 
                 if (authMessage) {
                     authMessage.textContent = "Reset link sent! Check " + email;
