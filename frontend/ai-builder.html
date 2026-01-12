@@ -59,7 +59,29 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Toggle Menu">
+            <span class="hamburger-icon">☰</span>
+        </button>
+        </div>
     </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div id="mobileNavOverlay" class="mobile-nav-overlay">
+        <div class="mobile-nav-links">
+            <a href="index.html" class="mobile-nav-link">Home</a>
+            <a href="templates.html" class="mobile-nav-link">Templates</a>
+            <a href="ai-builder.html" class="mobile-nav-link active">AI Builder</a>
+            <a href="editor.html" class="mobile-nav-link">Editor</a>
+            <a href="docs.html" class="mobile-nav-link">Docs</a>
+        </div>
+
+        <div class="mobile-auth-container">
+            <a href="login.html" class="btn btn-primary" style="justify-content: center;">Login / Sign Up</a>
+        </div>
+    </div>
 
     <main class="main-content">
         <!-- Hero and Upload sections remain unchanged -->
@@ -203,6 +225,12 @@
 
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Mobile View Toggle -->
+    <div class="mobile-view-toggle">
+        <button id="mobileShowEditor" class="mobile-toggle-btn active">Code</button>
+        <button id="mobileShowPreview" class="mobile-toggle-btn">Preview</button>
+    </div>
+
     <!-- Global App Loader -->
     <div id="appLoader" class="app-loader">
         <div class="app-loader-content">
@@ -216,36 +244,6 @@
             // Initialize Lucide Icons
             if (window.lucide) {
                 window.lucide.createIcons();
-            }
-
-            // File name display and drag-drop visual feedback
-            const fileInput = document.getElementById('pdfInput');
-            const fileNameDisplay = document.getElementById('selectedFileName');
-            const dropZone = document.getElementById('dropZone');
-
-            if (fileInput) {
-                fileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        fileNameDisplay.textContent = `Selected: ${e.target.files[0].name}`;
-                        fileNameDisplay.style.display = 'inline-block';
-                    }
-                });
-            }
-
-            if (dropZone) {
-                ['dragenter', 'dragover'].forEach(eventName => {
-                    dropZone.addEventListener(eventName, (e) => {
-                        e.preventDefault();
-                        dropZone.classList.add('drag-over');
-                    }, false);
-                });
-
-                ['dragleave', 'drop'].forEach(eventName => {
-                    dropZone.addEventListener(eventName, (e) => {
-                        e.preventDefault();
-                        dropZone.classList.remove('drag-over');
-                    }, false);
-                });
             }
         });
     </script>

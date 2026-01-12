@@ -437,8 +437,23 @@
         display: none;
     }
 
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        padding: 0 16px;
+    }
+
     .hero-cta {
         flex-direction: column;
+        padding: 0 20px;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .steps {
@@ -449,10 +464,25 @@
     .step-arrow {
         transform: rotate(90deg);
         margin: 0;
+        font-size: 1.5rem;
     }
 
     .path-cards {
         grid-template-columns: 1fr;
+    }
+
+    .template-grid {
+        grid-template-columns: 1fr;
+        padding: 0 10px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 16px;
     }
 }
 

@@ -35,7 +35,12 @@
     // PDF.js state
     let pdfDoc = null;
     let currentScale = 1.0;
-    const PDF_PADDING = 80;
+
+
+    // Dynamic padding based on screen size
+    function getPdfPadding() {
+        return window.innerWidth <= 768 ? 20 : 80;
+    }
 
     // Safely configure PDF.js if library is loaded
     if (typeof pdfjsLib !== 'undefined') {
@@ -62,8 +67,9 @@
         ? ""
         : "https://ai-latex-resume-builder.onrender.com";
 
-    // Global Supabase client (must be declared at module scope)
     let supabase = null;
+    let currentUser = null;
+    let isAuthenticating = false;
 
     async function initSupabase() {
         try {
@@ -82,75 +88,81 @@
 
                     // Set up listener immediately after initialization
                     supabase.auth.onAuthStateChange(async (event, session) => {
+                        try {
+                            // Unified state update
+                            currentUser = session?.user || null;
+                            updateAuthUI(session);
 
-                        // Unified state update
-                        currentUser = session?.user || null;
-                        updateAuthUI(session);
-
-                        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-                            if (session?.user) {
-                                // Check if this is a password recovery flow
-                                const isRecovery = window.location.hash && window.location.hash.includes("type=recovery");
-
-                                if (isRecovery) {
-                                    // FORCE password update UI and keep modal open
-                                    setAuthUI("update");
-                                    authMessage.textContent = "Please set a new password to secure your account.";
+                            if (event === "PASSWORD_RECOVERY") {
+                                // Password recovery link used
+                                setAuthUI("update");
+                                if (authMessage) {
+                                    authMessage.textContent = "Recovery session active. Please set a new password below.";
                                     authMessage.style.display = "block";
-                                    openModal();
-                                    // We do NOT clear the hash here; let Supabase process it or clear it after successful update
-                                } else {
-                                    // Normal Login: Close modal
-                                    closeModal();
+                                }
+                                openModal();
+                            } else if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+                                if (session?.user) {
+                                    // Check if this is a password recovery flow
+                                    const isRecovery = window.location.hash && window.location.hash.includes("type=recovery");
 
-                                    // Redirect to home if on standalone auth pages
-                                    const path = window.location.pathname;
-                                    if (path.includes("login.html") || path.includes("signup.html")) {
-                                        window.location.href = "index.html";
+                                    if (isRecovery) {
+                                        // FORCE password update UI and keep modal open
+                                        setAuthUI("update");
+                                        if (authMessage) {
+                                            authMessage.textContent = "Please set a new password to secure your account.";
+                                            authMessage.style.display = "block";
+                                        }
+                                        openModal();
+                                    } else {
+                                        // Normal Login: Close modal
+                                        closeModal();
+
+                                        // Redirect to home if on standalone auth pages
+                                        const path = window.location.pathname;
+                                        if (path.includes("login.html") || path.includes("signup.html")) {
+                                            window.location.href = "index.html";
+                                        }
+                                    }
+                                    // Only load last AI resume if on the AI Builder page
+                                    if (window.location.pathname.includes('ai-builder.html')) {
+                                        loadLastSavedResume();
                                     }
                                 }
-                                // Only load last AI resume if on the AI Builder page
-                                if (window.location.pathname.includes('ai-builder.html')) {
-                                    loadLastSavedResume();
-                                }
+                            } else if (event === "SIGNED_OUT") {
+                                if (latexEditor) latexEditor.value = "";
+                                setPdfSrc(null);
+                                if (recompileBtn) recompileBtn.disabled = true;
+                                if (downloadBtn) downloadBtn.disabled = true;
+                                currentUser = null;
+                                updateAuthUI(null);
+                                closeModal();
                             }
-                        } else if (event === "SIGNED_OUT") {
-                            if (latexEditor) latexEditor.value = "";
-                            setPdfSrc(null);
-                            if (recompileBtn) recompileBtn.disabled = true;
-                            if (downloadBtn) downloadBtn.disabled = true;
-                            currentUser = null;
-                            updateAuthUI(null);
-                            closeModal();
-                        } else if (event === "PASSWORD_RECOVERY") {
-                            // Clear the URL hash so the token doesn't persist in the address bar
-                            window.history.replaceState(null, null, window.location.pathname);
-                            setAuthUI("update");
-                            authMessage.textContent = "You've been logged in. Please set a new password below.";
-                            authMessage.style.display = "block";
-                            openModal();
+                        } catch (authError) {
+                            // Handle stale/invalid refresh token errors
+                            if (authError.message && authError.message.includes("refresh_token")) {
+                                console.warn("Detected stale refresh token, clearing localStorage...", authError);
+
+                                // Clear all Supabase-related keys from localStorage
+                                const storageKeys = Object.keys(localStorage);
+                                storageKeys.forEach(key => {
+                                    if (key.startsWith('sb-')) {
+                                        localStorage.removeItem(key);
+                                    }
+                                });
+
+                                // Re-initialize the client with clean state
+                                supabase = window.supabase.createClient(url, key);
+                                console.log("Supabase re-initialized with clean state.");
+                                showToast("Session Cleared", "Please log in again.", "info");
+                            } else {
+                                throw authError;
+                            }
                         }
                     });
-                } catch (authError) {
-                    // Handle stale/invalid refresh token errors
-                    if (authError.message && authError.message.includes("refresh_token")) {
-                        console.warn("Detected stale refresh token, clearing localStorage...", authError);
-
-                        // Clear all Supabase-related keys from localStorage
-                        const storageKeys = Object.keys(localStorage);
-                        storageKeys.forEach(key => {
-                            if (key.startsWith('sb-')) {
-                                localStorage.removeItem(key);
-                            }
-                        });
-
-                        // Re-initialize the client with clean state
-                        supabase = window.supabase.createClient(url, key);
-                        console.log("Supabase re-initialized with clean state.");
-                        showToast("Session Cleared", "Please log in again.", "info");
-                    } else {
-                        throw authError;
-                    }
+                } catch (authClientError) {
+                    console.error("Error creating Supabase client:", authClientError);
+                    showToast("Authentication Error", "Failed to initialize authentication client.", "error");
                 }
             } else {
                 console.warn("Supabase credentials missing in .env");
@@ -162,11 +174,7 @@
         }
     }
 
-
-
     let authMode = "login"; // 'login', 'signup', 'forgot'
-    let currentUser = null;
-    let isAuthenticating = false;
 
     function setAuthUI(mode) {
         authMode = mode;
@@ -255,8 +263,10 @@
                 emailField.style.display = "none";
                 emailField.required = false;
             }
+            if (passwordGroup) passwordGroup.style.display = "block";
             if (passwordField) {
                 passwordField.style.display = "block";
+                passwordField.required = true;
                 passwordField.placeholder = "New Password";
             }
             if (confirmPasswordField) {
@@ -457,7 +467,8 @@
 
         pdfDoc.getPage(1).then(page => {
             const viewport = page.getViewport({ scale: 1.0 });
-            const availableWidth = viewer.clientWidth - PDF_PADDING;
+            const padding = getPdfPadding();
+            const availableWidth = viewer.clientWidth - padding;
             currentScale = availableWidth / viewport.width;
             updateVisualScale();
         });
@@ -470,7 +481,8 @@
 
         pdfDoc.getPage(1).then(page => {
             const viewport = page.getViewport({ scale: 1.0 });
-            const availableHeight = viewer.clientHeight - PDF_PADDING;
+            const padding = getPdfPadding();
+            const availableHeight = viewer.clientHeight - padding;
             currentScale = availableHeight / viewport.height;
             updateVisualScale();
         });
@@ -1075,7 +1087,14 @@
                 if (password !== (confirmPasswordField ? confirmPasswordField.value : "")) throw new Error("Passwords mismatch.");
                 const { error } = await supabase.auth.updateUser({ password });
                 if (error) throw error;
-                showToast("Updated", "Password changed.", "success");
+
+                // Clear recovery hash after success
+                if (window.location.hash.includes("type=recovery")) {
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+
+                showToast("Updated", "Password changed successfully.", "success");
+                closeModal();
             }
         } catch (err) {
             console.error("Auth Exception:", err);
@@ -1192,11 +1211,28 @@
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    // Toggle profile dropdown
     function toggleProfileDropdown() {
         const profileMenu = $("profileMenu");
         if (!profileMenu) return;
         profileMenu.classList.toggle("active");
+    }
+
+    // Toggle Mobile Menu
+    function toggleMobileMenu() {
+        const btn = document.getElementById('mobileMenuBtn');
+        const overlay = document.getElementById('mobileNavOverlay');
+
+        if (btn && overlay) {
+            btn.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            // Prevent body scroll when menu is open
+            if (overlay.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
     }
 
     // Close dropdown when clicking outside
@@ -1338,14 +1374,80 @@
         // Close dropdown when clicking outside
         document.addEventListener("click", closeProfileDropdown);
 
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        }
+
         if (pdfInput) {
             pdfInput.addEventListener("change", function () {
                 if (pdfInput.files && pdfInput.files.length) {
+                    const file = pdfInput.files[0];
+                    // Update UI with filename
+                    const fileNameDisplay = document.getElementById('selectedFileName');
+                    if (fileNameDisplay) {
+                        fileNameDisplay.textContent = `Selected: ${file.name}`;
+                        fileNameDisplay.style.display = 'inline-block';
+                    }
                     setStatus("PDF selected", "ready");
                 } else {
                     setStatus("Ready", "ready");
                 }
             });
+        }
+
+        // Drag and Drop Implementation
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('drag-over');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('drag-over');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type !== 'application/pdf') {
+                        showToast("Invalid File", "Please upload a PDF file.", "error");
+                        return;
+                    }
+
+                    // Manually assign to input
+                    if (pdfInput) {
+                        // Modern browsers allow assigning a DataTransfer reference
+                        pdfInput.files = files;
+                        // Trigger change event manually
+                        const event = new Event('change', { bubbles: true });
+                        pdfInput.dispatchEvent(event);
+                    }
+                }
+            }
         }
 
         if (latexEditor) {
@@ -1367,7 +1469,48 @@
                 }
             });
         });
+
+        // Mobile View Toggle Logic
+        const mobileToggleContainer = document.querySelector('.mobile-view-toggle');
+        if (mobileToggleContainer) {
+            const editorBtn = document.getElementById('mobileShowEditor');
+            const previewBtn = document.getElementById('mobileShowPreview');
+            const editorPanel = document.querySelector('.editor-panel');
+            const previewPanel = document.querySelector('.preview-panel');
+
+            function switchToEditor() {
+                if (editorBtn) editorBtn.classList.add('active');
+                if (previewBtn) previewBtn.classList.remove('active');
+                if (editorPanel) editorPanel.classList.add('mobile-active');
+                if (previewPanel) previewPanel.classList.remove('mobile-active');
+                if (cm) cm.refresh();
+            }
+
+            function switchToPreview() {
+                if (editorBtn) editorBtn.classList.remove('active');
+                if (previewBtn) previewBtn.classList.add('active');
+                if (editorPanel) editorPanel.classList.remove('mobile-active');
+                if (previewPanel) previewPanel.classList.add('mobile-active');
+                // Trigger resize for PDF viewer
+                window.dispatchEvent(new Event('resize'));
+            }
+
+            if (editorBtn) editorBtn.addEventListener('click', switchToEditor);
+            if (previewBtn) previewBtn.addEventListener('click', switchToPreview);
+
+            // Initial State default to Editor
+            if (window.innerWidth <= 768) {
+                switchToEditor();
+            }
+        }
     }
+
+    // Global Resize Handler for PDF Viewer
+    window.addEventListener('resize', () => {
+        if (pdfDoc && document.getElementById('pdfViewer')) {
+            fitToWidth();
+        }
+    });
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init);

@@ -258,7 +258,40 @@
 }
 
 @media (max-width: 768px) {
+
+    .ai-builder-hero,
+    .upload-container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
     .ai-builder-hero h1 {
-        font-size: 2.25rem;
+        font-size: 2rem;
+    }
+
+    .drop-zone {
+        padding: 40px 20px;
+    }
+
+    /* Override for Mobile Links/Toggles */
+    .ai-builder-workspace {
+        height: 100%;
+        /* Fill available space */
+        flex-direction: row;
+        /* Keep row so toggles switch visibility, not stack */
+    }
+
+    .ai-builder-workspace .editor-panel,
+    .ai-builder-workspace .preview-panel {
+        width: 100% !important;
+        flex: 1;
+        height: 100%;
+        display: none;
+        /* Default hidden, updated by JS via editor.css classes */
+    }
+
+    .ai-builder-workspace .editor-panel.mobile-active,
+    .ai-builder-workspace .preview-panel.mobile-active {
+        display: flex;
     }
 }
