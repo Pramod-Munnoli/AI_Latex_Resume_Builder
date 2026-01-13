@@ -1176,6 +1176,7 @@
         const profileAvatar = $("profileAvatar");
         const profileName = $("profileName");
         const profileEmail = $("profileEmail");
+        const dynamicLogoArea = $("dynamicLogoArea");
 
         if (user) {
             if (authBtn) authBtn.style.display = "none";
@@ -1195,9 +1196,32 @@
             if (profileAvatar) profileAvatar.textContent = initials;
             if (profileName) profileName.textContent = displayName;
             if (profileEmail) profileEmail.textContent = user.email || "";
+
+            // Update Dynamic Logo Area with Profile Avatar
+            if (dynamicLogoArea) {
+                dynamicLogoArea.innerHTML = `
+                <div class="profile-avatar" id="headerProfileAvatar">${initials}</div>
+            `;
+                const headerAvatar = $("headerProfileAvatar");
+                if (headerAvatar) {
+                    headerAvatar.onclick = (e) => {
+                        e.stopPropagation();
+                        if (profileMenu) profileMenu.classList.toggle('active');
+                    };
+                }
+            }
         } else {
             if (authBtn) authBtn.style.display = "block";
             if (profileDropdown) profileDropdown.style.display = "none";
+
+            // Update Dynamic Logo Area with Tiny Login Button
+            if (dynamicLogoArea) {
+                dynamicLogoArea.innerHTML = `
+                <a href="login.html" class="btn-tiny-auth" title="Login / Sign Up">
+                    <span class="user-icon">👤</span>
+                </a>
+            `;
+            }
         }
     }
 

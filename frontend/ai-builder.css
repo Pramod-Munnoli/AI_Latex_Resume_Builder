@@ -1,5 +1,10 @@
 @import url('theme.css');
 
+/* Mobile View Toggle (Hidden on Desktop) */
+.mobile-view-toggle {
+    display: none;
+}
+
 /* AI Builder Specific Layout */
 .ai-builder-body {
     height: auto !important;
@@ -293,5 +298,39 @@
     .ai-builder-workspace .editor-panel.mobile-active,
     .ai-builder-workspace .preview-panel.mobile-active {
         display: flex;
+    }
+
+    .mobile-view-toggle {
+        display: flex;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 4px;
+        border-radius: 100px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        gap: 4px;
+    }
+
+    .mobile-toggle-btn {
+        padding: 8px 20px;
+        border-radius: 20px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .mobile-toggle-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
 }

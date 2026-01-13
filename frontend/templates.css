@@ -144,13 +144,7 @@
     color: var(--text-muted);
 }
 
-/* Footer override for regular pages */
-.footer {
-    padding: 40px 0;
-    border-top: 1px solid var(--glass-border);
-    text-align: center;
-    margin-top: 60px;
-}
+
 
 @media (max-width: 768px) {
     .page-title {

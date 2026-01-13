@@ -868,6 +868,11 @@
     border-radius: 8px;
 }
 
+/* Mobile View Toggle (Hidden on Desktop) */
+.mobile-view-toggle {
+    display: none;
+}
+
 @media (max-width: 900px) {
     .editor-container {
         flex-direction: column;
@@ -877,5 +882,84 @@
         border-right: none;
         border-bottom: 1px solid var(--glass-border);
         flex: 1.5;
+    }
+}
+
+@media (max-width: 768px) {
+    .editor-container {
+        flex-direction: row !important;
+        /* Force side-by-side */
+    }
+
+    .editor-panel,
+    .preview-panel {
+        width: 50% !important;
+        flex: 1 !important;
+        display: flex !important;
+        /* Show both */
+        min-width: 0;
+    }
+
+    .resizer {
+        display: none !important;
+    }
+
+    /* Hide labels/text on toolbars to save space */
+    .btn-recompile span,
+    .btn-version span,
+    .toggle-btn {
+        padding: 6px 8px;
+    }
+
+    .panel-label {
+        padding: 4px 8px;
+        height: 36px;
+    }
+
+    .template-name-display {
+        font-size: 0.65rem;
+        max-width: 80px;
+        padding: 2px 8px;
+    }
+
+    .preview-toolbar {
+        padding: 0 8px;
+        height: 40px;
+    }
+
+    .toolbar-left,
+    .toolbar-middle,
+    .toolbar-right {
+        gap: 4px;
+    }
+
+    .btn-recompile {
+        min-width: unset;
+        padding: 6px 10px;
+    }
+
+    .btn-recompile i {
+        margin: 0;
+    }
+
+    .page-info,
+    .zoom-value {
+        font-size: 0.65rem;
+        min-width: 30px;
+    }
+
+    .mobile-view-toggle {
+        display: none !important;
+        /* No longer needed as both are visible */
+    }
+
+    /* Adjust CodeMirror font size for small screens */
+    .CodeMirror {
+        font-size: 0.8rem;
+    }
+
+    /* Adjust PDF Padding */
+    .pdf-inner-container {
+        padding: 10px;
     }
 }
