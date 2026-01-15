@@ -98,35 +98,41 @@ if (headerPlaceholder) {
         }
     });
 
+
     // Mobile Menu Toggle Logic
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileNavOverlay = document.getElementById('mobileNavOverlay');
 
     if (mobileMenuBtn && mobileNavOverlay) {
         mobileMenuBtn.addEventListener('click', () => {
-            mobileMenuBtn.classList.toggle('active');
+            const isActive = mobileMenuBtn.classList.toggle('active');
             mobileNavOverlay.classList.toggle('active');
 
-            // Toggle hamburger icon
+            // Handle Icon Toggle (☰ ↔ ✕)
             const icon = mobileMenuBtn.querySelector('.hamburger-icon');
             if (icon) {
-                icon.textContent = mobileMenuBtn.classList.contains('active') ? '✕' : '☰';
+                icon.textContent = isActive ? '✕' : '☰';
+            }
+
+            // Lock/Unlock Body Scroll
+            if (isActive) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
             }
         });
+
+        // Close menu when clicking on a link
+        const mobileLinks = mobileNavOverlay.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuBtn.classList.remove('active');
+                mobileNavOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                const icon = mobileMenuBtn.querySelector('.hamburger-icon');
+                if (icon) icon.textContent = '☰';
+            });
+        });
     }
-
-    // Auth Container Responsive Handling (for "Left Side Profile on Mobile")
-    // Note: The actual auth state logic is in script.js, which updates #authBtn/profileDropdown.
-    // We need to ensure that on mobile, the profile/login is visible on the LEFT.
-
-    // We will clone the auth content to the mobile-auth-trigger on the left for mobile view
-    // or handle it via CSS. 
-    // To strictly follow "login button... on the left", we might need to duplicate the auth button 
-    // into the left container if we are on mobile.
-
-    // However, since script.js manages the STATE of these buttons (showing/hiding based on login),
-    // duplication is tricky unless we sync them. 
-    // Better approach: CSS positioning. 
-    // We can use Flexbox 'order' property to move authContainer to the left on mobile!
 
 })();

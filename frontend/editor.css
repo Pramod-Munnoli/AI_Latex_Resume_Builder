@@ -1,9 +1,14 @@
 .editor-body,
 .ai-builder-body {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+}
+
+@media (min-width: 1500px) {
+    .editor-container {
+        min-height: calc(100vh - 70px);
+    }
 }
 
 .editor-container,
@@ -873,35 +878,159 @@
     display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1147px) {
+
+    .editor-body,
+    .ai-builder-body {
+        height: auto !important;
+        overflow: auto !important;
+    }
+
     .editor-container {
-        flex-direction: column;
+        flex-direction: column !important;
+        height: auto !important;
+        overflow: visible !important;
+        min-height: 100vh;
     }
 
     .editor-panel {
+        width: 100% !important;
+        height: 50vh !important;
+        /* Start in the center */
+        min-height: 200px;
         border-right: none;
         border-bottom: 1px solid var(--glass-border);
-        flex: 1.5;
-    }
-}
-
-@media (max-width: 768px) {
-    .editor-container {
-        flex-direction: row !important;
-        /* Force side-by-side */
     }
 
-    .editor-panel,
     .preview-panel {
-        width: 50% !important;
-        flex: 1 !important;
-        display: flex !important;
-        /* Show both */
-        min-width: 0;
+        width: 100% !important;
+        height: 80vh !important;
+        min-height: 600px;
     }
 
     .resizer {
+        display: flex !important;
+        width: 100% !important;
+        height: 14px !important;
+        cursor: row-resize !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #0f172a !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        position: relative !important;
+        z-index: 100 !important;
+        padding: 0 10px !important;
+    }
+
+    .resizer-dots-top,
+    .resizer-dots-bottom {
+        display: block !important;
+        writing-mode: horizontal-tb !important;
+        color: rgba(255, 255, 255, 0.2) !important;
+        font-size: 1.2rem !important;
+        letter-spacing: 2px !important;
+        flex: 1 !important;
+        pointer-events: none !important;
+    }
+
+    .resizer-dots-top {
+        text-align: right !important;
+        padding-right: 20px !important;
+    }
+
+    .resizer-dots-bottom {
+        text-align: left !important;
+        padding-left: 20px !important;
+    }
+
+    .resizer-handle {
+        width: 64px !important;
+        height: 28px !important;
+        background: #7063f3 !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transform: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .resizer-handle span {
+        line-height: 0.6 !important;
+        font-size: 1.2rem !important;
+        color: white !important;
+    }
+
+    .resizer-handle .left-arrow {
+        transform: rotate(90deg) !important;
+    }
+
+    .resizer-handle .right-arrow {
+        transform: rotate(90deg) !important;
+    }
+
+
+}
+
+@media (max-width: 545px) {
+
+    /* Hide specific tools as requested */
+    #fitWidthBtn,
+    #fitPageBtn,
+    .page-controls,
+    .divider {
         display: none !important;
+    }
+
+    /* Shrink buttons but keep text visible */
+    .btn-recompile {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important;
+        min-width: unset !important;
+        gap: 4px !important;
+    }
+
+    .btn-recompile i,
+    .btn-recompile svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    .btn-icon {
+        padding: 4px !important;
+    }
+
+    .btn-icon svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    .preview-toolbar {
+        padding: 0 8px !important;
+        height: 40px !important;
+        justify-content: space-between !important;
+    }
+
+    .toolbar-left,
+    .toolbar-middle,
+    .toolbar-right {
+        gap: 4px !important;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .editor-panel,
+    .preview-panel {
+        display: flex !important;
+        width: 100% !important;
     }
 
     /* Hide labels/text on toolbars to save space */
@@ -950,7 +1079,6 @@
 
     .mobile-view-toggle {
         display: none !important;
-        /* No longer needed as both are visible */
     }
 
     /* Adjust CodeMirror font size for small screens */

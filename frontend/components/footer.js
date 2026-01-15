@@ -16,10 +16,7 @@ const footerHTML = `
 
 // Inject Footer
 function loadFooter() {
-    // Check if we should omit footer (e.g. on editor page)
-    if (window.location.pathname.includes('editor.html')) {
-        return;
-    }
+    // Check if we should omit footer (removed editor exclusion)
 
     const footerPlaceholder = document.getElementById('app-footer');
     if (footerPlaceholder) {

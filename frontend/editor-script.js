@@ -11,13 +11,15 @@
         ? ""
         : "https://ai-latex-resume-builder.onrender.com";
 
+    function $(id) { return document.getElementById(id); }
+
     // DOM Elements
-    const latexEditor = document.getElementById("latexEditor");
-    const recompileBtn = document.getElementById("recompileBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const compileLog = document.getElementById("compileLog");
-    const pdfFrame = document.getElementById("pdfFrame");
-    const statusBadge = document.getElementById("statusBadge");
+    const latexEditor = $("latexEditor");
+    const recompileBtn = $("recompileBtn");
+    const downloadBtn = $("downloadBtn");
+    const compileLog = $("compileLog");
+    const pdfFrame = $("pdfFrame");
+    const statusBadge = $("statusBadge");
 
     // State variables
     let currentTemplateId = null;
@@ -890,36 +892,53 @@
 
     function setupResizer() {
         const resizer = document.getElementById('resizer');
-        const leftPanel = document.querySelector('.editor-panel');
+        const panel = document.querySelector('.editor-panel'); // Top or Left panel
         const container = document.querySelector('.editor-container');
-        const pdfViewer = document.getElementById('pdfViewer');
 
-        if (!resizer || !leftPanel || !container) return;
+        if (!resizer || !panel || !container) return;
 
         let isResizing = false;
 
         resizer.addEventListener('mousedown', (e) => {
             isResizing = true;
-            document.body.style.cursor = 'col-resize';
+            const isVertical = window.innerWidth <= 1147;
+            document.body.style.cursor = isVertical ? 'row-resize' : 'col-resize';
             container.style.userSelect = 'none';
+            e.preventDefault();
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
 
-            const containerRect = container.getBoundingClientRect();
-            const newWidth = e.clientX - containerRect.left;
+            const isVertical = window.innerWidth <= 1147;
+            const rect = container.getBoundingClientRect();
 
-            const minWidth = containerRect.width * 0.2;
-            const maxWidth = containerRect.width * 0.8;
+            if (isVertical) {
+                // Vertical Resizing (Stacked panels)
+                const newHeight = e.clientY - rect.top;
+                const minH = 200; // Min height for editor
+                const maxH = rect.height - 200; // Ensure preview has at least some space
 
-            if (newWidth > minWidth && newWidth < maxWidth) {
-                leftPanel.style.width = `${newWidth}px`;
-                leftPanel.style.flex = 'none';
-                if (cm) cm.refresh();
-                // When resizing, we might want to re-fit the PDF to width
-                fitToWidth();
+                if (newHeight >= minH && newHeight <= maxH) {
+                    panel.style.height = `${newHeight}px`;
+                    panel.style.width = '100%';
+                    panel.style.flex = 'none';
+                }
+            } else {
+                // Horizontal Resizing (Side-by-side)
+                const newWidth = e.clientX - rect.left;
+                const minW = rect.width * 0.2;
+                const maxW = rect.width * 0.8;
+
+                if (newWidth > minW && newWidth < maxW) {
+                    panel.style.width = `${newWidth}px`;
+                    panel.style.height = '100%';
+                    panel.style.flex = 'none';
+                }
             }
+
+            if (cm) cm.refresh();
+            fitToWidth();
         });
 
         document.addEventListener('mouseup', () => {
@@ -932,39 +951,100 @@
         });
     }
 
+    function updateAuthUI(sessionData) {
+        if (!supabase) return;
+
+        // Use provided session or keep current state
+        const user = sessionData?.user || currentUser;
+        currentUser = user;
+
+        // Get elements dynamically to avoid stale references from header injection
+        const profileDropdown = $("profileDropdown");
+        const profileAvatar = $("profileAvatar");
+        const profileName = $("profileName");
+        const profileEmail = $("profileEmail");
+        const mobileAuthTrigger = $("mobileAuthTrigger");
+        const currentAuthBtn = $("authBtn");
+
+        if (user) {
+            // Logged In State
+            if (currentAuthBtn) currentAuthBtn.style.setProperty('display', 'none', 'important');
+            if (profileDropdown) profileDropdown.style.display = "block";
+
+            let displayName = user.user_metadata?.username ||
+                user.user_metadata?.full_name ||
+                user.email ||
+                "User";
+
+            if (displayName && !displayName.includes("@")) {
+                displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+            }
+
+            // Extract initials for avatar
+            const initials = getInitials(displayName);
+            if (profileAvatar) profileAvatar.textContent = initials;
+            if (profileName) profileName.textContent = displayName;
+            if (profileEmail) profileEmail.textContent = user.email || "";
+
+            // Update Mobile Auth Slot with Profile Avatar
+            if (mobileAuthTrigger) {
+                mobileAuthTrigger.innerHTML = `
+                <div class="profile-avatar" id="headerProfileAvatar">${initials}</div>
+            `;
+                const headerAvatar = $("headerProfileAvatar");
+                if (headerAvatar) {
+                    headerAvatar.onclick = (e) => {
+                        e.stopPropagation();
+                        const profileMenu = $("profileMenu");
+                        if (profileMenu) profileMenu.classList.toggle('active');
+                    };
+                }
+            }
+        } else {
+            // Logged Out State
+            if (currentAuthBtn) currentAuthBtn.style.setProperty('display', 'block', 'important');
+            if (profileDropdown) profileDropdown.style.display = "none";
+
+            // Update Mobile Auth Slot with Tiny Login Button
+            if (mobileAuthTrigger) {
+                mobileAuthTrigger.innerHTML = `
+                <a href="login.html" class="btn-tiny-auth">Login</a>
+            `;
+            }
+        }
+    }
+
+    // Extract initials from name
+    function getInitials(name) {
+        if (!name) return "U";
+        const parts = name.trim().split(" ");
+        if (parts.length === 1) {
+            return parts[0].substring(0, 2).toUpperCase();
+        }
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
     function initAuth() {
-        const authBtn = document.getElementById('authBtn');
-        const profileDropdown = document.getElementById('profileDropdown');
-        const profileAvatar = document.getElementById('profileAvatar');
-        const profileName = document.getElementById('profileName');
-        const profileEmail = document.getElementById('profileEmail');
-        const profileMenu = document.getElementById('profileMenu');
-        const logoutBtn = document.getElementById('logoutBtn');
+        const profileAvatar = $("profileAvatar");
+        const profileMenu = $("profileMenu");
+        const logoutBtn = $("logoutBtn");
 
         if (!supabase) return;
 
+        // Sync initial state
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            updateAuthUI(session);
+        });
+
+        // Listen for changes
         supabase.auth.onAuthStateChange((event, session) => {
-            const user = session?.user;
-            if (user) {
-                if (authBtn) authBtn.style.display = 'none';
-                if (profileDropdown) profileDropdown.style.display = 'block';
-                if (profileName) profileName.textContent = user.user_metadata?.username || user.email.split('@')[0];
-                if (profileEmail) profileEmail.textContent = user.email;
-                if (profileAvatar) {
-                    const initials = (user.user_metadata?.username || user.email.split('@')[0])
-                        .substring(0, 2).toUpperCase();
-                    profileAvatar.textContent = initials;
-                }
-            } else {
-                if (authBtn) authBtn.style.display = 'block';
-                if (profileDropdown) profileDropdown.style.display = 'none';
-            }
+            updateAuthUI(session);
         });
 
         if (profileAvatar) {
             profileAvatar.onclick = (e) => {
                 e.stopPropagation();
-                profileMenu.classList.toggle('active');
+                if (profileMenu) profileMenu.classList.toggle('active');
             };
         }
 

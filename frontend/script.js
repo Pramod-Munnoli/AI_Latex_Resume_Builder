@@ -590,28 +590,43 @@
 
     function setupResizer() {
         const resizer = document.getElementById('resizer');
-        const leftPanel = document.querySelector('.editor-panel');
+        const panel = document.querySelector('.editor-panel');
         const container = document.querySelector('.editor-container');
-        if (!resizer || !leftPanel || !container) return;
+        if (!resizer || !panel || !container) return;
 
         let isResizing = false;
-        resizer.addEventListener('mousedown', () => {
+        resizer.addEventListener('mousedown', (e) => {
             isResizing = true;
-            document.body.style.cursor = 'col-resize';
+            const isVertical = window.innerWidth <= 1147;
+            document.body.style.cursor = isVertical ? 'row-resize' : 'col-resize';
             container.style.userSelect = 'none';
+            e.preventDefault();
         });
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
+            const isVertical = window.innerWidth <= 1147;
             const rect = container.getBoundingClientRect();
-            const width = Math.min(Math.max(e.clientX - rect.left, rect.width * 0.2), rect.width * 0.8);
-            leftPanel.style.width = `${width}px`;
-            leftPanel.style.flex = 'none';
+
+            if (isVertical) {
+                const height = Math.min(Math.max(e.clientY - rect.top, 200), rect.height - 200);
+                panel.style.height = `${height}px`;
+                panel.style.width = '100%';
+                panel.style.flex = 'none';
+            } else {
+                const width = Math.min(Math.max(e.clientX - rect.left, rect.width * 0.2), rect.width * 0.8);
+                panel.style.width = `${width}px`;
+                panel.style.height = '100%';
+                panel.style.flex = 'none';
+            }
+
             if (cm) cm.refresh();
             fitToWidth();
         });
         document.addEventListener('mouseup', () => {
             if (isResizing) {
-                isResizing = false; document.body.style.cursor = ''; container.style.userSelect = '';
+                isResizing = false;
+                document.body.style.cursor = '';
+                container.style.userSelect = '';
                 if (cm) cm.refresh();
             }
         });
@@ -1221,9 +1236,7 @@
             // Update Mobile Auth Slot with Tiny Login Button
             if (mobileAuthTrigger) {
                 mobileAuthTrigger.innerHTML = `
-                <a href="login.html" class="btn-tiny-auth" title="Login / Sign Up">
-                    <span class="user-icon">👤</span>
-                </a>
+                <a href="login.html" class="btn-tiny-auth">Login</a>
             `;
             }
         }
@@ -1245,23 +1258,6 @@
         profileMenu.classList.toggle("active");
     }
 
-    // Toggle Mobile Menu
-    function toggleMobileMenu() {
-        const btn = document.getElementById('mobileMenuBtn');
-        const overlay = document.getElementById('mobileNavOverlay');
-
-        if (btn && overlay) {
-            btn.classList.toggle('active');
-            overlay.classList.toggle('active');
-
-            // Prevent body scroll when menu is open
-            if (overlay.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        }
-    }
 
     // Close dropdown when clicking outside
     function closeProfileDropdown(event) {
@@ -1402,11 +1398,6 @@
         // Close dropdown when clicking outside
         document.addEventListener("click", closeProfileDropdown);
 
-        // Mobile Menu Logic
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-        }
 
         if (pdfInput) {
             pdfInput.addEventListener("change", function () {
