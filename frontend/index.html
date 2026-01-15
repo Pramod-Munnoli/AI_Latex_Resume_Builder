@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI LaTeX Resume Builder - Professional Resumes Made Easy</title>
+    <meta name="description"
+        content="Build professional resumes with LaTeX. Choose from expertly designed templates or generate a resume automatically from your LinkedIn profile.">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="apple-touch-icon" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js" defer></script>
+    <script src="home.js" defer></script>
+</head>
+
+<body>
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1 class="hero-title">Build Professional Resumes with LaTeX</h1>
+            <p class="hero-subtitle">Choose from expertly designed templates or generate a resume automatically from
+                your LinkedIn profile.</p>
+            <div class="hero-cta">
+                <a href="templates.html" class="btn btn-primary">
+                    <span class="btn-icon">📋</span>
+                    Browse Templates
+                </a>
+                <a href="ai-builder.html" class="btn btn-secondary">
+                    <span class="btn-icon">✨</span>
+                    Build with AI
+                </a>
+            </div>
+        </div>
+        <div class="hero-decoration">
+            <div class="decoration-circle circle-1"></div>
+            <div class="decoration-circle circle-2"></div>
+            <div class="decoration-circle circle-3"></div>
+        </div>
+    </section>
+
+    <!-- Choose Your Path Section -->
+    <section class="choose-path">
+        <div class="section-container">
+            <h2 class="section-title">How would you like to build your resume?</h2>
+            <div class="path-cards">
+                <div class="path-card">
+                    <div class="card-icon">📝</div>
+                    <h3 class="card-title">Resume Templates</h3>
+                    <ul class="card-features">
+                        <li>Pre-built LaTeX templates</li>
+                        <li>Full manual control</li>
+                        <li>Professional designs</li>
+                    </ul>
+                    <a href="templates.html" class="btn btn-card">View Templates</a>
+                </div>
+                <div class="path-card path-card-highlight">
+                    <div class="card-badge">Popular</div>
+                    <div class="card-icon">🤖</div>
+                    <h3 class="card-title">AI Resume Builder</h3>
+                    <ul class="card-features">
+                        <li>Upload LinkedIn PDF</li>
+                        <li>Auto-generate LaTeX</li>
+                        <li>Editable output</li>
+                    </ul>
+                    <a href="ai-builder.html" class="btn btn-card btn-card-primary">Generate Resume</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Templates Section -->
+    <section id="templates" class="templates">
+        <div class="section-container">
+            <h2 class="section-title">Popular Templates</h2>
+            <p class="section-subtitle">Choose from our most-used professional templates</p>
+            <div class="template-grid">
+                <div class="template-card" data-template-name="ats-modern">
+                    <div class="template-preview">
+                        <img src="images/template_ats_modern.png" alt="ATS-Friendly Template">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">ATS-Friendly</h3>
+                        <span class="template-tag tag-ats">ATS Optimized</span>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+                <div class="template-card" data-template-name="clean-minimalist">
+                    <div class="template-preview">
+                        <img src="images/template_clean_minimalist.png" alt="Minimal Template">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Minimal</h3>
+                        <span class="template-tag tag-minimal">Clean Design</span>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+
+                <div class="template-card" data-template-name="student">
+                    <div class="template-preview">
+                        <img src="images/template_minimal_preview_1768038333667.png" alt="Student Template">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Student</h3>
+                        <span class="template-tag tag-student">Academic Focused</span>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+                <div class="template-card" data-template-name="tech-focused">
+                    <div class="template-preview">
+                        <img src="images/template_ats_preview_1768038291005.png" alt="Developer Template">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Developer</h3>
+                        <span class="template-tag tag-developer">Tech Optimized</span>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+            </div>
+            <div class="templates-footer">
+                <a href="templates.html" class="btn btn-outline">View All Templates</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="section-container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Choose Your Path</h3>
+                        <p class="step-description">Select a template or use AI builder</p>
+                    </div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Edit Content</h3>
+                        <p class="step-description">Customize your LaTeX resume</p>
+                    </div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Download PDF</h3>
+                        <p class="step-description">Compile and get your resume</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Use This Tool Section -->
+    <section class="why-use">
+        <div class="section-container">
+            <h2 class="section-title">Why Use AI LaTeX Resume Builder?</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <h3 class="feature-title">ATS-Friendly Layouts</h3>
+                    <p class="feature-description">Optimized for applicant tracking systems</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <h3 class="feature-title">Professional LaTeX Formatting</h3>
+                    <p class="feature-description">Industry-standard typesetting quality</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <h3 class="feature-title">Full Control</h3>
+                    <p class="feature-description">Edit every detail of your resume</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <h3 class="feature-title">No Design Experience Needed</h3>
+                    <p class="feature-description">Professional results without expertise</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="app-footer"></div>
+    <script src="components/footer.js"></script>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+</body>
+
+</html>

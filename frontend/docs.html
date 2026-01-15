@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="docs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <main class="docs-container">
+        <!-- Sidebar Navigation -->
+        <aside class="docs-sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#getting-started" class="sidebar-link active">Getting Started</a></li>
+                <li><a href="#using-templates" class="sidebar-link">Using Templates</a></li>
+                <li><a href="#using-editor" class="sidebar-link">Using the Editor</a></li>
+                <li><a href="#compiling-pdfs" class="sidebar-link">Compiling PDFs</a></li>
+                <li><a href="#common-errors" class="sidebar-link">Common Errors</a></li>
+                <li><a href="#faq" class="sidebar-link">FAQ</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <article class="docs-content">
+            <section id="getting-started" class="doc-section">
+                <h1>Getting Started</h1>
+                <p>Welcome to the <strong>AI LaTeX Resume Builder</strong>. Our goal is to make professional resume
+                    creation accessible to everyone using the power of LaTeX, without the steep learning curve.</p>
+
+                <h3>What is AI LaTeX Resume Builder?</h3>
+                <p>It's a web-based application that combines the professional typesetting of LaTeX with the simplicity
+                    of visual editing and AI automation.</p>
+
+                <h3>Who should use it?</h3>
+                <ul>
+                    <li>Job seekers looking for ATS-friendly resumes.</li>
+                    <li>Students and Academics requiring formal CV structures.</li>
+                    <li>Developers who want full control over their resume's code.</li>
+                </ul>
+
+                <div class="callout tip">
+                    <span class="callout-icon">💡</span>
+                    <div class="callout-content">
+                        <strong>Pro Tip:</strong> You don't need to know LaTeX code to get a beautiful result. Just pick
+                        a template and fill in your details!
+                    </div>
+                </div>
+            </section>
+
+            <section id="using-templates" class="doc-section">
+                <h1>Using Templates</h1>
+                <p>Templates are pre-designed LaTeX structures. They define the layout, fonts, and styling so you can
+                    focus on your content.</p>
+
+                <h3>How to select a template</h3>
+                <ol>
+                    <li>Navigate to the <strong>Templates</strong> page from the top menu.</li>
+                    <li>Use the filters (ATS, Minimal, etc.) to find a style that fits your industry.</li>
+                    <li>Click <strong>"Use Template"</strong> on your preferred design.</li>
+                </ol>
+
+                <h3>What happens next?</h3>
+                <p>After clicking "Use Template," you'll be taken to the <strong>Editor</strong> page with the
+                    template's code already loaded. You can then start replacing the placeholder text with your own
+                    experience.</p>
+            </section>
+
+            <section id="using-editor" class="doc-section">
+                <h1>Using the Editor</h1>
+                <p>The Editor is your workspace. It's designed to give you a live feedback loop while you work.</p>
+
+                <div class="layout-explanation">
+                    <div class="explanation-item">
+                        <strong>Left Panel: LaTeX Source</strong>
+                        <p>This is where you type. You'll see text surrounded by commands like
+                            <code>\section{...}</code> or <code>\item</code>. Simply edit the text inside the curly
+                            braces.
+                        </p>
+                    </div>
+                    <div class="explanation-item">
+                        <strong>Right Panel: Live Preview</strong>
+                        <p>This shows what your final PDF will look like. It updates whenever you click the "Recompile"
+                            button.</p>
+                    </div>
+                </div>
+
+                <h3>Editor Controls</h3>
+                <ul>
+                    <li><strong>⚡ Recompile:</strong> Processes your code changes and updates the preview.</li>
+                    <li><strong>📥 Download PDF:</strong> Saves the final, high-quality version of your resume to your
+                        device.</li>
+                </ul>
+            </section>
+
+            <section id="compiling-pdfs" class="doc-section">
+                <h1>Compiling PDFs</h1>
+                <p>In the world of LaTeX, "Compiling" is the process of turning your code into a visual document.</p>
+
+                <h3>When to recompile?</h3>
+                <p>You should recompile whenever you want to see how your changes look in the final design. Most users
+                    recompile after finishing a major section (like Experience or Education).</p>
+
+                <div class="callout warning">
+                    <span class="callout-icon">⚠️</span>
+                    <div class="callout-content">
+                        <strong>Note:</strong> If your code has an error, the compilation might fail. Don't worry, the
+                        Error Panel will show you exactly what went wrong.
+                    </div>
+                </div>
+            </section>
+
+            <section id="common-errors" class="doc-section">
+                <h1>Common Errors</h1>
+                <p>LaTeX can be picky about syntax. Here are the most common issues and how to fix them:</p>
+
+                <div class="error-guide">
+                    <div class="error-fix">
+                        <strong>Missing Braces <code>{ }</code></strong>
+                        <p>Every opening brace must have a closing brace. If you delete one by accident, the compiler
+                            will get confused.</p>
+                    </div>
+                    <div class="error-fix">
+                        <strong>Undefined Commands</strong>
+                        <p>If you mistype a command (e.g., <code>\sectoin</code> instead of <code>\section</code>),
+                            you'll see an error message. Check your spelling!</p>
+                    </div>
+                    <div class="error-fix">
+                        <strong>Special Characters</strong>
+                        <p>Characters like <code>&</code> or <code>%</code> have special meanings. To use them as text,
+                            put a backslash before them (e.g., <code>\&</code>).</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq" class="doc-section">
+                <h1>FAQ</h1>
+
+                <div class="faq-item">
+                    <strong>Do I need to know LaTeX?</strong>
+                    <p>Not at all. You can simply edit the text within the templates. If you are comfortable with code,
+                        you can do much more, but it is not required.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>Can I download without compiling?</strong>
+                    <p>No, because the PDF needs to be "built" from your latest changes first. Always compile one last
+                        time before downloading.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>Are templates ATS-friendly?</strong>
+                    <p>Yes! We specifically tag templates that are optimized for Applicant Tracking Systems to ensure
+                        your resume gets through.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>Is my data saved?</strong>
+                    <p>If you are logged in, your progress is automatically synced to the cloud. If not, your work
+                        remains in your browser until you close the tab.</p>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <div id="app-footer"></div>
+    <script src="components/footer.js"></script>
+
+    <script src="docs.js"></script>
+</body>
+
+</html>

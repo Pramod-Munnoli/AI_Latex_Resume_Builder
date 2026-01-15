@@ -1,0 +1,15 @@
+﻿database/
+!database/registration_check.sql
+node_modules/
+.env
+backend/temp/*
+nodemon.json
+.env.local
+config.json
+*.pdf
+*.log
+*.aux
+*.out
+*.gz
+*.toc
+!.gitkeep

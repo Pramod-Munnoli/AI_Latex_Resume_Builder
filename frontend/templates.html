@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Templates - AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="templates.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <main class="templates-page">
+        <header class="templates-header">
+            <h1 class="page-title">Resume Templates</h1>
+            <p class="page-subtitle">Choose a professionally designed LaTeX template and customize it with your own
+                information.</p>
+        </header>
+
+        <section class="filters-section">
+            <div class="filter-wrapper">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="templateSearch" placeholder="Search templates...">
+                </div>
+                <div class="filter-chips">
+                    <button class="filter-chip active" data-filter="all">All</button>
+                    <button class="filter-chip" data-filter="ats">ATS Friendly</button>
+                    <button class="filter-chip" data-filter="minimal">Minimal</button>
+                    <button class="filter-chip" data-filter="academic">Academic</button>
+                    <button class="filter-chip" data-filter="developer">Developer</button>
+                    <button class="filter-chip" data-filter="student">Student / Fresher</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="templates-grid-section">
+            <div class="template-grid" id="templateGrid">
+                <!-- Template 1 -->
+                <div class="template-card" data-category="ats" data-template-name="ats-modern">
+                    <div class="template-preview">
+                        <img src="images/template_ats_modern.png" alt="ATS Modern">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">ATS Modern</h3>
+                        <p class="template-desc">Optimized for machine reading and clarity.</p>
+                        <div class="template-tags">
+                            <span class="tag">ATS</span>
+                            <span class="tag">Professional</span>
+                        </div>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 2 -->
+                <div class="template-card" data-category="minimal" data-template-name="clean-minimalist">
+                    <div class="template-preview">
+                        <img src="images/template_clean_minimalist.png" alt="Clean Minimalist">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Clean Minimalist</h3>
+                        <p class="template-desc">A focus on content with elegant white space.</p>
+                        <div class="template-tags">
+                            <span class="tag">Minimal</span>
+                            <span class="tag">Elegant</span>
+                        </div>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 3 -->
+                <div class="template-card" data-category="academic" data-template-name="academic-excellence">
+                    <div class="template-preview">
+                        <img src="images/template_academic_preview_1768038357375.png" alt="Academic Excellence">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Academic Excellence</h3>
+                        <p class="template-desc">Traditional layout for research and academia.</p>
+                        <div class="template-tags">
+                            <span class="tag">Academic</span>
+                            <span class="tag">Multi-page</span>
+                        </div>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 4 -->
+                <div class="template-card" data-category="developer" data-template-name="tech-focused">
+                    <div class="template-preview">
+                        <img src="images/template_ats_preview_1768038291005.png" alt="Tech Focused">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Tech Focused</h3>
+                        <p class="template-desc">Modern design with tech-stack emphasis.</p>
+                        <div class="template-tags">
+                            <span class="tag">Developer</span>
+                            <span class="tag">Tech</span>
+                        </div>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+
+                <!-- Template 5 -->
+                <div class="template-card" data-category="student" data-template-name="student">
+                    <div class="template-preview">
+                        <img src="images/template_minimal_preview_1768038333667.png" alt="Entry Level / Student">
+                    </div>
+                    <div class="template-info">
+                        <h3 class="template-name">Entry Level / Student</h3>
+                        <p class="template-desc">Highlight education and projects for those starting their career.</p>
+                        <div class="template-tags">
+                            <span class="tag">Student</span>
+                            <span class="tag">Fresher</span>
+                        </div>
+                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noTemplates" class="empty-state" style="display: none;">
+                <span class="empty-icon">📂</span>
+                <h3>No templates found</h3>
+                <p>Try searching for something else or browse another category.</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="app-footer"></div>
+    <script src="components/footer.js"></script>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+
+    <script src="templates.js"></script>
+</body>
+
+</html>
