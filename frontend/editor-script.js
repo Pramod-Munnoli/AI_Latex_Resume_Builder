@@ -628,6 +628,10 @@
             if (renderId !== currentRenderId) return;
 
             const page = await pdfDoc.getPage(i);
+
+            // Check again after await as another render might have started
+            if (renderId !== currentRenderId) return;
+
             const canvas = document.createElement('canvas');
             canvas.className = 'pdf-page-canvas';
             container.appendChild(canvas);
@@ -982,6 +986,7 @@
 
         const startResizing = () => {
             isResizing = true;
+            resizer.classList.add('resizer-active');
             const isVertical = window.innerWidth <= 1147;
             document.body.style.cursor = isVertical ? 'row-resize' : 'col-resize';
             container.style.userSelect = 'none';
@@ -997,7 +1002,6 @@
                 // Vertical Resizing (Stacked panels)
                 const newHeight = clientY - rect.top;
                 const minH = 200; // Min height for editor
-                const maxH = rect.height - 200; // Ensure preview has at least some space
 
                 if (newHeight >= minH) {
                     panel.style.height = `${newHeight}px`;
@@ -1024,6 +1028,7 @@
         const stopResizing = () => {
             if (isResizing) {
                 isResizing = false;
+                resizer.classList.remove('resizer-active');
                 document.body.style.cursor = '';
                 container.style.userSelect = '';
                 if (cm) cm.refresh();

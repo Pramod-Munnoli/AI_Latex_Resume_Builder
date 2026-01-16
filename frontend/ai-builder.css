@@ -379,6 +379,17 @@
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
         touch-action: none !important;
+        transition: transform 0.2s, background 0.2s;
+    }
+
+    .ai-builder-workspace .resizer.resizer-active .resizer-handle {
+        background: #8b80f9 !important;
+        transform: scale(1.1) !important;
+        box-shadow: 0 0 20px rgba(112, 99, 243, 0.4) !important;
+    }
+
+    .ai-builder-workspace .resizer.resizer-active {
+        background: #1e293b !important;
     }
 
     .ai-builder-workspace .resizer-handle span {

@@ -450,6 +450,10 @@
             if (renderId !== currentRenderId) return;
 
             const page = await pdfDoc.getPage(i);
+
+            // Check again after await
+            if (renderId !== currentRenderId) return;
+
             const canvas = document.createElement('canvas');
             canvas.className = 'pdf-page-canvas';
             container.appendChild(canvas);
@@ -676,6 +680,7 @@
 
         const startResizing = (e) => {
             isResizing = true;
+            resizer.classList.add('resizer-active');
             const isVertical = window.innerWidth <= 1147;
             document.body.style.cursor = isVertical ? 'row-resize' : 'col-resize';
             container.style.userSelect = 'none';
@@ -708,6 +713,7 @@
         const stopResizing = () => {
             if (isResizing) {
                 isResizing = false;
+                resizer.classList.remove('resizer-active');
                 document.body.style.cursor = '';
                 container.style.userSelect = '';
                 if (cm) cm.refresh();
