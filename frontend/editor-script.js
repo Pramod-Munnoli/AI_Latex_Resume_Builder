@@ -999,7 +999,7 @@
                 const minH = 200; // Min height for editor
                 const maxH = rect.height - 200; // Ensure preview has at least some space
 
-                if (newHeight >= minH && newHeight <= maxH) {
+                if (newHeight >= minH) {
                     panel.style.height = `${newHeight}px`;
                     panel.style.width = '100%';
                     panel.style.flex = 'none';
@@ -1018,8 +1018,7 @@
             }
 
             if (cm) cm.refresh();
-            if (cm) cm.refresh();
-            // fitToWidth(); // Disabled to allow manual zoom persistence
+            // fitToWidth(); // Keep the zoom at 180% as requested by the user
         };
 
         const stopResizing = () => {
@@ -1035,6 +1034,9 @@
             startResizing();
             e.preventDefault();
         });
+
+        // Ensure touch-action is none to prevent browser scrolling during resize
+        resizer.style.touchAction = 'none';
 
         resizer.addEventListener('touchstart', (e) => {
             startResizing();
@@ -1291,5 +1293,37 @@
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
+    }
+
+    // Add Mobile Panel Switching
+    const editorBtn = document.getElementById('mobileShowEditor');
+    const previewBtn = document.getElementById('mobileShowPreview');
+    const editorPanel = document.querySelector('.editor-panel');
+    const previewPanel = document.querySelector('.preview-panel');
+
+    function switchToEditor() {
+        if (editorBtn) editorBtn.classList.add('active');
+        if (previewBtn) previewBtn.classList.remove('active');
+        if (editorPanel) editorPanel.classList.add('mobile-active');
+        if (previewPanel) previewPanel.classList.remove('mobile-active');
+        if (cm) cm.refresh();
+    }
+
+    function switchToPreview() {
+        if (editorBtn) editorBtn.classList.remove('active');
+        if (previewBtn) previewBtn.classList.add('active');
+        if (editorPanel) editorPanel.classList.remove('mobile-active');
+        if (previewPanel) previewPanel.classList.add('mobile-active');
+
+        // Ensure zoom persists
+        updateVisualScale();
+        if (cm) cm.refresh();
+    }
+
+    if (editorBtn) editorBtn.addEventListener('click', switchToEditor);
+    if (previewBtn) previewBtn.addEventListener('click', switchToPreview);
+
+    if (window.innerWidth <= 1147) {
+        switchToEditor();
     }
 })();

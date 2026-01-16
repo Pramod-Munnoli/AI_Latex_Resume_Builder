@@ -687,7 +687,10 @@
             const rect = container.getBoundingClientRect();
 
             if (isVertical) {
-                const height = Math.min(Math.max(clientY - rect.top, 200), rect.height - 200);
+                // Determine Y coordinate (mouse or touch)
+                let currentY = clientY;
+
+                const height = Math.max(currentY - rect.top, 200);
                 panel.style.height = `${height}px`;
                 panel.style.width = '100%';
                 panel.style.flex = 'none';
@@ -699,7 +702,7 @@
             }
 
             if (cm) cm.refresh();
-            fitToWidth();
+            // fitToWidth(); // Keep the zoom at 180% as requested by the user
         };
 
         const stopResizing = () => {
@@ -715,6 +718,9 @@
             startResizing();
             e.preventDefault();
         });
+
+        // Ensure touch-action is none
+        resizer.style.touchAction = 'none';
 
         resizer.addEventListener('touchstart', (e) => {
             startResizing();
@@ -1655,8 +1661,10 @@
                 if (previewBtn) previewBtn.classList.add('active');
                 if (editorPanel) editorPanel.classList.remove('mobile-active');
                 if (previewPanel) previewPanel.classList.add('mobile-active');
-                // Trigger resize for PDF viewer
-                window.dispatchEvent(new Event('resize'));
+
+                // Ensure zoom stays at 180% or user preference
+                updateVisualScale();
+                if (cm) cm.refresh();
             }
 
             if (editorBtn) editorBtn.addEventListener('click', switchToEditor);
