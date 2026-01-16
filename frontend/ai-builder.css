@@ -340,7 +340,7 @@
         border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         position: relative !important;
-        z-index: 1000 !important;
+        z-index: 10 !important;
         padding: 0 10px !important;
         touch-action: none !important;
     }

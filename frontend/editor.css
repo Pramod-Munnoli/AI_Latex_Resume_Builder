@@ -962,8 +962,8 @@
         border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         position: relative !important;
-        z-index: 1000 !important;
-        /* Higher z-index */
+        z-index: 10 !important;
+        /* Low z-index so it scrolls behind navbar */
         padding: 0 10px !important;
         touch-action: none !important;
         /* CRITICAL for mobile resizer */

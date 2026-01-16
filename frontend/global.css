@@ -43,7 +43,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 1000;
+    z-index: 1100;
     background: rgba(2, 6, 23, 0.4);
     /* Enhanced transparency */
     backdrop-filter: blur(16px);
@@ -541,7 +541,7 @@ body {
         right: 12px;
         width: calc(100% - 24px);
         max-width: 280px;
-        z-index: 1100;
+        z-index: 1200;
         /* Higher than navbar and overlay */
     }
 
