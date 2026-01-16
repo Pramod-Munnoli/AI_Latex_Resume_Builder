@@ -8,7 +8,7 @@ const headerHTML = `
 
             <div id="dynamicLogoArea" class="nav-logo-dynamic">
                 <a href="index.html" class="nav-logo">
-                    <img src="images/logo-premium.svg" alt="AI LaTeX Resume Builder Logo" class="logo-image">
+                    <img src="images/logo-premium.svg" alt="AI LaTeX Resume Builder Logo" class="logo-image" width="32" height="32">
                     <span class="logo-text">AI LaTeX Resume Builder</span>
                 </a>
             </div>
