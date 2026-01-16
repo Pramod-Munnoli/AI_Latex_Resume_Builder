@@ -37,9 +37,9 @@
     let currentScale = 1.0;
 
 
-    // Dynamic padding based on screen size
+    // Dynamic padding based on screen size (matches CSS)
     function getPdfPadding() {
-        return window.innerWidth <= 768 ? 20 : 80;
+        return window.innerWidth <= 768 ? 20 : 120;
     }
 
     // Safely configure PDF.js if library is loaded
@@ -418,6 +418,13 @@
             await renderAllPages();
             fitToWidth();
 
+            // Reset scroll to top after loading/recompiling
+            const viewer = document.getElementById('pdfViewer');
+            if (viewer) {
+                viewer.scrollTop = 0;
+                viewer.scrollLeft = 0;
+            }
+
         } catch (err) {
             console.error('Error loading PDF:', err);
         } finally {
@@ -621,14 +628,14 @@
                         const oldScale = currentScale;
                         const zoomFactor = delta > 0 ? 1.05 : 0.95;
                         currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 3.0);
-                        
+
                         const rect = pdfViewer.getBoundingClientRect();
                         const ratio = currentScale / oldScale;
                         updateVisualScale();
-                        
+
                         pdfViewer.scrollLeft = (pdfViewer.scrollLeft + (centerX - rect.left)) * ratio - (centerX - rect.left);
                         pdfViewer.scrollTop = (pdfViewer.scrollTop + (centerY - rect.top)) * ratio - (centerY - rect.top);
-                        
+
                         lastTouchDistance = currentDistance;
                     }
                 }
@@ -660,7 +667,7 @@
         if (!resizer || !panel || !container) return;
 
         let isResizing = false;
-        
+
         const startResizing = (e) => {
             isResizing = true;
             const isVertical = window.innerWidth <= 1147;

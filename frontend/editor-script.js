@@ -593,9 +593,14 @@
             const pageNumEl = document.getElementById('pageNum');
             if (pageNumEl) pageNumEl.textContent = 1;
             await renderAllPages();
-
-            // Initial zoom: Fit Width
             fitToWidth();
+
+            // Reset scroll to top after loading/recompiling
+            const viewer = document.getElementById('pdfViewer');
+            if (viewer) {
+                viewer.scrollTop = 0;
+                viewer.scrollLeft = 0;
+            }
 
         } catch (err) {
             console.error('Error loading PDF:', err);
@@ -655,6 +660,10 @@
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     }
 
+    function getPdfPadding() {
+        return window.innerWidth <= 768 ? 20 : 120;
+    }
+
     function fitToWidth() {
         if (!pdfDoc) return;
         const viewer = document.getElementById('pdfViewer');
@@ -663,7 +672,8 @@
 
         pdfDoc.getPage(1).then(page => {
             const viewport = page.getViewport({ scale: 1.0 });
-            const availableWidth = viewer.clientWidth - 80; // Padding
+            const padding = getPdfPadding();
+            const availableWidth = viewer.clientWidth - padding;
             currentScale = availableWidth / viewport.width;
             updateVisualScale();
         });
@@ -688,7 +698,8 @@
 
         pdfDoc.getPage(1).then(page => {
             const viewport = page.getViewport({ scale: 1.0 });
-            const availableHeight = viewer.clientHeight - 80;
+            const padding = getPdfPadding();
+            const availableHeight = viewer.clientHeight - padding;
             currentScale = availableHeight / viewport.height;
             updateVisualScale();
         });
