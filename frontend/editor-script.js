@@ -1001,7 +1001,7 @@
             if (isVertical) {
                 // Vertical Resizing (Stacked panels)
                 const newHeight = clientY - rect.top;
-                const minH = 200; // Min height for editor
+                const minH = window.innerWidth <= 768 ? 50 : 200; // More flexibility on mobile
 
                 if (newHeight >= minH) {
                     panel.style.height = `${newHeight}px`;
@@ -1300,35 +1300,5 @@
         init();
     }
 
-    // Add Mobile Panel Switching
-    const editorBtn = document.getElementById('mobileShowEditor');
-    const previewBtn = document.getElementById('mobileShowPreview');
-    const editorPanel = document.querySelector('.editor-panel');
-    const previewPanel = document.querySelector('.preview-panel');
-
-    function switchToEditor() {
-        if (editorBtn) editorBtn.classList.add('active');
-        if (previewBtn) previewBtn.classList.remove('active');
-        if (editorPanel) editorPanel.classList.add('mobile-active');
-        if (previewPanel) previewPanel.classList.remove('mobile-active');
-        if (cm) cm.refresh();
-    }
-
-    function switchToPreview() {
-        if (editorBtn) editorBtn.classList.remove('active');
-        if (previewBtn) previewBtn.classList.add('active');
-        if (editorPanel) editorPanel.classList.remove('mobile-active');
-        if (previewPanel) previewPanel.classList.add('mobile-active');
-
-        // Ensure zoom persists
-        updateVisualScale();
-        if (cm) cm.refresh();
-    }
-
-    if (editorBtn) editorBtn.addEventListener('click', switchToEditor);
-    if (previewBtn) previewBtn.addEventListener('click', switchToPreview);
-
-    if (window.innerWidth <= 1147) {
-        switchToEditor();
-    }
+    // Mobile Split View: Both panels are now persistently visible via CSS
 })();

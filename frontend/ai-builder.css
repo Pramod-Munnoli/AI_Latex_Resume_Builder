@@ -297,6 +297,15 @@
 }
 
 @media (max-width: 1147px) {
+    .mobile-view-toggle {
+        display: none !important;
+    }
+
+    /* Force panels to be visible by default */
+    .ai-builder-workspace .editor-panel:not(.mobile-active),
+    .ai-builder-workspace .preview-panel:not(.mobile-active) {
+        display: flex !important;
+    }
 
     .editor-body,
     .ai-builder-body {
@@ -314,16 +323,20 @@
     .ai-builder-workspace .editor-panel {
         width: 100%;
         height: 50vh;
-        /* Center the divider initially */
-        min-height: 200px;
+        /* 50/50 split per user request */
+        min-height: 50px;
         border-right: none;
         border-bottom: 1px solid var(--glass-border);
+        display: flex !important;
+        /* Always visible */
     }
 
     .ai-builder-workspace .preview-panel {
         width: 100%;
-        height: 80vh;
-        min-height: 400px;
+        height: 50vh;
+        min-height: 100px;
+        display: flex !important;
+        /* Always visible */
     }
 
     .ai-builder-workspace .resizer {
@@ -516,8 +529,10 @@
     .ai-builder-workspace .preview-panel {
         width: 100% !important;
         display: flex !important;
-        height: auto;
-        min-height: 500px;
+        height: 50vh;
+        /* Unified with 1147px split */
+        min-height: 100px;
+        /* Reduced from 500px */
     }
 
     .mobile-view-toggle {

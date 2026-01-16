@@ -695,7 +695,8 @@
                 // Determine Y coordinate (mouse or touch)
                 let currentY = clientY;
 
-                const height = Math.max(currentY - rect.top, 200);
+                const minH = window.innerWidth <= 768 ? 50 : 200;
+                const height = Math.max(currentY - rect.top, minH);
                 panel.style.height = `${height}px`;
                 panel.style.width = '100%';
                 panel.style.flex = 'none';
@@ -1647,40 +1648,7 @@
         });
 
         // Mobile View Toggle Logic
-        const mobileToggleContainer = document.querySelector('.mobile-view-toggle');
-        if (mobileToggleContainer) {
-            const editorBtn = document.getElementById('mobileShowEditor');
-            const previewBtn = document.getElementById('mobileShowPreview');
-            const editorPanel = document.querySelector('.editor-panel');
-            const previewPanel = document.querySelector('.preview-panel');
-
-            function switchToEditor() {
-                if (editorBtn) editorBtn.classList.add('active');
-                if (previewBtn) previewBtn.classList.remove('active');
-                if (editorPanel) editorPanel.classList.add('mobile-active');
-                if (previewPanel) previewPanel.classList.remove('mobile-active');
-                if (cm) cm.refresh();
-            }
-
-            function switchToPreview() {
-                if (editorBtn) editorBtn.classList.remove('active');
-                if (previewBtn) previewBtn.classList.add('active');
-                if (editorPanel) editorPanel.classList.remove('mobile-active');
-                if (previewPanel) previewPanel.classList.add('mobile-active');
-
-                // Ensure zoom stays at 180% or user preference
-                updateVisualScale();
-                if (cm) cm.refresh();
-            }
-
-            if (editorBtn) editorBtn.addEventListener('click', switchToEditor);
-            if (previewBtn) previewBtn.addEventListener('click', switchToPreview);
-
-            // Initial State default to Editor
-            if (window.innerWidth <= 768) {
-                switchToEditor();
-            }
-        }
+        // Mobile Split View: Both panels are now persistently visible via CSS
     }
 
     // Global Resize Handler for PDF Viewer
