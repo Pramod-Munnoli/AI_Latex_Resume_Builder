@@ -593,14 +593,17 @@
             const pageNumEl = document.getElementById('pageNum');
             if (pageNumEl) pageNumEl.textContent = 1;
             await renderAllPages();
-            fitToWidth();
 
-            // Reset scroll to top after loading/recompiling
-            const viewer = document.getElementById('pdfViewer');
-            if (viewer) {
-                viewer.scrollTop = 0;
-                viewer.scrollLeft = 0;
-            }
+            // Give layout a moment to settle for correct width calculation
+            setTimeout(() => {
+                fitToWidth();
+                // Reset scroll to top
+                const viewer = document.getElementById('pdfViewer');
+                if (viewer) {
+                    viewer.scrollTop = 0;
+                    viewer.scrollLeft = 0;
+                }
+            }, 100);
 
         } catch (err) {
             console.error('Error loading PDF:', err);
@@ -661,7 +664,7 @@
     }
 
     function getPdfPadding() {
-        return window.innerWidth <= 768 ? 20 : 120;
+        return window.innerWidth <= 768 ? 0 : 120; // 0 padding for mobile "full screen"
     }
 
     function fitToWidth() {
@@ -1030,8 +1033,8 @@
 
         resizer.addEventListener('touchstart', (e) => {
             startResizing();
-            // Don't preventDefault here to allow scrolling if not dragging resizer
-        }, { passive: true });
+            e.preventDefault(); // Intercept touch to start resizing immediately
+        }, { passive: false });
 
         document.addEventListener('mousemove', (e) => doResizing(e.clientX, e.clientY));
         document.addEventListener('touchmove', (e) => {

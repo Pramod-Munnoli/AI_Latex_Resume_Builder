@@ -39,7 +39,7 @@
 
     // Dynamic padding based on screen size (matches CSS)
     function getPdfPadding() {
-        return window.innerWidth <= 768 ? 20 : 120;
+        return window.innerWidth <= 768 ? 0 : 120; // 0 padding for mobile full-width
     }
 
     // Safely configure PDF.js if library is loaded
@@ -416,14 +416,17 @@
             if (pageNumEl) pageNumEl.textContent = 1;
 
             await renderAllPages();
-            fitToWidth();
 
-            // Reset scroll to top after loading/recompiling
-            const viewer = document.getElementById('pdfViewer');
-            if (viewer) {
-                viewer.scrollTop = 0;
-                viewer.scrollLeft = 0;
-            }
+            // Layout delay for correct width calculation
+            setTimeout(() => {
+                fitToWidth();
+                // Reset scroll to top
+                const viewer = document.getElementById('pdfViewer');
+                if (viewer) {
+                    viewer.scrollTop = 0;
+                    viewer.scrollLeft = 0;
+                }
+            }, 100);
 
         } catch (err) {
             console.error('Error loading PDF:', err);
@@ -712,8 +715,8 @@
 
         resizer.addEventListener('touchstart', (e) => {
             startResizing();
-            // Don't preventDefault to allow potential scrolling if not moving
-        }, { passive: true });
+            e.preventDefault(); // Intercept touch to start resizing
+        }, { passive: false });
 
         document.addEventListener('mousemove', (e) => doResizing(e.clientX, e.clientY));
         document.addEventListener('touchmove', (e) => {
