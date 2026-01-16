@@ -718,6 +718,7 @@
 
         resizer.addEventListener('touchstart', (e) => {
             startResizing();
+            e.stopPropagation(); // Stop event from bubbling
             e.preventDefault(); // Intercept touch to start resizing
         }, { passive: false });
 
@@ -1676,9 +1677,10 @@
         const currentWidth = window.innerWidth;
         if (currentWidth !== lastWidth) {
             lastWidth = currentWidth;
-            if (pdfDoc && ($('pdfViewer') || document.getElementById('pdfViewer'))) {
-                fitToWidth();
-            }
+            // Removed to prevent auto-zoom out on resize
+            // if (pdfDoc && ($('pdfViewer') || document.getElementById('pdfViewer'))) {
+            //     fitToWidth();
+            // }
         }
     });
 

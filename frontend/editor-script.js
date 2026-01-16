@@ -1018,7 +1018,8 @@
             }
 
             if (cm) cm.refresh();
-            fitToWidth();
+            if (cm) cm.refresh();
+            // fitToWidth(); // Disabled to allow manual zoom persistence
         };
 
         const stopResizing = () => {
@@ -1037,6 +1038,7 @@
 
         resizer.addEventListener('touchstart', (e) => {
             startResizing();
+            e.stopPropagation();
             e.preventDefault(); // Intercept touch to start resizing immediately
         }, { passive: false });
 
