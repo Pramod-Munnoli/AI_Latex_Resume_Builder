@@ -1,4 +1,5 @@
 @import url('theme.css');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&display=swap');
 
 /* Reset & Base */
 * {
@@ -71,12 +72,16 @@ body {
 .nav-logo {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
     /* Never squeeze the logo */
     text-decoration: none;
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-family: 'Orbitron', sans-serif;
+    /* Stylish Tech Font */
+    font-size: 1.35rem;
+    /* Slightly larger */
+    font-weight: 700;
+    letter-spacing: 0.5px;
     white-space: nowrap;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
@@ -86,8 +91,25 @@ body {
     white-space: nowrap;
 }
 
-.logo-icon {
-    -webkit-text-fill-color: initial;
+.nav-logo img {
+    height: 32px;
+    width: auto;
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+}
+
+.logo-text {
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    /* Make it stand out more */
+    text-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    /* Premium Glow */
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
 }
 
 .nav-links {
@@ -570,11 +592,11 @@ body {
     }
 
     /* Hide logo icon and text on very small screens to prevent crowding */
-    @media (max-width: 344px) {
+    @media (max-width: 417px) {
 
         .nav-logo .logo-text,
-        .nav-logo .logo-icon {
-            display: none;
+        .nav-logo img {
+            display: none !important;
         }
     }
 
@@ -876,5 +898,26 @@ body {
     .footer-links {
         gap: clamp(8px, 3vw, 20px);
         margin-bottom: 20px;
+    }
+}
+
+/* FIX: Ensure Profile Menu sits below header on mobile and doesn't overlap text */
+@media (max-width: 768px) {
+    .profile-menu {
+        position: fixed !important;
+        top: 80px !important;
+        /* Clear gap below navbar */
+        left: 12px !important;
+        /* Align with the Left Avatar Trigger */
+        right: auto !important;
+        /* Do not force to right */
+        width: auto !important;
+        min-width: 260px !important;
+        max-width: 85vw !important;
+        background: #1e293b !important;
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 12px !important;
+        /* Full rounded corners */
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
     }
 }
