@@ -594,9 +594,12 @@
             if (pageNumEl) pageNumEl.textContent = 1;
             await renderAllPages();
 
-            // Give layout a moment to settle for correct width calculation
+            // Give layout a moment to settle
             setTimeout(() => {
-                fitToWidth();
+                // Default to 180% zoom
+                currentScale = 1.8;
+                updateVisualScale();
+
                 // Reset scroll to top
                 const viewer = document.getElementById('pdfViewer');
                 if (viewer) {
@@ -688,9 +691,10 @@
         const currentWidth = window.innerWidth;
         if (currentWidth !== lastWidth) {
             lastWidth = currentWidth;
-            if (pdfDoc && document.getElementById('pdfViewer')) {
-                fitToWidth();
-            }
+            // Removed strict fitToWidth on resize to respect user zoom preference
+            // if (pdfDoc && document.getElementById('pdfViewer')) {
+            //     fitToWidth();
+            // }
         }
     });
 

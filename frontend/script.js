@@ -417,9 +417,12 @@
 
             await renderAllPages();
 
-            // Layout delay for correct width calculation
+            // Layout delay
             setTimeout(() => {
-                fitToWidth();
+                // Default to 180% zoom
+                currentScale = 1.8;
+                updateVisualScale();
+
                 // Reset scroll to top
                 const viewer = document.getElementById('pdfViewer');
                 if (viewer) {
