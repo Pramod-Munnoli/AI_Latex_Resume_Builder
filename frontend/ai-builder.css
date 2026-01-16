@@ -145,6 +145,14 @@
     display: inline-block;
 }
 
+.action-buttons-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    gap: 20px;
+    align-items: center;
+}
+
 /* Workspace Overrides to match Editor */
 @media (min-width: 1500px) {
     .ai-builder-workspace {
@@ -235,6 +243,8 @@
 }
 
 .ai-builder-workspace .resizer-handle {
+    width: 18px;
+    height: 36px;
     background: #334155;
     /* Default state as in Editor */
 }
@@ -255,6 +265,28 @@
 .status-generating {
     background: rgba(99, 102, 241, 0.1);
     color: #6366f1;
+}
+
+@media (max-width: 400px) {
+
+    .ai-builder-workspace .editor-panel,
+    .ai-builder-workspace .preview-panel {
+        min-height: 300px;
+    }
+
+    .ai-builder-workspace .panel-label {
+        background: #2f3a4c;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        height: 40px;
+        display: flex;
+        align-items: center;
+        padding: 0px 3px;
+        color: #b1bdce;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
 }
 
 @media (max-width: 1147px) {
@@ -290,7 +322,7 @@
     .ai-builder-workspace .resizer {
         display: flex !important;
         width: 100% !important;
-        height: 14px !important;
+        height: 12px !important;
         cursor: row-resize !important;
         flex-direction: row !important;
         align-items: center !important;
@@ -327,8 +359,8 @@
     }
 
     .ai-builder-workspace .resizer-handle {
-        width: 64px !important;
-        height: 28px !important;
+        width: 36px !important;
+        height: 18px !important;
         background: #7063f3 !important;
         border-radius: 20px !important;
         display: flex !important;
@@ -367,8 +399,9 @@
     }
 
     /* Shrink buttons but keep text visible */
+    /* Shrink buttons but keep text visible */
     .ai-builder-workspace .btn-recompile {
-        padding: 4px 8px !important;
+        padding: 6px 9px !important;
         font-size: 0.75rem !important;
         min-width: unset !important;
         gap: 4px !important;
@@ -405,6 +438,40 @@
 
 @media (max-width: 768px) {
 
+    .editor-toggle-pill {
+        display: flex;
+        background: #242e3c;
+        padding: 4px 5px;
+        border-radius: 20px;
+        gap: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-btn {
+        padding: 4px 8px;
+    }
+
+    .action-buttons-container {
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .action-buttons-container button,
+    .action-buttons-container span {
+        width: 100%;
+        max-width: 280px;
+        /* Prevent being too wide on tablet */
+        display: flex;
+        justify-content: center;
+    }
+
+    .btn-recompile {
+        min-width: unset;
+        padding: 6px 9px !important;
+    }
+
+
     .ai-builder-hero,
     .upload-container {
         padding-left: 16px;
@@ -436,7 +503,14 @@
     .mobile-view-toggle {
         display: none !important;
     }
+
+    .ai-builder-workspace .btn-recompile {
+        min-width: unset;
+        padding: 1px 6px;
+    }
 }
+
+
 
 .mobile-toggle-btn {
     padding: 8px 20px;

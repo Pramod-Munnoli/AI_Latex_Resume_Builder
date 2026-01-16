@@ -339,16 +339,6 @@
             // 2. Get current LaTeX code
             const currentLatex = cm.getValue();
 
-            // 3. Check if there are changes (Robust comparison)
-            const cleanCurrent = currentLatex.trim().replace(/\r\n/g, '\n');
-            const cleanOriginal = (originalLatexCode || '').trim().replace(/\r\n/g, '\n');
-
-            if (cleanCurrent === cleanOriginal) {
-                console.log('Recompile blocked: No changes detected.');
-                setStatus('Make changes in code then recompile', 'warning');
-                return;
-            }
-
             setStatus('Recompiling and saving...', 'info');
 
             // 4. Determine which column to update
@@ -679,6 +669,18 @@
         });
     }
 
+    // Global Resize Handler for PDF Viewer (Editor Page)
+    let lastWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+        const currentWidth = window.innerWidth;
+        if (currentWidth !== lastWidth) {
+            lastWidth = currentWidth;
+            if (pdfDoc && document.getElementById('pdfViewer')) {
+                fitToWidth();
+            }
+        }
+    });
+
     function fitToPage() {
         if (!pdfDoc) return;
         const viewer = document.getElementById('pdfViewer');
@@ -797,7 +799,7 @@
                 }
             }, { passive: false });
 
-            // Pan / Drag Logic
+            // Pan / Drag Logic (Mouse)
             let isPanning = false;
             let startX, startY, startScrollLeft, startScrollTop;
 
@@ -812,6 +814,67 @@
                     startScrollLeft = pdfViewer.scrollLeft;
                     startScrollTop = pdfViewer.scrollTop;
                 }
+            });
+
+            // Touch Panning & Pinch-to-Zoom
+            let isTouchPanning = false;
+            let lastTouchDistance = 0;
+
+            pdfViewer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isTouchPanning = true;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    startScrollLeft = pdfViewer.scrollLeft;
+                    startScrollTop = pdfViewer.scrollTop;
+                } else if (e.touches.length === 2) {
+                    isTouchPanning = false;
+                    lastTouchDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                }
+            }, { passive: false });
+
+            pdfViewer.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isTouchPanning) {
+                    const dx = e.touches[0].clientX - startX;
+                    const dy = e.touches[0].clientY - startY;
+                    pdfViewer.scrollLeft = startScrollLeft - dx;
+                    pdfViewer.scrollTop = startScrollTop - dy;
+                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                        e.preventDefault();
+                    }
+                } else if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const currentDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+                    const delta = currentDistance - lastTouchDistance;
+                    if (Math.abs(delta) > 5) {
+                        const oldScale = currentScale;
+                        const zoomFactor = delta > 0 ? 1.05 : 0.95;
+                        currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 3.0);
+
+                        const rect = pdfViewer.getBoundingClientRect();
+                        const ratio = currentScale / oldScale;
+                        updateVisualScale();
+
+                        pdfViewer.scrollLeft = (pdfViewer.scrollLeft + (centerX - rect.left)) * ratio - (centerX - rect.left);
+                        pdfViewer.scrollTop = (pdfViewer.scrollTop + (centerY - rect.top)) * ratio - (centerY - rect.top);
+
+                        lastTouchDistance = currentDistance;
+                    }
+                }
+            }, { passive: false });
+
+            pdfViewer.addEventListener('touchend', () => {
+                isTouchPanning = false;
             });
 
             document.addEventListener('mousemove', (e) => {
@@ -899,15 +962,14 @@
 
         let isResizing = false;
 
-        resizer.addEventListener('mousedown', (e) => {
+        const startResizing = () => {
             isResizing = true;
             const isVertical = window.innerWidth <= 1147;
             document.body.style.cursor = isVertical ? 'row-resize' : 'col-resize';
             container.style.userSelect = 'none';
-            e.preventDefault();
-        });
+        };
 
-        document.addEventListener('mousemove', (e) => {
+        const doResizing = (clientX, clientY) => {
             if (!isResizing) return;
 
             const isVertical = window.innerWidth <= 1147;
@@ -915,7 +977,7 @@
 
             if (isVertical) {
                 // Vertical Resizing (Stacked panels)
-                const newHeight = e.clientY - rect.top;
+                const newHeight = clientY - rect.top;
                 const minH = 200; // Min height for editor
                 const maxH = rect.height - 200; // Ensure preview has at least some space
 
@@ -926,7 +988,7 @@
                 }
             } else {
                 // Horizontal Resizing (Side-by-side)
-                const newWidth = e.clientX - rect.left;
+                const newWidth = clientX - rect.left;
                 const minW = rect.width * 0.2;
                 const maxW = rect.width * 0.8;
 
@@ -939,16 +1001,37 @@
 
             if (cm) cm.refresh();
             fitToWidth();
-        });
+        };
 
-        document.addEventListener('mouseup', () => {
+        const stopResizing = () => {
             if (isResizing) {
                 isResizing = false;
                 document.body.style.cursor = '';
                 container.style.userSelect = '';
                 if (cm) cm.refresh();
             }
+        };
+
+        resizer.addEventListener('mousedown', (e) => {
+            startResizing();
+            e.preventDefault();
         });
+
+        resizer.addEventListener('touchstart', (e) => {
+            startResizing();
+            // Don't preventDefault here to allow scrolling if not dragging resizer
+        }, { passive: true });
+
+        document.addEventListener('mousemove', (e) => doResizing(e.clientX, e.clientY));
+        document.addEventListener('touchmove', (e) => {
+            if (isResizing) {
+                doResizing(e.touches[0].clientX, e.touches[0].clientY);
+                e.preventDefault(); // Prevent scroll while resizing
+            }
+        }, { passive: false });
+
+        document.addEventListener('mouseup', stopResizing);
+        document.addEventListener('touchend', stopResizing);
     }
 
     function updateAuthUI(sessionData) {

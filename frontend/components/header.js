@@ -135,4 +135,64 @@ if (headerPlaceholder) {
         });
     }
 
+    // --- OPTIMISTIC AUTH UI LOAD ---
+    // This runs IMMEDIATELY after header injection to prevent flicker/delay
+    try {
+        const USER_CACHE_KEY_HEADER = "ai_resume_user_cache";
+        const rawCache = localStorage.getItem(USER_CACHE_KEY_HEADER);
+
+        if (rawCache) {
+            const cachedUser = JSON.parse(rawCache);
+            if (cachedUser) {
+                // Get elements we just injected
+                const authBtn = document.getElementById('authBtn');
+                const profileDropdown = document.getElementById('profileDropdown');
+                const profileAvatar = document.getElementById('profileAvatar');
+                const profileName = document.getElementById('profileName');
+                const profileEmail = document.getElementById('profileEmail');
+                const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
+
+                // 1. Hide Login Button
+                if (authBtn) authBtn.style.setProperty('display', 'none', 'important');
+
+                // 2. Show Profile Dropdown
+                if (profileDropdown) profileDropdown.style.display = 'block';
+
+                // 3. Populate Data
+                let displayName = cachedUser.user_metadata?.username ||
+                    cachedUser.user_metadata?.full_name ||
+                    cachedUser.email ||
+                    "User";
+
+                if (displayName && !displayName.includes("@")) {
+                    displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+                }
+
+                // Initials logic
+                let initials = "U";
+                if (displayName) {
+                    const parts = displayName.trim().split(" ");
+                    if (parts.length === 1) {
+                        initials = parts[0].substring(0, 2).toUpperCase();
+                    } else {
+                        initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                    }
+                }
+
+                if (profileAvatar) profileAvatar.textContent = initials;
+                if (profileName) profileName.textContent = displayName;
+                if (profileEmail) profileEmail.textContent = cachedUser.email || "";
+
+                // 4. Handle Mobile Auth Trigger
+                if (mobileAuthTrigger) {
+                    mobileAuthTrigger.innerHTML = `
+                        <div class="profile-avatar" id="headerProfileAvatar">${initials}</div>
+                    `;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Header optimistic load failed:", e);
+    }
+
 })();

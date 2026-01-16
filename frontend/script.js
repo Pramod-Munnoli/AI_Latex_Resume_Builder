@@ -564,6 +564,7 @@
                 }
             }, { passive: false });
 
+            // Pan / Drag Logic (Mouse)
             let isPanning = false, startX, startY, sL, sT;
             pdfViewer.addEventListener('mousedown', (e) => {
                 if (e.button === 0) {
@@ -573,6 +574,70 @@
                     startX = e.clientX; startY = e.clientY; sL = pdfViewer.scrollLeft; sT = pdfViewer.scrollTop;
                 }
             });
+
+            // Touch Panning & Pinch-to-Zoom
+            let isTouchPanning = false;
+            let lastTouchDistance = 0;
+            let lastTouchX = 0, lastTouchY = 0;
+
+            pdfViewer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isTouchPanning = true;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    sL = pdfViewer.scrollLeft;
+                    sT = pdfViewer.scrollTop;
+                } else if (e.touches.length === 2) {
+                    isTouchPanning = false;
+                    lastTouchDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                }
+            }, { passive: false });
+
+            pdfViewer.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isTouchPanning) {
+                    const dx = e.touches[0].clientX - startX;
+                    const dy = e.touches[0].clientY - startY;
+                    pdfViewer.scrollLeft = sL - dx;
+                    pdfViewer.scrollTop = sT - dy;
+                    // Prevent page scroll when panning PDF
+                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                        e.preventDefault();
+                    }
+                } else if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const currentDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+                    const delta = currentDistance - lastTouchDistance;
+                    if (Math.abs(delta) > 5) {
+                        const oldScale = currentScale;
+                        const zoomFactor = delta > 0 ? 1.05 : 0.95;
+                        currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 3.0);
+                        
+                        const rect = pdfViewer.getBoundingClientRect();
+                        const ratio = currentScale / oldScale;
+                        updateVisualScale();
+                        
+                        pdfViewer.scrollLeft = (pdfViewer.scrollLeft + (centerX - rect.left)) * ratio - (centerX - rect.left);
+                        pdfViewer.scrollTop = (pdfViewer.scrollTop + (centerY - rect.top)) * ratio - (centerY - rect.top);
+                        
+                        lastTouchDistance = currentDistance;
+                    }
+                }
+            }, { passive: false });
+
+            pdfViewer.addEventListener('touchend', () => {
+                isTouchPanning = false;
+            });
+
             document.addEventListener('mousemove', (e) => {
                 if (!isPanning) return;
                 pdfViewer.scrollLeft = sL - (e.clientX - startX);
@@ -595,25 +660,26 @@
         if (!resizer || !panel || !container) return;
 
         let isResizing = false;
-        resizer.addEventListener('mousedown', (e) => {
+        
+        const startResizing = (e) => {
             isResizing = true;
             const isVertical = window.innerWidth <= 1147;
             document.body.style.cursor = isVertical ? 'row-resize' : 'col-resize';
             container.style.userSelect = 'none';
-            e.preventDefault();
-        });
-        document.addEventListener('mousemove', (e) => {
+        };
+
+        const doResizing = (clientX, clientY) => {
             if (!isResizing) return;
             const isVertical = window.innerWidth <= 1147;
             const rect = container.getBoundingClientRect();
 
             if (isVertical) {
-                const height = Math.min(Math.max(e.clientY - rect.top, 200), rect.height - 200);
+                const height = Math.min(Math.max(clientY - rect.top, 200), rect.height - 200);
                 panel.style.height = `${height}px`;
                 panel.style.width = '100%';
                 panel.style.flex = 'none';
             } else {
-                const width = Math.min(Math.max(e.clientX - rect.left, rect.width * 0.2), rect.width * 0.8);
+                const width = Math.min(Math.max(clientX - rect.left, rect.width * 0.2), rect.width * 0.8);
                 panel.style.width = `${width}px`;
                 panel.style.height = '100%';
                 panel.style.flex = 'none';
@@ -621,15 +687,37 @@
 
             if (cm) cm.refresh();
             fitToWidth();
-        });
-        document.addEventListener('mouseup', () => {
+        };
+
+        const stopResizing = () => {
             if (isResizing) {
                 isResizing = false;
                 document.body.style.cursor = '';
                 container.style.userSelect = '';
                 if (cm) cm.refresh();
             }
+        };
+
+        resizer.addEventListener('mousedown', (e) => {
+            startResizing();
+            e.preventDefault();
         });
+
+        resizer.addEventListener('touchstart', (e) => {
+            startResizing();
+            // Don't preventDefault to allow potential scrolling if not moving
+        }, { passive: true });
+
+        document.addEventListener('mousemove', (e) => doResizing(e.clientX, e.clientY));
+        document.addEventListener('touchmove', (e) => {
+            if (isResizing) {
+                doResizing(e.touches[0].clientX, e.touches[0].clientY);
+                e.preventDefault(); // Prevent scroll while resizing
+            }
+        }, { passive: false });
+
+        document.addEventListener('mouseup', stopResizing);
+        document.addEventListener('touchend', stopResizing);
     }
 
     // Error categorization and user-friendly messages
@@ -1138,6 +1226,7 @@
                     localStorage.removeItem(key);
                 }
             });
+            localStorage.removeItem("ai_resume_user_cache");
 
             // Attempt standard sign out
             const { error } = await supabase.auth.signOut();
@@ -1179,8 +1268,37 @@
         }
     }
 
+    // --- USER CACHING ---
+    const USER_CACHE_KEY = "ai_resume_user_cache";
+
+    function saveUserCache(user) {
+        if (!user) return;
+        try {
+            const cachePayload = {
+                id: user.id,
+                email: user.email,
+                user_metadata: user.user_metadata || {},
+                last_updated: Date.now()
+            };
+            localStorage.setItem(USER_CACHE_KEY, JSON.stringify(cachePayload));
+        } catch (e) {
+            console.warn("Cache save failed", e);
+        }
+    }
+
+    function loadUserCache() {
+        try {
+            const raw = localStorage.getItem(USER_CACHE_KEY);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
     function updateAuthUI(sessionData) {
-        if (!supabase) return;
+        // Optimized: Removed supabase check to allow optimistic rendering from cache
+        // if (!supabase) return;
 
         // Use provided session or keep current state
         const user = sessionData?.user || currentUser;
@@ -1195,6 +1313,9 @@
         const currentAuthBtn = $("authBtn");
 
         if (user) {
+            // Update cache with fresh data
+            saveUserCache(user);
+
             // Logged In State
             if (currentAuthBtn) currentAuthBtn.style.setProperty('display', 'none', 'important');
             if (profileDropdown) profileDropdown.style.display = "block";
@@ -1230,6 +1351,9 @@
             }
         } else {
             // Logged Out State
+            // Ensure cache is cleared if we are explicitly in logged out state
+            localStorage.removeItem(USER_CACHE_KEY);
+
             if (currentAuthBtn) currentAuthBtn.style.setProperty('display', 'flex', 'important');
             if (profileDropdown) profileDropdown.style.display = "none";
 
@@ -1334,6 +1458,13 @@
         if (statusBadge) setStatus("Ready", "ready");
         if (recompileBtn) recompileBtn.disabled = true;
         if (downloadBtn) downloadBtn.disabled = true;
+
+        // Optimistic UI Load (Instant Profile Picture)
+        const cachedUser = loadUserCache();
+        if (cachedUser) {
+            console.log("Optimistically loading user from cache...");
+            updateAuthUI({ user: cachedUser });
+        }
 
         initSupabase();
 
@@ -1525,9 +1656,16 @@
     }
 
     // Global Resize Handler for PDF Viewer
+    // Global Resize Handler for PDF Viewer
+    let lastWidth = window.innerWidth;
     window.addEventListener('resize', () => {
-        if (pdfDoc && document.getElementById('pdfViewer')) {
-            fitToWidth();
+        // Only fit to width if the actual width changed (avoids auto-zoom-out when mobile keyboard or address bar toggles)
+        const currentWidth = window.innerWidth;
+        if (currentWidth !== lastWidth) {
+            lastWidth = currentWidth;
+            if (pdfDoc && ($('pdfViewer') || document.getElementById('pdfViewer'))) {
+                fitToWidth();
+            }
         }
     });
 
