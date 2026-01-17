@@ -186,3 +186,24 @@ body.auth-page {
     margin-bottom: 24px;
     text-align: left;
 }
+
+/* Mobile Responsiveness for Auth Pages */
+@media (max-width: 768px) {
+    body.auth-page {
+        justify-content: flex-start;
+        padding-top: 40px;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .back-to-home {
+        position: static;
+        margin-bottom: 24px;
+        align-self: flex-start;
+        width: 100%;
+    }
+    
+    .auth-card {
+        margin-top: 0;
+    }
+}

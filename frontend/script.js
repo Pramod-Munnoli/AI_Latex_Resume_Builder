@@ -73,7 +73,6 @@
 
     async function initSupabase() {
         try {
-            console.log("Connecting to backend at:", API_BASE || "local");
             const resp = await fetch(`${API_BASE}/api/config`);
 
             if (!resp.ok) throw new Error(`Server responded with ${resp.status}`);
@@ -153,7 +152,6 @@
 
                                 // Re-initialize the client with clean state
                                 supabase = window.supabase.createClient(url, key);
-                                console.log("Supabase re-initialized with clean state.");
                                 showToast("Session Cleared", "Please log in again.", "info");
                             } else {
                                 throw authError;
@@ -282,7 +280,6 @@
     // Toast notification system
     function showToast(title, message, type = "info") {
         // Disabled per user request to remove all popups
-        console.log(`Toast suppressed: [${type}] ${title} - ${message}`);
     }
 
     // Enhanced status update with type
@@ -469,11 +466,27 @@
 
     function updateVisualScale() {
         const container = document.getElementById('pdfCanvasContainer');
+        const inner = document.getElementById('pdfInnerContainer');
         const zoomValue = document.getElementById('zoomValue');
-        if (!container) return;
+        if (!container || !inner) return;
 
         const visualScale = currentScale / 2.0;
         container.style.transform = `scale(${visualScale})`;
+
+        // Re-calculate the actual visual height to prevent "phantom" space or clipping
+        let totalH = 0;
+        const canvases = container.querySelectorAll('canvas');
+        canvases.forEach(canvas => {
+            totalH += (canvas.height / 2.0); // Canvases are rendered at 2.0 scale
+        });
+
+        // 30px is the gap between pages defined in CSS
+        const totalGap = canvases.length > 1 ? (canvases.length - 1) * 30 : 0;
+        const scaledHeight = (totalH + totalGap) * visualScale;
+
+        // Apply the calculated height to the inner container to ensure correct scrolling
+        inner.style.height = `${scaledHeight + 80}px`; // 80px for bottom padding
+
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     }
 
@@ -486,7 +499,7 @@
             const viewport = page.getViewport({ scale: 1.0 });
             const padding = getPdfPadding();
             const availableWidth = viewer.clientWidth - padding;
-            currentScale = availableWidth / viewport.width;
+            currentScale = Math.min(availableWidth / viewport.width, 2.3);
             updateVisualScale();
         });
     }
@@ -500,7 +513,7 @@
             const viewport = page.getViewport({ scale: 1.0 });
             const padding = getPdfPadding();
             const availableHeight = viewer.clientHeight - padding;
-            currentScale = availableHeight / viewport.height;
+            currentScale = Math.min(availableHeight / viewport.height, 2.3);
             updateVisualScale();
         });
     }
@@ -513,7 +526,7 @@
         const pdfViewer = document.getElementById('pdfViewer');
         const toggleTheme = document.getElementById('toggleTheme');
 
-        if (zoomIn) zoomIn.onclick = () => { currentScale = Math.min(currentScale + 0.1, 3.0); updateVisualScale(); };
+        if (zoomIn) zoomIn.onclick = () => { currentScale = Math.min(currentScale + 0.1, 2.3); updateVisualScale(); };
         if (zoomOut) zoomOut.onclick = () => { currentScale = Math.max(currentScale - 0.1, 0.4); updateVisualScale(); };
         if (fitWidthBtn) fitWidthBtn.onclick = fitToWidth;
         if (fitPageBtn) fitPageBtn.onclick = fitToPage;
@@ -572,7 +585,7 @@
                     e.preventDefault();
                     const delta = e.deltaY > 0 ? -0.1 : 0.1;
                     const oldScale = currentScale;
-                    currentScale = Math.min(Math.max(currentScale + delta, 0.4), 3.0);
+                    currentScale = Math.min(Math.max(currentScale + delta, 0.4), 2.3);
                     const rect = pdfViewer.getBoundingClientRect();
                     const ratio = currentScale / oldScale;
                     updateVisualScale();
@@ -637,7 +650,7 @@
                     if (Math.abs(delta) > 5) {
                         const oldScale = currentScale;
                         const zoomFactor = delta > 0 ? 1.05 : 0.95;
-                        currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 3.0);
+                        currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 2.3);
 
                         const rect = pdfViewer.getBoundingClientRect();
                         const ratio = currentScale / oldScale;
@@ -981,7 +994,6 @@
                     // Construct proper URL with API_BASE for deployed environments
                     const fetchUrl = `${API_BASE}/files/resume.pdf?v=${Date.now()}`;
 
-                    console.log("Fetching PDF blob from:", fetchUrl);
 
                     // Fetch the PDF with proper error handling
                     const response = await fetch(fetchUrl, {
@@ -1002,7 +1014,6 @@
                         throw new Error("PDF blob is empty or invalid");
                     }
 
-                    console.log(`PDF blob fetched successfully: ${pdfBlob.size} bytes, type: ${pdfBlob.type}`);
 
                     // Fixed filename: one PDF per user
                     const fileName = `${currentUser.id}/resume.pdf`;
@@ -1020,7 +1031,6 @@
                     await new Promise(resolve => setTimeout(resolve, 100));
 
                     // 1b. Upload fresh blob with proper options
-                    console.log("Uploading PDF to Supabase Storage...");
                     const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('resumes')
                         .upload(fileName, pdfBlob, {
@@ -1034,7 +1044,6 @@
                         throw uploadError;
                     }
 
-                    console.log("Upload successful:", uploadData);
 
                     const { data: urlData } = supabase.storage
                         .from('resumes')
@@ -1042,7 +1051,6 @@
 
                     // Add cache buster to the URL for immediate UI update
                     permanentPdfUrl = urlData.publicUrl + "?t=" + Date.now();
-                    console.log("PDF stored at:", permanentPdfUrl);
                 } catch (storageErr) {
                     console.error("Storage upload failed:", storageErr);
                     showToast("Upload Failed", "Could not save PDF to cloud storage. Resume not saved.", "error");
@@ -1489,7 +1497,6 @@
         // Optimistic UI Load (Instant Profile Picture)
         const cachedUser = loadUserCache();
         if (cachedUser) {
-            console.log("Optimistically loading user from cache...");
             updateAuthUI({ user: cachedUser });
         }
 

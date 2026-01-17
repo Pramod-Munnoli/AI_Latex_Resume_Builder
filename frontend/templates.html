@@ -14,6 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="script.js" defer></script>
 </head>
 
@@ -32,7 +33,7 @@
         <section class="filters-section">
             <div class="filter-wrapper">
                 <div class="search-box">
-                    <span class="search-icon">🔍</span>
+                    <i data-lucide="search" class="search-icon"></i>
                     <input type="text" id="templateSearch" placeholder="Search templates...">
                 </div>
                 <div class="filter-chips">
@@ -60,7 +61,10 @@
                             <span class="tag">ATS</span>
                             <span class="tag">Professional</span>
                         </div>
-                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">
+                            <i data-lucide="edit-3"></i>
+                            Use Template
+                        </a>
                     </div>
                 </div>
 
@@ -76,7 +80,10 @@
                             <span class="tag">Minimal</span>
                             <span class="tag">Elegant</span>
                         </div>
-                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">
+                            <i data-lucide="edit-3"></i>
+                            Use Template
+                        </a>
                     </div>
                 </div>
 
@@ -92,7 +99,10 @@
                             <span class="tag">Academic</span>
                             <span class="tag">Multi-page</span>
                         </div>
-                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">
+                            <i data-lucide="edit-3"></i>
+                            Use Template
+                        </a>
                     </div>
                 </div>
 
@@ -108,7 +118,10 @@
                             <span class="tag">Developer</span>
                             <span class="tag">Tech</span>
                         </div>
-                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">
+                            <i data-lucide="edit-3"></i>
+                            Use Template
+                        </a>
                     </div>
                 </div>
 
@@ -124,13 +137,16 @@
                             <span class="tag">Student</span>
                             <span class="tag">Fresher</span>
                         </div>
-                        <a href="#" class="btn btn-template use-template-btn">Use Template</a>
+                        <a href="#" class="btn btn-template use-template-btn">
+                            <i data-lucide="edit-3"></i>
+                            Use Template
+                        </a>
                     </div>
                 </div>
             </div>
 
             <div id="noTemplates" class="empty-state" style="display: none;">
-                <span class="empty-icon">📂</span>
+                <i data-lucide="file-x" class="empty-icon"></i>
                 <h3>No templates found</h3>
                 <p>Try searching for something else or browse another category.</p>
             </div>

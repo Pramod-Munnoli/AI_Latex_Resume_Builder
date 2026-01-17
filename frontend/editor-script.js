@@ -38,6 +38,33 @@
     let loaderMessageEl = null;
 
     /**
+     * Show a simple toast notification
+     */
+    function showAlert(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            return;
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span>${type === 'info' ? 'ℹ️' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : '✅'}</span>
+                <span>${message}</span>
+            </div>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('toast-hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    /**
      * Get the database column name for a template
      * @param {string} templateName - Template name (e.g., 'ats-modern')
      * @returns {string} Column name (e.g., 'ats_template_latex')
@@ -122,7 +149,6 @@
                 // Listen for auth state changes
                 supabase.auth.onAuthStateChange(async (event, session) => {
                     currentUser = session?.user || null;
-                    console.log('Auth state changed:', event, currentUser ? 'Logged in' : 'Logged out');
                 });
 
                 // Get current session
@@ -188,7 +214,6 @@
                     isUserVersion = true;
                     userHasCustomVersion = true;
                     currentTemplateSource = 'user';
-                    console.log('Using user custom template (FAST LOAD)');
                 } else {
                     userHasCustomVersion = false;
                 }
@@ -201,7 +226,6 @@
                 }
                 latexCode = defaultTemplateResult.data.latex_code;
                 currentTemplateSource = 'default';
-                console.log('Using default template (FAST LOAD)');
             }
 
             // 3. IMMEDIATELY populate editor and hide global loader
@@ -326,6 +350,13 @@
             return;
         }
 
+        // Check if there are any changes to compile
+        const currentLatex = cm.getValue();
+        if (!hasChanges && currentLatex === originalLatexCode) {
+            showAlert('No changes to compile. Edit the code first!', 'info');
+            return;
+        }
+
         try {
             // 1. Check authentication
             const { data: { user } } = await supabase.auth.getUser();
@@ -336,8 +367,11 @@
                 return;
             }
 
-            // 2. Get current LaTeX code
-            const currentLatex = cm.getValue();
+            // 2. Show loading state on button
+            if (recompileBtn) {
+                recompileBtn.classList.add('loading');
+                recompileBtn.disabled = true;
+            }
 
             setStatus('Recompiling and saving...', 'info');
 
@@ -374,7 +408,6 @@
                 if (insertError) {
                     throw insertError;
                 }
-                console.log('Created new user template row');
             } else {
                 // UPDATE existing row
                 const { error: updateError } = await supabase
@@ -388,7 +421,6 @@
                 if (updateError) {
                     throw updateError;
                 }
-                console.log('Updated user template');
             }
 
             // 7. Update original code and compile
@@ -408,6 +440,12 @@
         } catch (error) {
             console.error('Error recompiling:', error);
             setStatus('Error: ' + error.message, 'error');
+        } finally {
+            // Remove loading state from button
+            if (recompileBtn) {
+                recompileBtn.classList.remove('loading');
+                recompileBtn.disabled = false;
+            }
         }
     }
 
@@ -658,14 +696,26 @@
 
     function updateVisualScale() {
         const container = document.getElementById('pdfCanvasContainer');
+        const inner = document.getElementById('pdfInnerContainer');
         const zoomValue = document.querySelector('.zoom-value');
-        if (!container) return;
+        if (!container || !inner) return;
 
-        // The canvas was rendered at scale 2.0 (high res)
-        // We want to scale it to match currentScale
-        // visualScale = currentScale / 2.0
         const visualScale = currentScale / 2.0;
         container.style.transform = `scale(${visualScale})`;
+
+        // Re-calculate the actual visual height to prevent "phantom" space or clipping
+        let totalH = 0;
+        const canvases = container.querySelectorAll('canvas');
+        canvases.forEach(canvas => {
+            totalH += (canvas.height / 2.0); // Canvases are rendered at 2.0 scale
+        });
+
+        // 30px is the gap between pages defined in CSS
+        const totalGap = canvases.length > 1 ? (canvases.length - 1) * 30 : 0;
+        const scaledHeight = (totalH + totalGap) * visualScale;
+
+        // Apply the calculated height to the inner container to ensure correct scrolling
+        inner.style.height = `${scaledHeight + 80}px`; // 80px for bottom padding
 
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     }
@@ -684,7 +734,7 @@
             const viewport = page.getViewport({ scale: 1.0 });
             const padding = getPdfPadding();
             const availableWidth = viewer.clientWidth - padding;
-            currentScale = availableWidth / viewport.width;
+            currentScale = Math.min(availableWidth / viewport.width, 2.3);
             updateVisualScale();
         });
     }
@@ -711,7 +761,7 @@
             const viewport = page.getViewport({ scale: 1.0 });
             const padding = getPdfPadding();
             const availableHeight = viewer.clientHeight - padding;
-            currentScale = availableHeight / viewport.height;
+            currentScale = Math.min(availableHeight / viewport.height, 2.3);
             updateVisualScale();
         });
     }
@@ -726,7 +776,7 @@
         if (zoomIn) {
             zoomIn.onclick = () => {
                 const oldScale = currentScale;
-                currentScale = Math.min(currentScale + 0.1, 3.0);
+                currentScale = Math.min(currentScale + 0.1, 2.3);
                 updateVisualScale();
             };
         }
@@ -802,7 +852,7 @@
                     e.preventDefault();
                     const delta = e.deltaY > 0 ? -0.1 : 0.1;
                     const oldScale = currentScale;
-                    currentScale = Math.min(Math.max(currentScale + delta, 0.4), 3.0);
+                    currentScale = Math.min(Math.max(currentScale + delta, 0.4), 2.3);
 
                     // Maintain focus (Overleaf centering)
                     const rect = pdfViewer.getBoundingClientRect();
@@ -881,7 +931,7 @@
                     if (Math.abs(delta) > 5) {
                         const oldScale = currentScale;
                         const zoomFactor = delta > 0 ? 1.05 : 0.95;
-                        currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 3.0);
+                        currentScale = Math.min(Math.max(currentScale * zoomFactor, 0.4), 2.3);
 
                         const rect = pdfViewer.getBoundingClientRect();
                         const ratio = currentScale / oldScale;
@@ -924,7 +974,6 @@
         if (type === 'error' || type === 'warning') {
             showAlert(text, type);
         }
-        console.log(`[${type.toUpperCase()}] ${text}`);
     }
 
     /**
@@ -933,7 +982,6 @@
      * @param {string} type - 'error', 'success', 'warning', or 'info'
      */
     function showAlert(message, type = 'info') {
-        console.log(`showAlert called with: ${message} (${type})`);
         const modal = document.getElementById('customAlertModal');
         const messageEl = document.getElementById('alertModalMessage');
         const iconEl = document.querySelector('.alert-modal-icon');
@@ -1011,7 +1059,7 @@
             } else {
                 // Horizontal Resizing (Side-by-side)
                 const newWidth = clientX - rect.left;
-                const minW = rect.width * 0.2;
+                const minW = 380; // Hard minimum to fit toolbar buttons
                 const maxW = rect.width * 0.8;
 
                 if (newWidth > minW && newWidth < maxW) {

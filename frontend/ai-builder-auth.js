@@ -44,12 +44,10 @@
 
         // If not logged in, redirect to login page
         if (!user) {
-            console.log('User not logged in, redirecting to login page...');
             window.location.href = 'login.html';
             return false;
         }
 
-        console.log('User authenticated:', user.email);
         return true;
     }
 

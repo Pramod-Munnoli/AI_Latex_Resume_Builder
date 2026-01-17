@@ -1,15 +1,33 @@
-.editor-body,
-.ai-builder-body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+.editor-body {
+    height: auto !important;
+    overflow-y: auto !important;
 }
 
 @media (min-width: 1024px) {
     .editor-container {
-        height: calc(100vh - 65px);
-        /* Fixed height for desktop to enable internal scrolling */
-        min-height: 500px;
+        height: calc(100vh - 80px);
+        /* Fill most of the screen */
+        min-height: 900px;
+        margin: 10px auto 20px auto;
+        max-width: 98%;
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        overflow: hidden;
+        /* Contain the scroll within */
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+}
+
+@media (min-width: 1500px) {
+    .editor-container {
+        height: calc(100vh - 80px);
+        min-height: 1000px;
+    }
+}
+
+@media (min-width: 1920px) {
+    .editor-container {
+        min-height: 1800px;
     }
 }
 
@@ -45,15 +63,65 @@
     flex-direction: column;
     position: relative;
     min-width: 0;
+    height: 100%;
+    overflow: hidden;
 }
 
 .editor-panel {
     border-right: 1px solid var(--glass-border);
     width: 50%;
-    /* Initial width */
+    min-width: 420px;
     flex: none;
+    height: auto;
     display: flex;
     flex-direction: column;
+    container-type: inline-size;
+    container-name: editor;
+}
+
+/* Container Queries for Toolbar - Responding to manual shrinking */
+@container editor (max-width: 600px) {
+    .panel-label {
+        padding: 0 8px;
+        gap: 4px;
+    }
+
+    .panel-label-right {
+        gap: 6px;
+    }
+
+    .toggle-btn {
+        padding: 5px 10px;
+    }
+}
+
+@container editor (max-width: 520px) {
+    .btn-version span {
+        display: none;
+    }
+
+    .template-name-display {
+        max-width: 80px;
+        padding: 2px 8px;
+    }
+}
+
+@container editor (max-width: 350px) {
+    .template-name-display {
+        display: none !important;
+    }
+}
+
+@container editor (max-width: 250px) {
+    .btn-version {
+        display: none;
+    }
+}
+
+@container editor (max-width: 200px) {
+    .btn-version {
+        display: none;
+    }
 }
 
 .resizer {
@@ -130,18 +198,22 @@
     border-radius: 20px;
     gap: 2px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .toggle-btn {
-    padding: 6px 16px;
+    padding: 6px 12px;
     border: none;
     background: transparent;
     color: #94a3b8;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     border-radius: 17px;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 1;
 }
 
 .toggle-btn.active {
@@ -276,7 +348,6 @@
     min-width: 0;
     background: #2f3a4c;
     overflow: hidden;
-    /* Prevent overall overflow */
 }
 
 .pdf-viewer {
@@ -288,12 +359,8 @@
     justify-content: center;
     align-items: flex-start;
     padding: 0;
-    /* Let inner container handle padding */
     scroll-behavior: smooth;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
     user-select: none;
-    /* Prevent text selection during drag */
 }
 
 .pdf-viewer::-webkit-scrollbar {
@@ -686,7 +753,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    padding: 8px 16px;
+    padding: 0 16px;
     height: 40px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -694,7 +761,9 @@
 .panel-label-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 .template-name-display {
@@ -811,7 +880,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #94a3b8;
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 6px;
     font-size: 0.7rem;
     font-weight: 600;
@@ -819,6 +888,7 @@
     transition: all 0.2s ease;
     text-transform: none;
     letter-spacing: 0.3px;
+    flex-shrink: 0;
 }
 
 .btn-version svg {
@@ -934,30 +1004,29 @@
     }
 
     .editor-panel {
-        width: 100%;
-        height: 50vh;
-        /* Updated to 50/50 split per user request */
-        min-height: 50px;
-        /* Allow shrinking */
+        width: 100% !important;
+        height: auto;
+        min-height: 400px;
+        min-width: 0 !important;
         border-right: none;
         border-bottom: 1px solid var(--glass-border);
         display: flex !important;
-        /* Always visible */
+        flex: none !important;
     }
 
     .preview-panel {
-        width: 100%;
-        height: 50vh;
-        min-height: 100px;
+        width: 100% !important;
+        height: auto;
+        min-height: 1650px;
         display: flex !important;
-        /* Always visible */
+        flex: none !important;
+        overflow: visible;
     }
 
     .resizer {
         display: flex !important;
         width: 100% !important;
         height: 32px !important;
-        /* Slightly larger for easier touch */
         cursor: row-resize !important;
         flex-direction: row !important;
         align-items: center !important;
@@ -969,10 +1038,8 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         position: relative !important;
         z-index: 1000 !important;
-        /* Higher z-index */
         padding: 0 10px !important;
         touch-action: none !important;
-        /* CRITICAL for mobile resizer */
     }
 
     .resizer-dots-top,
@@ -998,9 +1065,7 @@
 
     .resizer-handle {
         width: 100px !important;
-        /* Even wider for touch */
         height: 36px !important;
-        /* Even taller for touch */
         background: #7063f3 !important;
         border-radius: 20px !important;
         display: flex !important;
@@ -1011,7 +1076,6 @@
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
         touch-action: none !important;
-        /* CRITICAL */
         transition: transform 0.2s, background 0.2s;
     }
 
@@ -1038,13 +1102,71 @@
     .resizer-handle .right-arrow {
         transform: rotate(90deg) !important;
     }
+}
 
+@media (max-width: 768px) {
+    .btn-recompile {
+        min-width: unset;
+        padding: 6px 9px !important;
+    }
 
+    .editor-toggle-pill {
+        display: flex;
+        background: #242e3c;
+        padding: 4px 5px;
+        border-radius: 20px;
+        gap: 1px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-btn {
+        padding: 4px 5px;
+    }
+
+    .panel-label {
+        padding: 4px 8px;
+        height: 38px;
+        gap: 8px;
+    }
+
+    .panel-label-right {
+        gap: 8px;
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    .template-name-display {
+        font-size: 0.65rem;
+        max-width: 180px;
+        padding: 2px 10px;
+    }
+
+    .template-version-controls {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-version {
+        padding: 5px 10px;
+        gap: 6px;
+        font-size: 0.7rem;
+    }
+
+    .btn-version span {
+        display: inline !important;
+    }
+
+    .CodeMirror {
+        font-size: 0.8rem;
+    }
+
+    .pdf-inner-container {
+        padding: 0px !important;
+    }
 }
 
 @media (max-width: 545px) {
 
-    /* Hide specific tools as requested */
     #fitWidthBtn,
     #fitPageBtn,
     .page-controls,
@@ -1052,7 +1174,6 @@
         display: none !important;
     }
 
-    /* Shrink buttons but keep text visible */
     .btn-recompile {
         padding: 4px 8px !important;
         font-size: 0.75rem !important;
@@ -1088,92 +1209,8 @@
     }
 }
 
-
-@media (max-width: 768px) {
-
-    .btn-recompile {
-        min-width: unset;
-        padding: 6px 9px !important;
-    }
-
-    .editor-toggle-pill {
-        display: flex;
-        background: #242e3c;
-        padding: 4px 5px;
-        border-radius: 20px;
-        gap: 1px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .toggle-btn {
-        padding: 4px 5px;
-    }
-
-    .editor-panel {
-        display: flex !important;
-        width: 100% !important;
-        height: 50vh;
-        /* No !important so resizer can override */
-    }
-
-    .preview-panel {
-        display: flex !important;
-        width: 100% !important;
-        height: 50vh;
-        /* No !important */
-    }
-
-    /* Hide labels/text on toolbars to save space */
-
-    .panel-label {
-        padding: 4px 8px;
-        height: 36px;
-    }
-
+@media (max-width: 390px) {
     .template-name-display {
-        font-size: 0.65rem;
-        max-width: 80px;
-        padding: 2px 8px;
-    }
-
-    .preview-toolbar {
-        padding: 0 8px;
-        height: 40px;
-    }
-
-    .toolbar-left,
-    .toolbar-middle,
-    .toolbar-right {
-        gap: 4px;
-    }
-
-    .btn-recompile i {
-        margin: 0;
-    }
-
-    .page-info,
-    .zoom-value {
-        font-size: 0.65rem;
-        min-width: 30px;
-    }
-
-    .mobile-view-toggle {
         display: none !important;
-    }
-
-    /* Force panels to be visible by default, overriding mobile-active logic */
-    .editor-panel:not(.mobile-active),
-    .preview-panel:not(.mobile-active) {
-        display: flex !important;
-    }
-
-    /* Adjust CodeMirror font size for small screens */
-    .CodeMirror {
-        font-size: 0.8rem;
-    }
-
-    /* Adjust PDF Padding - Full Width on Mobile */
-    .pdf-inner-container {
-        padding: 0px !important;
     }
 }

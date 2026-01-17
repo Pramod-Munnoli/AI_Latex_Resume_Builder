@@ -154,22 +154,27 @@
 }
 
 /* Workspace Overrides to match Editor */
+@media (min-width: 1024px) {
+    .ai-builder-workspace {
+        height: calc(100vh - 80px) !important;
+        min-height: 900px;
+        overflow: hidden !important;
+    }
+}
+
 @media (min-width: 1500px) {
     .ai-builder-workspace {
-        height: 950px;
-        /* Increased from 800px */
+        height: calc(100vh - 80px) !important;
+        min-height: 1000px;
     }
 }
 
 .ai-builder-workspace {
-    height: 800px;
-    /* Base height for tablets if not stack */
-    width: 100%;
-    border-top: 1px solid var(--glass-border);
-    background: #2f3a4c;
-    position: relative;
+    flex: 1;
     display: flex;
     overflow: hidden;
+    position: relative;
+    background: var(--darker-bg);
 }
 
 .ai-builder-workspace .editor-panel {
@@ -187,8 +192,12 @@
 
 .ai-builder-workspace .editor-panel,
 .ai-builder-workspace .preview-panel {
+    flex: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
+    min-width: 0;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -321,22 +330,21 @@
     }
 
     .ai-builder-workspace .editor-panel {
-        width: 100%;
+        width: 100% !important;
         height: 50vh;
-        /* 50/50 split per user request */
         min-height: 50px;
         border-right: none;
         border-bottom: 1px solid var(--glass-border);
         display: flex !important;
-        /* Always visible */
+        flex: none !important;
     }
 
     .ai-builder-workspace .preview-panel {
-        width: 100%;
+        width: 100% !important;
         height: 50vh;
         min-height: 100px;
         display: flex !important;
-        /* Always visible */
+        flex: none !important;
     }
 
     .ai-builder-workspace .resizer {

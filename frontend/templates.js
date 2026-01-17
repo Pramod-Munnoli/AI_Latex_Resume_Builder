@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 templateIdMap[template.template_name] = template.id;
             });
 
-            console.log('Template IDs loaded:', templateIdMap);
+            // Template IDs loaded
         } catch (error) {
             console.error('Error loading template IDs:', error);
         }
@@ -106,4 +106,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load template IDs and setup buttons
     await loadTemplateIds();
     setupTemplateButtons();
+
+    // Initialize icons
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 });
