@@ -5,9 +5,9 @@
 
 @media (min-width: 1024px) {
     .editor-container {
-        height: calc(100vh - 80px);
+        height: calc(100vh - 120px);
         /* Fill most of the screen */
-        min-height: 900px;
+        min-height: 750px;
         margin: 10px auto 20px auto;
         max-width: 98%;
         border: 1px solid var(--glass-border);
@@ -20,8 +20,8 @@
 
 @media (min-width: 1500px) {
     .editor-container {
-        height: calc(100vh - 80px);
-        min-height: 1000px;
+        height: calc(100vh - 140px);
+        min-height: 850px;
     }
 }
 
@@ -1006,7 +1006,7 @@
     .editor-panel {
         width: 100% !important;
         height: auto;
-        min-height: 400px;
+        min-height: 50px;
         min-width: 0 !important;
         border-right: none;
         border-bottom: 1px solid var(--glass-border);
@@ -1017,7 +1017,7 @@
     .preview-panel {
         width: 100% !important;
         height: auto;
-        min-height: 1650px;
+        min-height: 400px;
         display: flex !important;
         flex: none !important;
         overflow: visible;

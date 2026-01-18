@@ -31,6 +31,8 @@
 
     // CodeMirror state
     let cm = null;
+    let originalLatexCode = "";
+    let hasChanges = false;
 
     // PDF.js state
     let pdfDoc = null;
@@ -310,12 +312,17 @@
         });
 
         cm.on('change', () => {
+            const currentCode = cm.getValue();
+            hasChanges = currentCode !== originalLatexCode;
+
             if (recompileBtn) {
-                recompileBtn.disabled = !cm.getValue().trim();
+                recompileBtn.disabled = !currentCode.trim();
             }
         });
 
         cm.setSize("100%", "100%");
+        originalLatexCode = cm.getValue();
+        hasChanges = false;
 
         // Ensure refresh after initial render
         setTimeout(() => {
@@ -324,8 +331,13 @@
     }
 
     function setEditorValue(val) {
-        if (cm) cm.setValue(val || "");
-        else if (latexEditor) latexEditor.value = val || "";
+        if (cm) {
+            cm.setValue(val || "");
+            originalLatexCode = val || "";
+            hasChanges = false;
+        } else if (latexEditor) {
+            latexEditor.value = val || "";
+        }
     }
 
     function getEditorValue() {
@@ -485,7 +497,7 @@
         const scaledHeight = (totalH + totalGap) * visualScale;
 
         // Apply the calculated height to the inner container to ensure correct scrolling
-        inner.style.height = `${scaledHeight + 80}px`; // 80px for bottom padding
+        inner.style.height = `${scaledHeight + 20}px`; // 20px for bottom padding (reduced from 80px)
 
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     }
@@ -683,6 +695,30 @@
         }
     }
 
+    function restorePanelSizes() {
+        const isVertical = window.innerWidth <= 1147;
+        const editorPanel = document.querySelector('.editor-panel');
+
+        if (editorPanel) {
+            if (isVertical) {
+                // Set default height to 50% of viewport height
+                editorPanel.style.height = '50vh';
+                editorPanel.style.width = '100%';
+                editorPanel.style.flex = 'none';
+            } else {
+                // Set default width to 50%
+                editorPanel.style.width = '50%';
+                editorPanel.style.height = '100%';
+                editorPanel.style.flex = 'none';
+            }
+        }
+
+        // Refresh CodeMirror if it exists
+        if (cm) {
+            setTimeout(() => cm.refresh(), 100);
+        }
+    }
+
     function setupResizer() {
         const resizer = document.getElementById('resizer');
         const panel = document.querySelector('.editor-panel');
@@ -713,11 +749,13 @@
                 panel.style.height = `${height}px`;
                 panel.style.width = '100%';
                 panel.style.flex = 'none';
+                localStorage.setItem('ai-builder-panel-height', height);
             } else {
                 const width = Math.min(Math.max(clientX - rect.left, rect.width * 0.2), rect.width * 0.8);
                 panel.style.width = `${width}px`;
                 panel.style.height = '100%';
                 panel.style.flex = 'none';
+                localStorage.setItem('ai-builder-panel-width', width);
             }
 
             if (cm) cm.refresh();
@@ -822,6 +860,29 @@
         };
     }
 
+    function showAlert(message, type = 'info') {
+        const modal = $("customAlertModal");
+        const messageEl = $("alertModalMessage");
+        const iconEl = document.querySelector('.alert-modal-icon');
+
+        if (!modal || !messageEl) return;
+
+        messageEl.textContent = message;
+        if (iconEl) {
+            if (type === 'error') iconEl.textContent = '❌';
+            else if (type === 'success') iconEl.textContent = '✅';
+            else if (type === 'warning') iconEl.textContent = '⚠️';
+            else iconEl.textContent = 'ℹ️';
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeAlert() {
+        const modal = $("customAlertModal");
+        if (modal) modal.style.display = 'none';
+    }
+
     async function uploadPdf() {
         // Redirect if not logged in
         if (!currentUser) {
@@ -914,6 +975,12 @@
             return;
         }
 
+        // Check if there are any changes to compile
+        if (!hasChanges && latex === originalLatexCode) {
+            showAlert("No changes to compile. Edit the code first!", "info");
+            return;
+        }
+
         setLoading(true);
         showLoader('Compiling PDF...');
         setStatus("Compiling LaTeX...", "loading");
@@ -937,6 +1004,10 @@
             setStatus("Compiled successfully", "success");
             showToast("Success!", "LaTeX compiled successfully.", "success");
             if (downloadBtn) downloadBtn.disabled = false;
+
+            // Mark current state as the new original
+            originalLatexCode = latex;
+            hasChanges = false;
 
             // Save updated version to Database ONLY if logged in and on the AI Builder page
             // We do NOT save template experiments from the Editor to the primary "My Resume" slot
@@ -1101,7 +1172,9 @@
             }
 
             if (data) {
-                if (latexEditor) setEditorValue(data.latex_content || "");
+                if (latexEditor) {
+                    setEditorValue(data.latex_content || "");
+                }
 
                 // Comprehensive PDF URL validation - reject invalid/temporary URLs
                 let validPdf = data.pdf_url;
@@ -1522,11 +1595,18 @@
                     latexEditor.value = `\\documentclass{article}\n\\begin{document}\nHello World!\n\\end{document}`;
                 }
             }
+
+            // Apply default 50/50 split on reload
+            setupResizer();
+            restorePanelSizes();
+
         } else if (window.location.pathname.includes('ai-builder.html')) {
             // AI Builder specific initialization
             initCodeMirror();
             setupToolbarFeatures();
             setupResizer();
+            restorePanelSizes();
+
             if (uploadBtn) uploadBtn.addEventListener("click", uploadPdf);
         }
         if (recompileBtn) recompileBtn.addEventListener("click", recompileLatex);
@@ -1562,6 +1642,12 @@
 
         // Close dropdown when clicking outside
         document.addEventListener("click", closeProfileDropdown);
+
+        // Alert Modal event listeners
+        const alertOkBtn = $("alertModalOkBtn");
+        if (alertOkBtn) alertOkBtn.addEventListener("click", closeAlert);
+        const alertBackdrop = document.querySelector(".alert-modal-backdrop");
+        if (alertBackdrop) alertBackdrop.addEventListener("click", closeAlert);
 
 
         if (pdfInput) {

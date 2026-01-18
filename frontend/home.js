@@ -39,16 +39,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         useTemplateButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
 
                 const card = button.closest('.template-card');
                 const templateName = card.dataset.templateName;
                 const templateId = templateIdMap[templateName];
 
                 if (templateId) {
+                    // Show a nice loader if possible
+                    const loader = document.getElementById('appLoader');
+                    const loaderMsg = document.getElementById('appLoaderMessage');
+                    if (loader && loaderMsg) {
+                        loaderMsg.textContent = 'Preparing your editor...';
+                        loader.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+
                     window.location.href = `editor.html?templateId=${templateId}&templateName=${templateName}`;
                 } else {
                     console.error('Template ID not found for:', templateName);
-                    alert('Failed to load template. Please refresh the page and try again.');
+                    // Minimal failover if map isn't ready
+                    window.location.href = `editor.html?template=${templateName}`;
                 }
             });
         });
@@ -76,7 +87,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
-            if (targetId.startsWith('#') && targetId !== '#') {
+            // Only smooth scroll if it's a real anchor and NOT a template button
+            if (targetId.startsWith('#') && targetId !== '#' && !this.classList.contains('use-template-btn')) {
                 const target = document.querySelector(targetId);
                 if (target) {
                     e.preventDefault();

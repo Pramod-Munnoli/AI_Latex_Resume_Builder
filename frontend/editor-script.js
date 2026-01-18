@@ -37,32 +37,7 @@
     let appLoader = null;
     let loaderMessageEl = null;
 
-    /**
-     * Show a simple toast notification
-     */
-    function showAlert(message, type = 'info') {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) {
-            return;
-        }
 
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span>${type === 'info' ? 'ℹ️' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : '✅'}</span>
-                <span>${message}</span>
-            </div>
-        `;
-
-        toastContainer.appendChild(toast);
-
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            toast.classList.add('toast-hiding');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
 
     /**
      * Get the database column name for a template
@@ -106,6 +81,8 @@
 
         // Set initial size
         cm.setSize("100%", "100%");
+        originalLatexCode = cm.getValue();
+        hasChanges = false;
     }
 
     // Handle Editor Toggling
@@ -501,6 +478,8 @@
                 throw new Error('Could not load your saved version');
             }
 
+            const prevCode = cm.getValue();
+
             // Set in editor
             if (cm) {
                 cm.setValue(userTemplate[columnName]);
@@ -512,10 +491,17 @@
             currentTemplateSource = 'user';
             updateVersionButtons();
 
-            // Compile
-            await compileLatex(userTemplate[columnName]);
+            // Compile only if content changed or no PDF exists
+            // formatting: trim whitespace to avoid false positives (e.g. trailing newlines)
+            const cleanPrev = prevCode ? prevCode.trim() : "";
+            const cleanNew = userTemplate[columnName] ? userTemplate[columnName].trim() : "";
 
-            setStatus('Your saved version loaded', 'success');
+            if (cleanPrev !== cleanNew || !pdfDoc) {
+                await compileLatex(userTemplate[columnName]);
+                setStatus('Your saved version loaded', 'success');
+            } else {
+                setStatus('Already using your saved version', 'success');
+            }
 
         } catch (error) {
             console.error('Error loading user version:', error);
@@ -567,6 +553,8 @@
                 throw error;
             }
 
+            const prevCode = cm.getValue();
+
             // Set in editor
             if (cm) {
                 cm.setValue(defaultTemplate.latex_code);
@@ -578,10 +566,17 @@
             currentTemplateSource = 'default';
             updateVersionButtons();
 
-            // Compile
-            await compileLatex(defaultTemplate.latex_code);
+            // Compile only if content changed or no PDF exists
+            // formatting: trim whitespace to avoid false positives
+            const cleanPrev = prevCode ? prevCode.trim() : "";
+            const cleanNew = defaultTemplate.latex_code ? defaultTemplate.latex_code.trim() : "";
 
-            setStatus('Original template loaded', 'success');
+            if (cleanPrev !== cleanNew || !pdfDoc) {
+                await compileLatex(defaultTemplate.latex_code);
+                setStatus('Original template loaded', 'success');
+            } else {
+                setStatus('Already using original template', 'success');
+            }
 
         } catch (error) {
             console.error('Error loading original:', error);
@@ -715,7 +710,7 @@
         const scaledHeight = (totalH + totalGap) * visualScale;
 
         // Apply the calculated height to the inner container to ensure correct scrolling
-        inner.style.height = `${scaledHeight + 80}px`; // 80px for bottom padding
+        inner.style.height = `${scaledHeight + 20}px`; // 20px for bottom padding (reduced from 80px)
 
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     }
@@ -970,8 +965,23 @@
     }
 
     function setStatus(text, type = 'info') {
-        // Only show the prominent alert for warnings (like the recompile block) and errors
-        if (type === 'error' || type === 'warning') {
+        const statusBadge = document.getElementById('statusBadge');
+        if (statusBadge) {
+            statusBadge.textContent = text;
+            statusBadge.style.display = 'inline-block';
+
+            // Set color based on type
+            statusBadge.className = 'status-badge';
+            statusBadge.classList.add(`status-${type}`);
+
+            // Auto hide after 3s
+            setTimeout(() => {
+                statusBadge.style.display = 'none';
+            }, 3000);
+        }
+
+        // Only show the prominent modal for errors
+        if (type === 'error') {
             showAlert(text, type);
         }
     }
@@ -1021,6 +1031,30 @@
 
     function downloadPdf() {
         window.open(`${API_BASE}/api/download`, "_blank");
+    }
+
+    function restorePanelSizes() {
+        const isVertical = window.innerWidth <= 1147;
+        const editorPanel = document.querySelector('.editor-panel');
+
+        if (editorPanel) {
+            if (isVertical) {
+                // Set default height to 50% of viewport height
+                editorPanel.style.height = '50vh';
+                editorPanel.style.width = '100%';
+                editorPanel.style.flex = 'none';
+            } else {
+                // Set default width to 50%
+                editorPanel.style.width = '50%';
+                editorPanel.style.height = '100%';
+                editorPanel.style.flex = 'none';
+            }
+        }
+
+        // Refresh CodeMirror if it exists
+        if (cm) {
+            setTimeout(() => cm.refresh(), 100);
+        }
     }
 
     function setupResizer() {
@@ -1300,6 +1334,7 @@
         setupVisualEditorSync();
         await loadTemplate();
         setupResizer();
+        restorePanelSizes();
 
         // Event listeners
         const recompileBtn = document.getElementById('recompileBtn');

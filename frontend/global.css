@@ -466,6 +466,88 @@ body {
     box-shadow: var(--shadow);
 }
 
+/* Alert Modal (e.g. "No changes to compile") */
+.alert-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.alert-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.alert-modal-content {
+    position: relative;
+    background: #1e293b;
+    border: 1px solid var(--glass-border);
+    padding: 32px 40px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    animation: alertPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1;
+}
+
+@keyframes alertPop {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.alert-modal-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.alert-modal-message {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    font-weight: 500;
+    margin-bottom: 28px;
+    line-height: 1.5;
+}
+
+.btn-alert-ok {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 10px 32px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.btn-alert-ok:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-alert-ok:active {
+    transform: translateY(0);
+}
+
 .status-badge {
     padding: 4px 12px;
     border-radius: 20px;

@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         useTemplateButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
 
                 const card = button.closest('.template-card');
                 const templateName = card.dataset.templateName;
@@ -86,7 +87,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     window.location.href = `editor.html?templateId=${templateId}&templateName=${templateName}`;
                 } else {
                     console.error('Template ID not found for:', templateName);
-                    alert('Failed to load template. Please refresh the page and try again.');
+                    // Minimal failover 
+                    window.location.href = `editor.html?template=${templateName}`;
                 }
             });
         });

@@ -156,16 +156,16 @@
 /* Workspace Overrides to match Editor */
 @media (min-width: 1024px) {
     .ai-builder-workspace {
-        height: calc(100vh - 80px) !important;
-        min-height: 900px;
+        height: calc(100vh - 120px) !important;
+        min-height: 750px;
         overflow: hidden !important;
     }
 }
 
 @media (min-width: 1500px) {
     .ai-builder-workspace {
-        height: calc(100vh - 80px) !important;
-        min-height: 1000px;
+        height: calc(100vh - 140px) !important;
+        min-height: 850px;
     }
 }
 
@@ -341,8 +341,8 @@
 
     .ai-builder-workspace .preview-panel {
         width: 100% !important;
-        height: 50vh;
-        min-height: 100px;
+        height: auto;
+        min-height: 1200px;
         display: flex !important;
         flex: none !important;
     }
@@ -533,14 +533,18 @@
         flex-direction: column !important;
     }
 
-    .ai-builder-workspace .editor-panel,
+    .ai-builder-workspace .editor-panel {
+        width: 100% !important;
+        display: flex !important;
+        height: auto;
+        min-height: 50px;
+    }
+
     .ai-builder-workspace .preview-panel {
         width: 100% !important;
         display: flex !important;
-        height: 50vh;
-        /* Unified with 1147px split */
-        min-height: 100px;
-        /* Reduced from 500px */
+        height: auto;
+        min-height: 400px;
     }
 
     .mobile-view-toggle {
