@@ -205,8 +205,10 @@
 
 .template-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 35px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .template-card {
@@ -228,18 +230,25 @@
 }
 
 .template-preview {
-    height: 350px;
+    height: 250px;
     position: relative;
     overflow: hidden;
     background: #0f172a;
+    transform: translateZ(0);
 }
 
 .template-preview img {
-    width: 100%;
-    height: 100%;
+    width: 102%;
+    /* Increased overlap */
+    height: 102%;
     object-fit: cover;
     object-position: top;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    display: block;
+    backface-visibility: hidden;
+    will-change: transform;
+    margin: -1%;
+    /* Center the larger image */
 }
 
 .template-card:hover .template-preview img {
@@ -603,4 +612,10 @@
     color: #6366f1;
     cursor: pointer;
     font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .template-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
 }

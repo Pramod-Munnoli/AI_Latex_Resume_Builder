@@ -15,9 +15,8 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     padding-top: 70px;
-    /* Offset for fixed navbar */
-    scrollbar-gutter: stable;
-    /* Prevents layout jump when scrollbar appears */
+    /* Absolute stability: reserve space for scrollbar on both sides to keep layout perfectly centered */
+    scrollbar-gutter: stable both-edges;
 }
 
 /* Scrollbar */
@@ -43,10 +42,10 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    z-index: 1100;
+    right: 0;
+    z-index: 2100;
+    /* High enough to be above editor UI and dividers */
     background: rgba(2, 6, 23, 0.4);
-    /* Enhanced transparency */
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--glass-border);
@@ -57,13 +56,11 @@ body {
 
 .nav-container {
     width: 100%;
-    /* Fixed padding to prevent any layout shifts during load */
     padding: 0 40px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    margin: 0;
-    gap: 12px;
-    /* Safety gap between logo, links, and profile */
+    height: 100%;
 }
 
 .nav-logo {
@@ -89,7 +86,9 @@ body {
 
 .nav-logo img {
     height: 32px;
-    width: auto;
+    width: 32px;
+    /* Fixed width prevents layout shift on load */
+    object-fit: contain;
     filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
 }
 
@@ -106,10 +105,12 @@ body {
 
 .nav-links {
     display: flex;
-    gap: 48px;
+    gap: 32px;
+    /* Balanced gap for various screen sizes */
     justify-content: center;
     white-space: nowrap;
     margin: 0 auto;
+    z-index: 10;
 }
 
 /* Wide screen spacing - still perfectly centered */
@@ -122,44 +123,42 @@ body {
 .nav-link {
     text-decoration: none;
     color: var(--text-muted);
-    font-weight: 500;
+    font-weight: 700;
+    /* Always bold to prevent width changes when active */
     font-size: 0.95rem;
     cursor: pointer;
-    display: inline-grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    transition: color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.7;
+    /* Muted when not active/hovered */
+    transform: none !important;
+    line-height: 1.2;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Reserve space for bold text to prevent jitter */
-.nav-link::after {
-    content: attr(data-text);
-    font-weight: 700;
-    height: 0;
-    visibility: hidden;
-    overflow: hidden;
-    user-select: none;
-    pointer-events: none;
-    grid-area: 1 / 1;
-}
-
-.nav-link span,
-.nav-link:first-child {
-    grid-area: 1 / 1;
+/* No placeholder needed with constant-weight approach */
+.nav-link span {
     z-index: 1;
 }
 
 .nav-link:hover,
 .nav-link.active {
     color: var(--white);
-    font-weight: 700;
+    opacity: 1;
+    /* Fully visible when active/hovered */
 }
 
 .auth-container {
     display: flex;
     align-items: center;
     gap: 12px;
-    /* Push content to the far right of its fixed 300px column */
     justify-content: flex-end;
-    flex-shrink: 0;
+    flex: 1 1 0%;
+    /* Balanced side pocket */
+    z-index: 20;
 }
 
 .btn-auth {
@@ -185,8 +184,9 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-self: start;
-    z-index: 1001;
+    flex: 1 1 0%;
+    /* Balanced side pocket */
+    z-index: 20;
 }
 
 .btn-tiny-auth {
@@ -250,7 +250,8 @@ body {
     height: calc(100vh - 70px);
     background: rgba(2, 6, 23, 0.95);
     backdrop-filter: blur(12px);
-    z-index: 999;
+    z-index: 2050 !important;
+    /* Above editor resizer (1000) but below navbar (2100) */
     display: flex;
     flex-direction: column;
     padding: 24px;
@@ -580,39 +581,47 @@ body {
 @media (min-width: 769px) and (max-width: 1220px) {
     .nav-container {
         padding: 0 16px;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .nav-logo-dynamic,
+    .auth-container {
+        flex: 1 1 0%;
     }
 
     .nav-links {
-        gap: 20px;
-        position: static;
-        transform: none;
-        justify-self: center;
-        width: 100%;
+        display: flex;
+        gap: 10px;
+        /* Even tighter gap for medium screens */
+        margin: 0 auto;
+        z-index: 10;
+        width: auto;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+        padding: 4px 6px;
     }
 
     .nav-logo {
         font-size: 1.1rem;
     }
 
-    .logo-text {
-        font-size: 1rem;
-    }
+    /* Scale down logo text instead of hiding it too early */
+    @media (max-width: 1150px) {
+        .logo-text {
+            font-size: 0.9rem;
+        }
 
-    .nav-link {
-        font-size: 0.9rem;
-    }
-
-    .nav-links {
-        gap: 20px;
-        /* Precise gap for tight 772px screens */
-        justify-self: center;
+        .nav-links {
+            gap: 16px;
+        }
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 850px) {
     .nav-links {
         display: none;
     }
@@ -657,8 +666,8 @@ body {
         right: 12px;
         width: calc(100% - 24px);
         max-width: 280px;
-        z-index: 1200;
-        /* Higher than navbar and overlay */
+        z-index: 2200;
+        /* Above navbar for dropdown clarity */
     }
 
     /* Adjust Auth Button for Mobile */

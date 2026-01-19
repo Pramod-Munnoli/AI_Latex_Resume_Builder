@@ -13,11 +13,11 @@ const headerHTML = `
                 </a>
             </div>
             <div class="nav-links">
-                <a href="index.html" class="nav-link" data-text="Home">Home</a>
-                <a href="templates.html" class="nav-link" data-text="Templates">Templates</a>
-                <a href="ai-builder.html" class="nav-link" data-text="AI Builder">AI Builder</a>
-                <a href="editor.html" class="nav-link" data-text="Editor">Editor</a>
-                <a href="docs.html" class="nav-link" data-text="Docs">Docs</a>
+                <a href="index.html" class="nav-link" data-text="Home"><span>Home</span></a>
+                <a href="templates.html" class="nav-link" data-text="Templates"><span>Templates</span></a>
+                <a href="ai-builder.html" class="nav-link" data-text="AI Builder"><span>AI Builder</span></a>
+                <a href="editor.html" class="nav-link" data-text="Editor"><span>Editor</span></a>
+                <a href="docs.html" class="nav-link" data-text="Docs"><span>Docs</span></a>
             </div>
             
             <!-- Desktop Auth (Right Side) -->
