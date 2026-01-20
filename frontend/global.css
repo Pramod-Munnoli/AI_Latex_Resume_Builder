@@ -79,7 +79,7 @@ body {
     font-weight: 800;
     font-size: 1.35rem;
     letter-spacing: -1px;
-    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -124,8 +124,13 @@ body {
 
 .nav-link:hover,
 .nav-link.active {
-    color: var(--white);
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    text-shadow: none;
+    /* Gradient doesn't work well with text-shadow */
 }
 
 .nav-link::after {
@@ -144,6 +149,7 @@ body {
 .nav-link:hover::after,
 .nav-link.active::after {
     width: 100%;
+    background: linear-gradient(90deg, #ffffff, #a5b4fc);
 }
 
 /* AI Builder - Primary Highlight */
