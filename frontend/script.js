@@ -1640,6 +1640,11 @@
             profileAvatar.addEventListener("click", toggleProfileDropdown);
         }
 
+        // Initialize Lucide icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
         // Close dropdown when clicking outside
         document.addEventListener("click", closeProfileDropdown);
 

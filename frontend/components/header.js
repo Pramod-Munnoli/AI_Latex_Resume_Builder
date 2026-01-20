@@ -140,13 +140,13 @@ if (headerPlaceholder) {
     try {
         const USER_CACHE_KEY_HEADER = "ai_resume_user_cache";
         const rawCache = localStorage.getItem(USER_CACHE_KEY_HEADER);
+        const authBtn = document.getElementById('authBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
 
         if (rawCache) {
             const cachedUser = JSON.parse(rawCache);
             if (cachedUser) {
                 // Get elements we just injected
-                const authBtn = document.getElementById('authBtn');
-                const profileDropdown = document.getElementById('profileDropdown');
                 const profileAvatar = document.getElementById('profileAvatar');
                 const profileName = document.getElementById('profileName');
                 const profileEmail = document.getElementById('profileEmail');
@@ -164,6 +164,7 @@ if (headerPlaceholder) {
                     cachedUser.email ||
                     "User";
 
+                // Capitalization logic
                 if (displayName && !displayName.includes("@")) {
                     displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
                 }
@@ -175,7 +176,7 @@ if (headerPlaceholder) {
                     if (parts.length === 1) {
                         initials = parts[0].substring(0, 2).toUpperCase();
                     } else {
-                        initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                        initials = (parts[0][0] + (parts[parts.length - 1][0] || "")).toUpperCase();
                     }
                 }
 
@@ -190,9 +191,17 @@ if (headerPlaceholder) {
                     `;
                 }
             }
+        } else {
+            // Logged out or no cache: Show login button immediately
+            if (authBtn) authBtn.style.setProperty('display', 'flex', 'important');
+            if (profileDropdown) profileDropdown.style.display = 'none';
+
+            const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
+            if (mobileAuthTrigger) {
+                mobileAuthTrigger.innerHTML = `<a href="login.html" class="btn-tiny-auth">Login</a>`;
+            }
         }
     } catch (e) {
         console.warn("Header optimistic load failed:", e);
     }
-
 })();

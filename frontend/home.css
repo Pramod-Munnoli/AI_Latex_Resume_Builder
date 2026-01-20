@@ -1,15 +1,15 @@
 @import 'theme.css';
 
 /* Navbar Animation (Homepage Only) */
-.home-page .navbar {
+.home-page .navbar.nav-animating {
     opacity: 0;
     transform: translateY(-20px);
-    transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .home-page .navbar.nav-visible {
     opacity: 1 !important;
     transform: translateY(0) !important;
+    transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Hero Section */
@@ -595,6 +595,8 @@
 }
 
 /* Modal Styling */
+
+
 .modal {
     display: none;
     position: fixed;

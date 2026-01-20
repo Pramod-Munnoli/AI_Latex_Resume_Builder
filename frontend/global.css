@@ -84,6 +84,10 @@ body {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2));
+    white-space: nowrap;
+    /* Prevent font-load shift */
+    display: inline-block;
+    min-width: 180px;
 }
 
 .nav-links {
@@ -190,7 +194,8 @@ body {
     gap: 12px;
     justify-content: flex-end;
     flex: 1 1 0%;
-    /* Balanced side pocket */
+    min-width: 200px;
+    /* Fixed anchor for layout stability */
     z-index: 20;
 }
 
@@ -218,7 +223,8 @@ body {
     align-items: center;
     gap: 8px;
     flex: 1 1 0%;
-    /* Balanced side pocket */
+    min-width: 200px;
+    /* Fixed anchor for layout stability */
     z-index: 20;
 }
 
@@ -247,13 +253,11 @@ body {
 
 .mobile-auth-trigger {
     display: none;
+    min-width: 44px;
+    /* Maintain space for avatar */
+    justify-content: center;
 }
 
-.btn-tiny-auth:hover {
-    background: var(--primary-gradient);
-    border-color: transparent;
-    transform: scale(1.1);
-}
 
 /* Mobile Menu Button (Hamburger) */
 .mobile-menu-btn {

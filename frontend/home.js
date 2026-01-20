@@ -125,19 +125,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hasAnimated = sessionStorage.getItem('nav-already-animated');
 
         if (isReload || !hasAnimated) {
-            // First time in session or a hard refresh -> Animate
+            // First time in session or a hard refresh -> Apply animation state
+            navbar.classList.add('nav-animating');
             setTimeout(() => {
                 navbar.classList.add('nav-visible');
                 sessionStorage.setItem('nav-already-animated', 'true');
             }, 40);
         } else {
-            // Returning via navigation -> Show immediately (high-end stability)
-            navbar.style.transition = 'none';
+            // Returning via navigation -> Already visible by default CSS
             navbar.classList.add('nav-visible');
-            // Restore transition for future interactions (like scroll effects if any)
-            setTimeout(() => {
-                navbar.style.transition = '';
-            }, 50);
         }
     }
 });
