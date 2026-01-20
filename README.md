@@ -24,7 +24,7 @@ The platform features a premium design system, real-time cloud sync, and a profe
 The application follows a highly decoupled and performant workflow to ensure sub-second response times and 100% data durability.
 
 ```mermaid
-graph TD
+flowchart TD
     %% Frontend Entry
     User((User)) -->|Upload PDF| FE[Premium Frontend - Vercel]
     
@@ -34,7 +34,8 @@ graph TD
     BE -.->|Fallback Query| Gemini[Gemini 2.0 Flash]
     
     %% Compilation Layer
-    Groq & Gemini -->|Raw LaTeX| San[LaTeX Sanitizer & Fixer]
+    Groq -->|Raw LaTeX| San[LaTeX Sanitizer & Fixer]
+    Gemini -->|Raw LaTeX| San
     San -->|Processed Code| TEX[TeX Live Compiler]
     TEX -->|Generated PDF| BE
     
