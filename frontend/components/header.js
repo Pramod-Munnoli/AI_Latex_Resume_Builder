@@ -14,8 +14,8 @@ const headerHTML = `
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link" data-text="Home"><span>Home</span></a>
-                <a href="templates.html" class="nav-link" data-text="Templates"><span>Templates</span></a>
-                <a href="ai-builder.html" class="nav-link" data-text="AI Builder"><span>AI Builder</span></a>
+                <a href="ai-builder.html" class="nav-link nav-link-featured" data-text="AI Builder"><span>AI Builder</span></a>
+                <a href="templates.html" class="nav-link nav-link-templates" data-text="Templates"><span>Templates</span></a>
                 <a href="editor.html" class="nav-link" data-text="Editor"><span>Editor</span></a>
                 <a href="docs.html" class="nav-link" data-text="Docs"><span>Docs</span></a>
             </div>
@@ -61,8 +61,8 @@ const headerHTML = `
     <div id="mobileNavOverlay" class="mobile-nav-overlay">
         <div class="mobile-nav-links">
             <a href="index.html" class="mobile-nav-link">Home</a>
-            <a href="templates.html" class="mobile-nav-link">Templates</a>
-            <a href="ai-builder.html" class="mobile-nav-link">AI Builder</a>
+            <a href="ai-builder.html" class="mobile-nav-link mobile-nav-link-featured">AI Builder</a>
+            <a href="templates.html" class="mobile-nav-link mobile-nav-link-templates">Templates</a>
             <a href="editor.html" class="mobile-nav-link">Editor</a>
             <a href="docs.html" class="mobile-nav-link">Docs</a>
         </div>

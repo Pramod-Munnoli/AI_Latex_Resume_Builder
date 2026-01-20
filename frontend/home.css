@@ -19,6 +19,8 @@
 }
 
 .hero-title {
+    opacity: 0;
+    visibility: hidden;
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     line-height: 1.1;
     margin-bottom: 24px;
@@ -26,9 +28,15 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
+    /* Fallback */
 }
 
 .hero-subtitle {
+    opacity: 0;
+    /* Prevent flash */
+    visibility: hidden;
+    /* Prevent flash */
     font-size: 1.25rem;
     color: var(--text-muted);
     margin-bottom: 40px;
@@ -38,6 +46,10 @@
 }
 
 .hero-cta {
+    opacity: 0;
+    /* Prevent flash */
+    visibility: hidden;
+    /* Prevent flash */
     display: flex;
     gap: 20px;
     justify-content: center;
@@ -64,6 +76,34 @@
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);
+}
+
+@keyframes premiumShimmer {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 150%;
+    }
+
+    100% {
+        left: 150%;
+    }
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+        filter: brightness(1.5) drop-shadow(0 0 5px #fff);
+    }
 }
 
 .btn-secondary {
@@ -618,4 +658,134 @@
     .template-grid {
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
+}
+
+/* ========================================
+   HYPER-PREMIUM BUTTONS
+   ======================================== */
+
+.btn-premium-ai,
+.btn-premium-teal {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
+    background-size: 200% auto !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-premium-ai::after,
+.btn-premium-teal::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 100px;
+    height: 200%;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
+    transform: rotate(25deg);
+    animation: premiumShimmer 3s infinite;
+}
+
+/* Indigo Variation (AI Builder) */
+.btn-premium-ai {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%) !important;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5),
+        0 0 0 1px rgba(99, 102, 241, 0.1);
+    color: white !important;
+}
+
+.btn-premium-ai:hover {
+    transform: translateY(-5px) scale(1.05);
+    background-position: right center;
+    box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.7),
+        0 0 30px rgba(168, 85, 247, 0.4);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Teal Variation (Templates) */
+.btn-premium-teal {
+    background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 50%, #14b8a6 100%) !important;
+    box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.4),
+        0 0 0 1px rgba(20, 184, 166, 0.1);
+    color: white !important;
+}
+
+.btn-premium-teal:hover {
+    transform: translateY(-5px) scale(1.02);
+    background-position: right center;
+    box-shadow: 0 20px 40px -10px rgba(20, 184, 166, 0.6),
+        0 0 25px rgba(45, 212, 191, 0.4);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-premium-ai .btn-icon {
+    animation: sparkle 2s ease-in-out infinite;
+}
+
+/* ========================================
+   SCROLL ANIMATIONS (Premium & Subtle)
+   ======================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+
+    /* General Scroll Animation */
+    .scroll-init {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: opacity, transform;
+    }
+
+    .scroll-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Hero Specific (Ultra-Subtle Constraints) */
+    .hero-scroll-init {
+        opacity: 0.9;
+        /* Constraint: min 0.9 */
+        transform: translateY(12px);
+        /* Constraint: max 12px */
+        transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+        will-change: opacity, transform;
+        /* Ensure distinct stacking context during animation */
+        backface-visibility: hidden;
+    }
+
+    .hero-scroll-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   WORD REVEAL ANIMATION (Hero)
+   ======================================== */
+.word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+    /* Inherit the premium gradient/clip from the parent title if it has one */
+    background: inherit;
+    -webkit-background-clip: inherit;
+    background-clip: inherit;
+    -webkit-text-fill-color: inherit;
+}
+
+.word.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.word:last-child {
+    margin-right: 0;
 }

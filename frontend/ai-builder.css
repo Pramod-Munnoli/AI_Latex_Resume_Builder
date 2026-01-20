@@ -274,13 +274,67 @@
 }
 
 .status-ready {
-    background: rgba(20, 184, 166, 0.1);
-    color: #14b8a6;
+    background: rgba(99, 102, 241, 0.1);
+    color: #a5b4fc;
 }
 
 .status-generating {
     background: rgba(99, 102, 241, 0.1);
     color: #6366f1;
+}
+
+/* Hyper-Premium Start Generation Button */
+.btn-premium-gen {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+    background-size: 200% auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5),
+        0 0 0 1px rgba(99, 102, 241, 0.2);
+    color: white !important;
+}
+
+.btn-premium-gen::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 100px;
+    height: 200%;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
+    transform: rotate(25deg);
+    animation: premiumShimmer 3s infinite;
+}
+
+@keyframes premiumShimmer {
+    0% {
+        left: -100%;
+    }
+
+    25% {
+        left: 150%;
+    }
+
+    100% {
+        left: 150%;
+    }
+}
+
+.btn-premium-gen:hover {
+    transform: translateY(-5px) scale(1.03);
+    background-position: right center;
+    box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.7),
+        0 0 30px rgba(168, 85, 247, 0.4);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-premium-gen:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 @media (max-width: 400px) {

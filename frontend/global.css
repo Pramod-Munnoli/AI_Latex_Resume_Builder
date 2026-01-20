@@ -44,11 +44,10 @@ body {
     left: 0;
     right: 0;
     z-index: 2100;
-    /* High enough to be above editor UI and dividers */
     background: rgba(2, 6, 23, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     height: 70px;
     display: flex;
     align-items: center;
@@ -66,41 +65,25 @@ body {
 .nav-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    /* Never squeeze the logo */
+    gap: 10px;
     text-decoration: none;
-    font-family: 'Space Grotesk', sans-serif;
-    /* Stylish Tech Font */
-    font-size: 1.4rem;
-    /* Slightly larger */
-    font-weight: 700;
-    white-space: nowrap;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    justify-self: start;
-    white-space: nowrap;
+    transition: var(--transition);
 }
 
-.nav-logo img {
-    height: 32px;
-    width: 32px;
-    /* Fixed width prevents layout shift on load */
-    object-fit: contain;
-    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+.nav-logo:hover {
+    transform: scale(1.02);
 }
 
 .logo-text {
     font-family: 'Space Grotesk', sans-serif !important;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    background: var(--primary-gradient);
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    display: block;
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2));
 }
 
 .nav-links {
@@ -123,32 +106,82 @@ body {
 .nav-link {
     text-decoration: none;
     color: var(--text-muted);
-    font-weight: 700;
-    /* Always bold to prevent width changes when active */
+    font-weight: 500;
     font-size: 0.95rem;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px;
-    transition: color 0.2s ease, opacity 0.2s ease;
-    opacity: 0.7;
-    /* Muted when not active/hovered */
-    transform: none !important;
-    line-height: 1.2;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-}
-
-/* No placeholder needed with constant-weight approach */
-.nav-link span {
-    z-index: 1;
+    padding: 0 4px;
+    height: 32px;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    letter-spacing: 0.2px;
 }
 
 .nav-link:hover,
 .nav-link.active {
     color: var(--white);
-    opacity: 1;
-    /* Fully visible when active/hovered */
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--primary-gradient);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    border-radius: 4px;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 100%;
+}
+
+/* AI Builder - Primary Highlight */
+.nav-link-featured {
+    background: linear-gradient(90deg, #a5b4fc, #c084fc, #818cf8, #a5b4fc);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800 !important;
+    animation: shine 4s linear infinite;
+    padding: 0 12px;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.nav-link-featured:hover {
+    transform: scale(1.05) translateY(-1px);
+    filter: drop-shadow(0 0 10px rgba(165, 180, 252, 0.5));
+}
+
+/* Templates - Secondary Highlight */
+.nav-link-templates {
+    background: linear-gradient(90deg, #5eead4, #2dd4bf, #14b8a6, #5eead4);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700 !important;
+    animation: shine 5s linear infinite reverse;
+    padding: 0 12px;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.nav-link-templates:hover {
+    transform: scale(1.05) translateY(-1px);
+    filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.5));
+}
+
+@keyframes shine {
+    to {
+        background-position: 300% center;
+    }
 }
 
 .auth-container {
@@ -284,9 +317,61 @@ body {
 
 .mobile-nav-link.active,
 .mobile-nav-link:hover {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
     color: white;
+}
+
+/* Mobile Featured Styles */
+.mobile-nav-link-featured {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%) !important;
+    border: 1px solid rgba(168, 85, 247, 0.4) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.mobile-nav-link-templates {
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(45, 212, 191, 0.15) 100%) !important;
+    border: 1px solid rgba(20, 184, 166, 0.4) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.mobile-nav-link-featured::after,
+.mobile-nav-link-templates::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60px;
+    height: 100%;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(255, 255, 255, 0.15),
+            transparent);
+    transform: skewX(-25deg);
+    animation: mobileShimmer 3s infinite;
+}
+
+@keyframes mobileShimmer {
+    0% {
+        left: -100%;
+    }
+
+    30% {
+        left: 150%;
+    }
+
+    100% {
+        left: 150%;
+    }
+}
+
+.mobile-nav-link-featured::before {
+    content: '✨';
+    font-size: 0.9rem;
+    margin-right: 8px;
+    filter: drop-shadow(0 0 5px rgba(165, 180, 252, 0.5));
 }
 
 .mobile-auth-container {
@@ -354,12 +439,52 @@ body {
 .btn-primary {
     background: var(--primary-gradient);
     color: var(--white);
-    box-shadow: 0 4px 15px -1px rgba(99, 102, 241, 0.3);
+    background-size: 200% auto;
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    position: relative;
+    overflow: hidden;
+    font-weight: 700;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 80px;
+    height: 200%;
+    background: linear-gradient(to right,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transform: rotate(25deg);
+    animation: btnShimmer 4s infinite;
+}
+
+@keyframes btnShimmer {
+    0% {
+        left: -100%;
+    }
+
+    25% {
+        left: 150%;
+    }
+
+    100% {
+        left: 150%;
+    }
 }
 
 .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px -1px rgba(99, 102, 241, 0.5);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.6),
+        0 0 20px rgba(99, 102, 241, 0.3);
+    background-position: right center;
+}
+
+.btn-primary:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 .btn-secondary {
@@ -558,8 +683,8 @@ body {
 }
 
 .status-ready {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background: rgba(99, 102, 241, 0.1);
+    color: #a5b4fc;
 }
 
 .status-loading {
@@ -573,8 +698,8 @@ body {
 }
 
 .status-success {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background: rgba(99, 102, 241, 0.1);
+    color: #a5b4fc;
 }
 
 /* Tablet/Small Laptop Optimization */
@@ -695,6 +820,17 @@ body {
     }
 
     /* Hide logo icon and text on very small screens to prevent crowding */
+    @media (max-width: 417px) {
+        .nav-logo img {
+            height: 24px;
+            width: 24px;
+        }
+
+        .logo-text {
+            font-size: 0.85rem;
+        }
+    }
+
     @media (max-width: 344px) {
 
         .nav-logo .logo-text,
