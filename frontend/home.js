@@ -117,6 +117,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Listen for Home/Logo clicks to re-trigger animation
     setupHomeClickListeners();
+
+    // Trigger Navbar Animation (Only on fresh load or refresh)
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        const isReload = window.performance && window.performance.navigation && window.performance.navigation.type === 1;
+        const hasAnimated = sessionStorage.getItem('nav-already-animated');
+
+        if (isReload || !hasAnimated) {
+            // First time in session or a hard refresh -> Animate
+            setTimeout(() => {
+                navbar.classList.add('nav-visible');
+                sessionStorage.setItem('nav-already-animated', 'true');
+            }, 40);
+        } else {
+            // Returning via navigation -> Show immediately (high-end stability)
+            navbar.style.transition = 'none';
+            navbar.classList.add('nav-visible');
+            // Restore transition for future interactions (like scroll effects if any)
+            setTimeout(() => {
+                navbar.style.transition = '';
+            }, 50);
+        }
+    }
 });
 
 /**
@@ -157,10 +180,10 @@ function initWordReveal() {
             return span;
         });
 
-        const baseDelay = elementIndex * 400;
+        const baseDelay = elementIndex * 250; // Reduced from 400
 
         spans.forEach((span, wordIndex) => {
-            const delay = baseDelay + (wordIndex * 30);
+            const delay = baseDelay + (wordIndex * 20); // Reduced from 30
             maxDelay = Math.max(maxDelay, delay);
             setTimeout(() => {
                 requestAnimationFrame(() => {
@@ -185,7 +208,7 @@ function initWordReveal() {
                 heroCta.style.opacity = '1';
                 heroCta.style.transform = 'translateY(0)';
             });
-        }, maxDelay + 200);
+        }, maxDelay + 100); // Reduced from 200
     }
 }
 
@@ -202,19 +225,9 @@ function setupHomeClickListeners() {
                 window.location.pathname === '';
 
             if (isHomePage) {
+                // If on homepage, just scroll to top without re-animating
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                // Clear all visible states
-                document.querySelectorAll('.word').forEach(w => w.classList.remove('visible'));
-                const heroCta = document.querySelector('.hero-cta');
-                if (heroCta) {
-                    heroCta.style.opacity = '0';
-                    heroCta.style.transform = 'translateY(12px)';
-                }
-
-                // Re-trigger the reveal sequence
-                setTimeout(initWordReveal, 400);
             }
         });
     });

@@ -12,6 +12,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     const templateCards = document.querySelectorAll('.template-card');
     const noTemplates = document.getElementById('noTemplates');
 
+    // -- Word Reveal Engine --
+    function initWordReveal() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const titleElements = document.querySelectorAll('.page-title, .page-subtitle');
+        let totalMaxDelay = 0;
+
+        titleElements.forEach((el, elementIndex) => {
+            const text = el.textContent.trim();
+            const words = text.split(/\s+/);
+            el.innerHTML = '';
+            el.style.visibility = 'visible';
+            el.style.opacity = '1';
+
+            const spans = words.map(word => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.textContent = word;
+                el.appendChild(span);
+                el.appendChild(document.createTextNode(' '));
+                return span;
+            });
+
+            const baseDelay = elementIndex * 400;
+            spans.forEach((span, wordIndex) => {
+                const delay = baseDelay + (wordIndex * 35);
+                totalMaxDelay = Math.max(totalMaxDelay, delay);
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        span.classList.add('visible');
+                    });
+                }, delay);
+            });
+        });
+
+        // Stagger in Search and Filters after text
+        const nextElements = [
+            document.querySelector('.search-box'),
+            document.querySelector('.filter-chips')
+        ];
+
+        nextElements.forEach((el, index) => {
+            if (el) {
+                el.classList.add('scroll-animate');
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        el.classList.add('is-visible');
+                    });
+                }, totalMaxDelay + 200 + (index * 150));
+            }
+        });
+    }
+
+    // -- General Scroll Animation --
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observe template cards
+    templateCards.forEach((card, index) => {
+        card.classList.add('scroll-animate');
+        card.style.transitionDelay = `${(index % 4) * 100}ms`;
+        observer.observe(card);
+    });
+
+    // Start Header Animations
+    initWordReveal();
+
     // Fetch template IDs from database
     async function loadTemplateIds() {
         try {
@@ -46,8 +124,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const matchesFilter = activeFilter === 'all' || category === activeFilter;
 
             if (matchesSearch && matchesFilter) {
-                card.style.display = 'block';
+                card.style.display = 'flex';
                 visibleCount++;
+                // If it was hidden before discovery, re-trigger observer check
+                observer.observe(card);
             } else {
                 card.style.display = 'none';
             }

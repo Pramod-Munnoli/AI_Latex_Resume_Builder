@@ -18,6 +18,9 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -1px;
+    /* Prevent flash before JS runs */
+    opacity: 0;
+    visibility: hidden;
 }
 
 .page-subtitle {
@@ -27,6 +30,9 @@
     margin: 0 auto;
     line-height: 1.6;
     letter-spacing: 0.2px;
+    /* Prevent flash before JS runs */
+    opacity: 0;
+    visibility: hidden;
 }
 
 /* Filters & Search */
@@ -112,19 +118,31 @@
 /* Template Grid Premium Styles */
 .template-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
 }
 
 .template-card {
     background: rgba(30, 41, 59, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
+    border-radius: 20px;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     display: flex;
     flex-direction: column;
+    /* Animation Initial State */
+    opacity: 0;
+    transform: translateY(25px);
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+        transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+        border-color 0.4s ease,
+        background 0.4s ease,
+        box-shadow 0.4s ease;
+}
+
+.template-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .template-card:hover {
@@ -132,10 +150,15 @@
     border-color: rgba(20, 184, 166, 0.4);
     background: rgba(30, 41, 59, 0.8);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    /* Faster hover transition */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.4s ease,
+        background 0.4s ease,
+        box-shadow 0.4s ease;
 }
 
 .template-preview {
-    height: 350px;
+    height: 220px;
     position: relative;
     overflow: hidden;
     background: #0f172a;
@@ -177,24 +200,24 @@
 }
 
 .template-info {
-    padding: 20px;
+    padding: 12px;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
 .template-name {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #f8fafc;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .template-desc {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #94a3b8;
     line-height: 1.4;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     height: 2.8em;
     overflow: hidden;
     display: -webkit-box;
@@ -206,13 +229,13 @@
 .template-tags {
     display: flex;
     gap: 8px;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 
 .tag {
     font-size: 0.75rem;
-    padding: 6px 14px;
+    padding: 4px 10px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 100px;
@@ -256,12 +279,13 @@
 .use-template-btn {
     margin-top: auto;
     width: 100%;
-    padding: 14px;
+    padding: 10px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
     font-weight: 700;
-    border-radius: 14px;
+    font-size: 0.85rem;
+    border-radius: 10px;
     text-align: center;
     text-decoration: none;
     transition: all 0.3s ease;
@@ -309,8 +333,15 @@
 /* Responsive Grid */
 @media (max-width: 1200px) {
     .template-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .template-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
+        gap: 20px;
     }
 }
 
@@ -346,4 +377,40 @@
     .template-info {
         padding: 20px;
     }
+}
+
+/* Scroll Animations */
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+}
+
+.scroll-animate.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* Word Reveal Animation */
+.word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+    background: inherit;
+    -webkit-background-clip: inherit;
+    background-clip: inherit;
+    -webkit-text-fill-color: inherit;
+}
+
+.word.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.word:last-child {
+    margin-right: 0;
 }

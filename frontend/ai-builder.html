@@ -210,6 +210,93 @@
             if (window.lucide) {
                 window.lucide.createIcons();
             }
+
+            // --- Premium Animation Engine ---
+            function initAnimations() {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+                // 1. Word Reveal for Hero Title & Subtitle
+                const revealElements = document.querySelectorAll('.ai-builder-hero h1, .ai-builder-hero p');
+
+                revealElements.forEach((el, elIdx) => {
+                    const text = el.textContent.trim();
+                    const words = text.split(/\s+/);
+                    el.innerHTML = '';
+                    el.style.visibility = 'visible';
+                    el.style.opacity = '1';
+
+                    const spans = words.map(word => {
+                        const span = document.createElement('span');
+                        span.className = 'word';
+                        span.textContent = word;
+                        el.appendChild(span);
+                        el.appendChild(document.createTextNode(' '));
+                        return span;
+                    });
+
+                    const baseDelay = elIdx * 400;
+                    spans.forEach((span, wIdx) => {
+                        setTimeout(() => {
+                            requestAnimationFrame(() => span.classList.add('visible'));
+                        }, baseDelay + (wIdx * 35));
+                    });
+                });
+
+                // 2. Observer for Scroll-based Reveals
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            triggerReveal(entry.target);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+
+                function triggerReveal(el) {
+                    el.classList.add('scroll-animate-on');
+
+                    // Critical Fix: Add panels-visible for editor.css compatibility
+                    if (el.classList.contains('ai-builder-workspace')) {
+                        el.classList.add('panels-visible');
+                    }
+
+                    // Specialized stagger for instruction steps
+                    if (el.classList.contains('instruction-grid')) {
+                        const steps = el.querySelectorAll('.instruction-step');
+                        steps.forEach((step, i) => {
+                            step.style.transitionDelay = `${i * 100}ms`;
+                            step.classList.add('scroll-animate-on');
+                        });
+                    }
+                }
+
+                // Elements to observe
+                const sections = [
+                    document.querySelector('.instruction-grid'),
+                    document.querySelector('.upload-container'),
+                    document.querySelector('.ai-builder-workspace')
+                ];
+
+                sections.forEach(sec => {
+                    if (!sec) return;
+
+                    // Immediate visibility check
+                    const rect = sec.getBoundingClientRect();
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        setTimeout(() => triggerReveal(sec), 100);
+                    } else {
+                        observer.observe(sec);
+                    }
+                });
+            }
+
+            // Start animations with stable layout
+            setTimeout(initAnimations, 150);
         });
     </script>
 </body>

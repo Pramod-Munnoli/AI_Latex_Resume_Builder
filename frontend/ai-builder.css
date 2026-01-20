@@ -26,6 +26,9 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    /* Prevent flash before JS runs */
+    opacity: 0;
+    visibility: hidden;
 }
 
 .ai-builder-hero p {
@@ -35,6 +38,9 @@
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
+    /* Prevent flash before JS runs */
+    opacity: 0;
+    visibility: hidden;
 }
 
 .instruction-grid {
@@ -52,6 +58,9 @@
     border-radius: 16px;
     position: relative;
     backdrop-filter: blur(10px);
+    /* Animation init */
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 .step-number {
@@ -83,6 +92,9 @@
     max-width: 900px;
     margin: 0 auto 80px auto;
     width: 90%;
+    /* Animation init */
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 .drop-zone {
@@ -175,6 +187,9 @@
     overflow: hidden;
     position: relative;
     background: var(--darker-bg);
+    /* Animation init */
+    opacity: 0;
+    transform: translateY(25px);
 }
 
 .ai-builder-workspace .editor-panel {
@@ -629,4 +644,34 @@
     background: var(--primary-gradient);
     color: white;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Global Animation Utility */
+.scroll-animate-on {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    visibility: visible !important;
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Word Reveal Logic */
+.word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: opacity, transform;
+    background: inherit;
+    -webkit-background-clip: inherit;
+    background-clip: inherit;
+    -webkit-text-fill-color: inherit;
+}
+
+.word.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.word:last-child {
+    margin-right: 0;
 }

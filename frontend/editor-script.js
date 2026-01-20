@@ -1374,6 +1374,15 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeAlert();
         });
+
+        // --- Premium Entrance Animation ---
+        const container = document.querySelector('.editor-container');
+        if (container) {
+            // Short timeout ensures CSS transitions are ready
+            setTimeout(() => {
+                container.classList.add('panels-visible');
+            }, 100);
+        }
     }
 
     // Start when DOM is ready

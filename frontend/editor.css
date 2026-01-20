@@ -77,6 +77,11 @@
     flex-direction: column;
     container-type: inline-size;
     container-name: editor;
+
+    /* Animation Init */
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Container Queries for Toolbar - Responding to manual shrinking */
@@ -138,6 +143,10 @@
     border-left: 1px solid rgba(255, 255, 255, 0.05);
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     transition: background 0.2s, border-color 0.2s;
+
+    /* Animation Init */
+    opacity: 0;
+    transition: opacity 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .resizer:hover {
@@ -348,6 +357,11 @@
     min-width: 0;
     background: #2f3a4c;
     overflow: hidden;
+
+    /* Animation Init */
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .pdf-viewer {
@@ -1213,4 +1227,37 @@
     .template-name-display {
         display: none !important;
     }
+}
+
+/* Panel Visibility Toggle */
+.panels-visible .editor-panel,
+.panels-visible .preview-panel {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.panels-visible .resizer {
+    opacity: 1;
+}
+
+/* Staggered Toolbar Entrance */
+.panel-label,
+.preview-toolbar {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.panels-visible .panel-label,
+.panels-visible .preview-toolbar {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.panels-visible .panel-label {
+    transition-delay: 0.4s;
+}
+
+.panels-visible .preview-toolbar {
+    transition-delay: 0.6s;
 }

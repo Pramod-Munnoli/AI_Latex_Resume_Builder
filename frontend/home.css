@@ -1,5 +1,17 @@
 @import 'theme.css';
 
+/* Navbar Animation (Homepage Only) */
+.home-page .navbar {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.home-page .navbar.nav-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
 /* Hero Section */
 
 /* Hero Section */
@@ -22,14 +34,14 @@
     opacity: 0;
     visibility: hidden;
     font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 800;
     line-height: 1.1;
     margin-bottom: 24px;
-    background: linear-gradient(to bottom right, #fff 30%, #94a3b8);
+    background: linear-gradient(to right, #ffffff 30%, #8b5cf6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: transparent;
-    /* Fallback */
+    letter-spacing: -2px;
 }
 
 .hero-subtitle {
@@ -310,15 +322,15 @@
 }
 
 .template-info {
-    padding: 20px 24px 24px;
+    padding: 16px 20px 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .template-name {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #f8fafc;
     margin: 0;
@@ -327,13 +339,13 @@
 .template-tags {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 
 .tag {
-    font-size: 0.75rem;
-    padding: 6px 14px;
+    font-size: 0.7rem;
+    padding: 4px 10px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 100px;
@@ -376,12 +388,13 @@
 .btn-template {
     width: 100%;
     margin-top: auto;
-    padding: 14px;
+    padding: 10px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
     font-weight: 700;
-    border-radius: 14px;
+    font-size: 0.9rem;
+    border-radius: 12px;
     text-align: center;
     text-decoration: none;
     transition: all 0.3s ease;
