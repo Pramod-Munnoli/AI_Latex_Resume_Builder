@@ -32,11 +32,11 @@ const headerHTML = `
                             <span id="profileEmail" class="profile-menu-email">user@example.com</span>
                         </div>
                         <div class="profile-menu-items">
-                          <a href="#" class="profile-menu-item" disabled>
+                          <a href="dashboard.html" class="profile-menu-item">
                             <span>📊</span>
                             <span>Dashboard</span>
                           </a>
-                          <a href="#" class="profile-menu-item" disabled>
+                          <a href="my-resumes.html" class="profile-menu-item">
                             <span>📄</span>
                             <span>My Resumes</span>
                           </a>

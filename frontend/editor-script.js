@@ -177,26 +177,52 @@
             let latexCode = null;
             let isUserVersion = false;
 
-            // 1. Try to fetch user's custom version if logged in
-            if (user) {
-                const columnName = getTemplateColumn(currentTemplateName);
-                const { data: userTemplate, error: userError } = await supabase
-                    .from('user_resumes')
-                    .select(columnName)
-                    .eq('user_id', user.id)
-                    .maybeSingle();
+            // 1. Handle special AI Resume case
+            if (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume') {
+                if (user) {
+                    const { data: aiData, error: aiError } = await supabase
+                        .from('resumes')
+                        .select('latex_content')
+                        .eq('user_id', user.id)
+                        .eq('title', 'My Resume')
+                        .maybeSingle();
 
-                if (!userError && userTemplate && userTemplate[columnName]) {
-                    latexCode = userTemplate[columnName];
-                    isUserVersion = true;
-                    userHasCustomVersion = true;
-                    currentTemplateSource = 'user';
+                    if (!aiError && aiData && aiData.latex_content) {
+                        latexCode = aiData.latex_content;
+                        isUserVersion = true;
+                        userHasCustomVersion = false; // It's an AI resume, not a template override
+                        currentTemplateSource = 'ai';
+                        currentTemplateId = 'ai';
+                    } else {
+                        throw new Error('No AI-generated resume found. Please create one in the AI Builder.');
+                    }
                 } else {
-                    userHasCustomVersion = false;
+                    window.location.href = 'login.html';
+                    return;
+                }
+            }
+            // 2. Try to fetch user's custom version if logged in
+            else if (user) {
+                const columnName = getTemplateColumn(currentTemplateName);
+                if (columnName) {
+                    const { data: userTemplate, error: userError } = await supabase
+                        .from('user_resumes')
+                        .select(columnName)
+                        .eq('user_id', user.id)
+                        .maybeSingle();
+
+                    if (!userError && userTemplate && userTemplate[columnName]) {
+                        latexCode = userTemplate[columnName];
+                        isUserVersion = true;
+                        userHasCustomVersion = true;
+                        currentTemplateSource = 'user';
+                    } else {
+                        userHasCustomVersion = false;
+                    }
                 }
             }
 
-            // 2. Fallback to default template if no user version found
+            // 3. Fallback to default template if no user version found and not an AI resume
             if (!latexCode) {
                 if (defaultTemplateResult.error) {
                     throw new Error('Failed to load default template: ' + defaultTemplateResult.error.message);
@@ -352,51 +378,51 @@
 
             setStatus('Recompiling and saving...', 'info');
 
-            // 4. Determine which column to update
-            if (!currentTemplateName) {
-                setStatus('Please select a template first', 'error');
-                return;
-            }
-            const columnName = getTemplateColumn(currentTemplateName);
-
-            // 5. Check if user row exists
-            const { data: existingRow, error: checkError } = await supabase
-                .from('user_resumes')
-                .select('user_id')
-                .eq('user_id', user.id)
-                .single();
-
-            if (checkError && checkError.code !== 'PGRST116') {
-                // Error other than "no rows found"
-                throw checkError;
-            }
-
-            // 6. INSERT or UPDATE
-            if (!existingRow) {
-                // INSERT new row
-                const { error: insertError } = await supabase
-                    .from('user_resumes')
-                    .insert({
-                        user_id: user.id,
-                        [columnName]: currentLatex,
-                        updated_at: new Date().toISOString()
-                    });
-
-                if (insertError) {
-                    throw insertError;
-                }
-            } else {
-                // UPDATE existing row
-                const { error: updateError } = await supabase
-                    .from('user_resumes')
+            // 4. Handle special AI Resume case
+            if (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume') {
+                const { error: aiError } = await supabase
+                    .from('resumes')
                     .update({
-                        [columnName]: currentLatex,
-                        updated_at: new Date().toISOString()
+                        latex_content: currentLatex,
+                        created_at: new Date().toISOString() // Use created_at as an update timestamp since schema uses it
                     })
-                    .eq('user_id', user.id);
+                    .eq('user_id', user.id)
+                    .eq('title', 'My Resume');
 
-                if (updateError) {
-                    throw updateError;
+                if (aiError) throw aiError;
+            } else {
+                // Determine which column to update for template
+                const columnName = getTemplateColumn(currentTemplateName);
+                if (!columnName) throw new Error('Invalid template column mapping');
+
+                // 5. Check if user row exists in user_resumes
+                const { data: existingRow, error: checkError } = await supabase
+                    .from('user_resumes')
+                    .select('user_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (checkError) throw checkError;
+
+                // 6. INSERT or UPDATE template resume
+                if (!existingRow) {
+                    const { error: insertError } = await supabase
+                        .from('user_resumes')
+                        .insert({
+                            user_id: user.id,
+                            [columnName]: currentLatex,
+                            updated_at: new Date().toISOString()
+                        });
+                    if (insertError) throw insertError;
+                } else {
+                    const { error: updateError } = await supabase
+                        .from('user_resumes')
+                        .update({
+                            [columnName]: currentLatex,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('user_id', user.id);
+                    if (updateError) throw updateError;
                 }
             }
 
@@ -521,13 +547,18 @@
             return;
         }
 
-        const formattedName = currentTemplateName
-            .split('-')
-            .map(word => {
-                if (word.toLowerCase() === 'ats') return 'ATS';
-                return word.charAt(0).toUpperCase() + word.slice(1);
-            })
-            .join(' ');
+        let formattedName = "";
+        if (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume') {
+            formattedName = "AI Resume";
+        } else {
+            formattedName = currentTemplateName
+                .split('-')
+                .map(word => {
+                    if (word.toLowerCase() === 'ats') return 'ATS';
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                .join(' ');
+        }
 
         displayEl.textContent = formattedName;
         displayEl.style.display = 'block';

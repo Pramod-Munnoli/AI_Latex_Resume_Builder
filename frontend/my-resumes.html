@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Resumes | AI LaTeX Resume Builder</title>
+    <meta name="description"
+        content="Manage all your resume templates - view, edit, and organize your professional resumes.">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="my-resumes.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js" defer></script>
+    <script src="my-resumes.js" defer></script>
+</head>
+
+<body class="my-resumes-page">
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <main class="my-resumes-container">
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <h1 class="page-title">My Resumes</h1>
+                <p class="page-subtitle">Manage and edit your resume templates</p>
+            </div>
+            <div class="header-actions">
+                <a href="ai-builder.html" class="btn btn-primary">
+                    <span>✨</span>
+                    Create with AI
+                </a>
+                <a href="templates.html" class="btn btn-secondary">
+                    <span>📋</span>
+                    Browse Templates
+                </a>
+            </div>
+        </section>
+
+        <!-- Resume Templates List -->
+        <section class="templates-list-section">
+            <div id="templatesGrid" class="templates-grid">
+                <!-- Templates will be dynamically loaded here -->
+            </div>
+
+            <!-- Empty State (shown when no templates are edited) -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📄</div>
+                <h2 class="empty-state-title">You haven't edited any resumes yet</h2>
+                <p class="empty-state-description">Get started by creating a resume with AI or choosing a template</p>
+                <div class="empty-state-actions">
+                    <a href="ai-builder.html" class="btn btn-primary">
+                        <span>✨</span>
+                        Create Resume with AI
+                    </a>
+                    <a href="templates.html" class="btn btn-secondary">
+                        <span>📋</span>
+                        Browse Templates
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="app-footer"></div>
+    <script src="components/footer.js"></script>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+</body>
+
+</html>

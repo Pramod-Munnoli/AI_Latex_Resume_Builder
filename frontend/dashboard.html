@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AI LaTeX Resume Builder</title>
+    <meta name="description"
+        content="Your resume building dashboard - quick access to AI builder, templates, and your resumes.">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js" defer></script>
+    <script src="dashboard.js" defer></script>
+</head>
+
+<body class="dashboard-page">
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <main class="dashboard-container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Welcome back, <span id="userName">User</span></h1>
+                <p class="welcome-subtitle">Continue building your professional resume</p>
+            </div>
+        </section>
+
+        <!-- Primary Action Cards -->
+        <section class="action-cards-section">
+            <div class="action-cards-grid">
+                <!-- AI Builder Card -->
+                <div class="action-card action-card-ai">
+                    <div class="action-card-icon">✨</div>
+                    <h2 class="action-card-title">Create Resume with AI</h2>
+                    <p class="action-card-description">Upload your LinkedIn PDF and let AI generate a professional LaTeX
+                        resume</p>
+                    <div class="action-card-footer">
+                        <button type="button" onclick="window.location.href='ai-builder.html'" class="action-btn">
+                            <span>Get Started</span>
+                            <span class="arrow">→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Templates Card -->
+                <div class="action-card action-card-templates">
+                    <div class="action-card-icon">📋</div>
+                    <h2 class="action-card-title">Browse Templates</h2>
+                    <p class="action-card-description">Choose from 5 professionally designed LaTeX resume templates</p>
+                    <div class="action-card-footer">
+                        <button type="button" onclick="window.location.href='templates.html'" class="action-btn">
+                            <span>View Templates</span>
+                            <span class="arrow">→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Editor Card -->
+                <div class="action-card action-card-editor">
+                    <div class="action-card-icon">📝</div>
+                    <h2 class="action-card-title">Open Editor</h2>
+                    <p class="action-card-description" id="editorCardDesc">Continue editing your last resume or start
+                        fresh</p>
+                    <div class="action-card-footer">
+                        <button type="button" id="openEditorBtn" class="action-btn">
+                            <span id="editorCardCta">Open Editor</span>
+                            <span class="arrow">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resume Summary Widget -->
+        <section class="summary-section">
+            <div class="summary-card">
+                <h2 class="summary-title">Your Resume Progress</h2>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Templates Edited</div>
+                            <div class="stat-value"><span id="editedCount">0</span> / 5</div>
+                        </div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <div class="stat-icon">📄</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Last Edited</div>
+                            <div class="stat-value" id="lastEditedTemplate">None</div>
+                        </div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🕒</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Last Updated</div>
+                            <div class="stat-value" id="lastUpdated">Never</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="my-resumes.html" class="summary-link">
+                    View All Resumes →
+                </a>
+            </div>
+        </section>
+
+        <!-- Quick Links Section -->
+        <section class="quick-links-section">
+            <h2 class="section-title">Quick Links</h2>
+            <div class="quick-links-grid">
+                <a href="my-resumes.html" class="quick-link">
+                    <span class="quick-link-icon">📁</span>
+                    <span class="quick-link-text">My Resumes</span>
+                </a>
+                <a href="docs.html" class="quick-link">
+                    <span class="quick-link-icon">📚</span>
+                    <span class="quick-link-text">Documentation</span>
+                </a>
+                <a href="settings.html" class="quick-link">
+                    <span class="quick-link-icon">⚙️</span>
+                    <span class="quick-link-text">Settings</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <div id="app-footer"></div>
+    <script src="components/footer.js"></script>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+</body>
+
+</html>
