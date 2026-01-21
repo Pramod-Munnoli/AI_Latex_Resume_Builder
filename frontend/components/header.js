@@ -32,19 +32,23 @@ const headerHTML = `
                             <span id="profileEmail" class="profile-menu-email">user@example.com</span>
                         </div>
                         <div class="profile-menu-items">
-                            <a href="#" class="profile-menu-item" disabled>
-                                <span>📊</span>
-                                <span>Dashboard</span>
-                            </a>
-                            <a href="#" class="profile-menu-item" disabled>
-                                <span>📄</span>
-                                <span>My Resumes</span>
-                            </a>
-                            <div class="profile-menu-divider"></div>
-                            <button id="logoutBtn" class="profile-menu-item logout">
-                                <span>🚪</span>
-                                <span>Logout</span>
-                            </button>
+                          <a href="#" class="profile-menu-item" disabled>
+                            <span>📊</span>
+                            <span>Dashboard</span>
+                          </a>
+                          <a href="#" class="profile-menu-item" disabled>
+                            <span>📄</span>
+                            <span>My Resumes</span>
+                          </a>
+                          <a href="settings.html" class="profile-menu-item">
+                            <span>⚙️</span>
+                            <span>Settings</span>
+                          </a>
+                          <div class="profile-menu-divider"></div>
+                          <button id="logoutBtn" class="profile-menu-item logout">
+                            <span>🚪</span>
+                            <span>Logout</span>
+                          </button>
                         </div>
                     </div>
                 </div>

@@ -1250,6 +1250,20 @@
                 if (error) throw error;
             } else if (authMode === "signup") {
                 if (!username || !username.trim()) throw new Error("Full Name is mandatory.");
+                if (confirmPasswordField && password !== confirmPasswordField.value) {
+                    throw new Error("Passwords do not match.");
+                }
+
+                // Privacy/UX: Check if email is already registered
+                const { data: emailData, error: checkError } = await supabase
+                    .from('user_emails')
+                    .select('email')
+                    .eq('email', email)
+                    .maybeSingle();
+
+                if (emailData) {
+                    throw new Error("This email is already registered. Please login instead.");
+                }
                 const { data, error } = await supabase.auth.signUp({
                     email, password, options: { data: { username } }
                 });
@@ -1516,22 +1530,27 @@
         if (authForm) authForm.reset();
     }
 
-    // Password Visibility Toggle
+    // Universal Password Visibility Toggle
     function setupPasswordToggle() {
-        const toggleBtn = $("toggleVisibility");
-        const passwordInput = $("password");
+        const toggleButtons = document.querySelectorAll(".password-toggle");
 
-        if (!toggleBtn || !passwordInput) return;
+        toggleButtons.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const wrapper = btn.closest('.password-input-wrapper');
+                const passwordInput = wrapper ? wrapper.querySelector('input') : null;
 
-        toggleBtn.addEventListener("click", () => {
-            const isPassword = passwordInput.type === "password";
-            passwordInput.type = isPassword ? "text" : "password";
+                if (!passwordInput) return;
 
-            const icon = toggleBtn.querySelector("i");
-            if (icon && window.lucide) {
-                icon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
-                lucide.createIcons();
-            }
+                const isPassword = passwordInput.type === "password";
+                passwordInput.type = isPassword ? "text" : "password";
+
+                const icon = btn.querySelector("i, svg");
+                if (icon && window.lucide) {
+                    icon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
+                    lucide.createIcons();
+                }
+            });
         });
     }
 

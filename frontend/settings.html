@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js" defer></script>
+    <style>
+        .settings-container {
+            max-width: 550px;
+            margin: 90px auto 40px;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .back-to-home {
+            position: fixed;
+            top: 90px;
+            left: 40px;
+            z-index: 9999;
+            margin: 0;
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+        }
+
+        .settings-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 15px;
+        }
+
+        .settings-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .settings-header p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-section h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        .btn-save {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-save:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+
+<body class="home-page">
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <main class="settings-container">
+        <a href="index.html" class="back-to-home">
+            <span>←</span> Back to Home
+        </a>
+        <div class="settings-card">
+            <div class="settings-header">
+                <h2>Account Settings</h2>
+                <p>Manage your account security and preferences.</p>
+            </div>
+
+            <div id="settingsErrorMsg" class="auth-error"></div>
+            <div id="settingsMessage" class="auth-message"></div>
+
+            <section class="form-section">
+                <h3>Change Password</h3>
+                <form id="changePasswordForm">
+                    <div class="auth-form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="currentPassword" class="auth-input" placeholder="••••••••"
+                                required>
+                            <button type="button" class="password-toggle">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="newPassword">New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="newPassword" class="auth-input" placeholder="••••••••" required
+                                minlength="6">
+                            <button type="button" class="password-toggle">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="confirmNewPassword">Confirm New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirmNewPassword" class="auth-input" placeholder="••••••••"
+                                required>
+                            <button type="button" class="password-toggle">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-form-group"
+                        style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="signOutOthers" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="signOutOthers"
+                            style="margin: 0; font-size: 0.85rem; cursor: pointer; color: var(--text-muted);">Sign out
+                            of all other devices for privacy</label>
+                    </div>
+
+                    <button type="submit" id="saveBtn" class="btn-save" style="margin-top: 20px;">Update
+                        Password</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('changePasswordForm');
+            const saveBtn = document.getElementById('saveBtn');
+            const errorMsg = document.getElementById('settingsErrorMsg');
+            const successMsg = document.getElementById('settingsMessage');
+            const appLoader = document.getElementById('appLoader');
+
+            const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+                ? ""
+                : "https://ai-latex-resume-builder.onrender.com";
+
+            let supabase = null;
+
+            async function init() {
+                try {
+                    const resp = await fetch(`${API_BASE}/api/config`);
+                    const config = await resp.json();
+                    supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Init failed", err);
+                }
+            }
+
+            function setLoader(show, msg = 'Processing...') {
+                if (show) {
+                    document.getElementById('appLoaderMessage').textContent = msg;
+                    appLoader.classList.add('active');
+                } else {
+                    appLoader.classList.remove('active');
+                }
+            }
+
+            // Universal Password Toggle
+            document.querySelectorAll('.password-toggle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const input = btn.parentElement.querySelector('input');
+                    const icon = btn.querySelector('i, svg');
+                    const isPassword = input.type === 'password';
+
+                    input.type = isPassword ? 'text' : 'password';
+                    icon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                    if (window.lucide) lucide.createIcons();
+                });
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+                if (newPassword !== confirmNewPassword) {
+                    errorMsg.textContent = "New passwords do not match.";
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+
+                setLoader(true, 'Updating security settings...');
+                saveBtn.disabled = true;
+
+                try {
+                    // Re-authenticate to ensure user knows their current password
+                    const { data: { user } } = await supabase.auth.getUser();
+                    const { error: reauthError } = await supabase.auth.signInWithPassword({
+                        email: user.email,
+                        password: currentPassword
+                    });
+
+                    if (reauthError) throw new Error("Current password is incorrect.");
+
+                    // Update to new password
+                    const { error: updateError } = await supabase.auth.updateUser({
+                        password: newPassword
+                    });
+
+                    if (updateError) throw updateError;
+
+                    // Privacy: Sign out of all other sessions if requested
+                    if (document.getElementById('signOutOthers').checked) {
+                        const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' });
+                        if (signOutError) console.warn("Privacy action failed:", signOutError.message);
+                    }
+
+                    successMsg.textContent = "Password updated successfully!";
+                    successMsg.style.display = 'block';
+                    form.reset();
+                } catch (err) {
+                    errorMsg.textContent = err.message || "Failed to update password.";
+                    errorMsg.style.display = 'block';
+                } finally {
+                    setLoader(false);
+                    saveBtn.disabled = false;
+                }
+            });
+
+            init();
+        });
+    </script>
+</body>
+
+</html>

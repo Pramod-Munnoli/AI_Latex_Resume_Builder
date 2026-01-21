@@ -14,23 +14,23 @@ body.auth-page {
 .auth-card {
     background: var(--card-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 50px 40px;
+    border-radius: 20px;
+    padding: 25px 25px;
     width: 100%;
-    max-width: 420px;
+    max-width: 400px;
     box-shadow: var(--shadow);
     backdrop-filter: blur(20px);
 }
 
 .auth-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .auth-header h1 {
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 800;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
     background-clip: text;
@@ -43,14 +43,14 @@ body.auth-page {
 }
 
 .auth-form-group {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .auth-form-group label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -58,12 +58,12 @@ body.auth-page {
 
 .auth-input {
     width: 100%;
-    background: rgba(15, 23, 42, 0.5);
+    padding: 10px 14px;
+    background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 14px 18px;
+    border-radius: 10px;
     color: var(--white);
-    font-size: 1rem;
+    font-size: 0.9rem;
     transition: var(--transition);
 }
 
@@ -111,13 +111,13 @@ body.auth-page {
 
 .btn-auth-submit {
     width: 100%;
+    padding: 12px;
     background: var(--primary-gradient);
-    color: white;
+    color: var(--white);
     border: none;
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
     font-weight: 700;
-    font-size: 1rem;
     cursor: pointer;
     transition: var(--transition);
     margin-top: 10px;
@@ -147,20 +147,22 @@ body.auth-page {
 
 .back-to-home {
     position: fixed;
-    top: 40px;
-    left: 40px;
+    top: 25px;
+    left: 25px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     color: var(--text-muted);
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.9rem;
     transition: var(--transition);
+    z-index: 100;
 }
 
 .back-to-home:hover {
     color: var(--white);
-    transform: translateX(-4px);
+    transform: translateX(-2px);
 }
 
 .auth-error {
@@ -202,7 +204,7 @@ body.auth-page {
         align-self: flex-start;
         width: 100%;
     }
-    
+
     .auth-card {
         margin-top: 0;
     }
