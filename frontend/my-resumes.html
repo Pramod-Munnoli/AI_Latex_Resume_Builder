@@ -25,45 +25,62 @@
     <script src="components/header.js"></script>
 
     <main class="my-resumes-container">
+        <!-- Background Decorations -->
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+
         <!-- Page Header -->
-        <section class="page-header">
+        <header class="page-header">
             <div class="header-content">
                 <h1 class="page-title">My Resumes</h1>
-                <p class="page-subtitle">Manage, edit, and reset your resume templates.</p>
-                <div class="helper-text">
-                    <span class="info-icon">ℹ️</span>
-                    Changes are saved only when you click <strong>Recompile</strong> in the Editor.
-                </div>
+                <p class="page-subtitle">Your collection of professional documents.</p>
             </div>
             <div class="header-actions">
-                <a href="ai-builder.html" class="btn btn-primary">
-                    <span>✨</span>
+                <a href="ai-builder.html" class="btn btn-primary btn-premium-ai">
+                    <i data-lucide="sparkles"></i>
                     Create with AI
                 </a>
                 <a href="templates.html" class="btn btn-secondary">
-                    <span>📋</span>
-                    Browse Gallery
+                    <i data-lucide="layout"></i>
+                    New Template
                 </a>
             </div>
-        </section>
+        </header>
 
-        <!-- Resume Templates Gallery -->
+        <!-- Template Categories Filter (Visual) -->
+        <div class="filter-bar">
+            <div class="filter-label">Quick Filtering:</div>
+            <div class="filter-tags">
+                <span class="filter-tag active" data-filter="all">All</span>
+                <span class="filter-tag" data-filter="ai">AI Generated</span>
+                <span class="filter-tag" data-filter="ats">ATS Friendly</span>
+                <span class="filter-tag" data-filter="minimal">Minimal</span>
+                <span class="filter-tag" data-filter="academic">Academic</span>
+                <span class="filter-tag" data-filter="developer">Developer</span>
+                <span class="filter-tag" data-filter="student">Student</span>
+            </div>
+        </div>
+
+        <!-- Resume Templates List -->
         <section class="templates-list-section">
             <div id="templatesGrid" class="templates-grid">
-                <!-- Sorted cards injected via JS -->
+                <!-- Templates will be dynamically loaded here -->
             </div>
 
-            <!-- Empty State -->
+            <!-- Empty State (shown when no templates are edited) -->
             <div id="emptyState" class="empty-state" style="display: none;">
-                <div class="empty-state-card">
-                    <div class="empty-icon">📄</div>
-                    <h2 class="empty-title">No edited resumes yet</h2>
-                    <p class="empty-desc">Choose a template or use AI to start building your professional career path.
-                    </p>
-                    <div class="empty-actions">
-                        <a href="ai-builder.html" class="btn btn-primary">Create Resume with AI</a>
-                        <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
+                <div class="empty-state-visual">
+                    <div class="empty-blob">
+                        <i data-lucide="file-x"></i>
                     </div>
+                </div>
+                <h2 class="empty-state-title">No Resumes Found</h2>
+                <p class="empty-state-description">Get started by creating a resume with AI or choosing a template.</p>
+                <div class="empty-state-actions">
+                    <a href="ai-builder.html" class="btn btn-primary btn-premium-ai">
+                        <i data-lucide="sparkles"></i>
+                        <span>Start building</span>
+                    </a>
                 </div>
             </div>
         </section>
@@ -72,28 +89,13 @@
     <div id="app-footer"></div>
     <script src="components/footer.js"></script>
 
-    <!-- Custom Alert Modal -->
-    <div id="customAlertModal" class="alert-modal" style="display: none;">
-        <div class="alert-modal-backdrop"></div>
-        <div class="alert-modal-content">
-            <div class="alert-modal-icon">⚠️</div>
-            <div id="alertModalMessage" class="alert-modal-message">Notification message here</div>
-            <button id="alertModalOkBtn" class="btn-alert-ok">OK</button>
-        </div>
-    </div>
+    <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Confirm Reset Modal -->
-    <div id="confirmResetModal" class="alert-modal" style="display: none;">
-        <div class="alert-modal-backdrop"></div>
-        <div class="alert-modal-content">
-            <div class="alert-modal-icon">♻️</div>
-            <h3 style="color: white; margin-bottom: 10px;">Reset Template?</h3>
-            <div id="confirmResetMessage" class="alert-modal-message">Are you sure you want to reset this template? Your
-                changes will be lost.</div>
-            <div class="alert-modal-actions">
-                <button id="cancelResetBtn" class="btn-alert-outline">Cancel</button>
-                <button id="confirmResetBtn" class="btn-alert-ok" style="background: #ef4444;">Reset</button>
-            </div>
+    <!-- Global App Loader -->
+    <div id="appLoader" class="app-loader">
+        <div class="app-loader-content">
+            <div class="app-loader-spinner"></div>
+            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
         </div>
     </div>
 </body>

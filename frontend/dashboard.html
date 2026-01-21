@@ -25,89 +25,131 @@
     <script src="components/header.js"></script>
 
     <main class="dashboard-container">
-        <!-- Dashboard Top Section -->
-        <section class="dashboard-top">
+        <!-- Background Decorations -->
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+
+        <!-- Header Section -->
+        <header class="dashboard-header">
             <div class="welcome-box">
-                <h1 class="welcome-title">Welcome back, <span id="userName">User</span></h1>
-                <p class="welcome-subtitle">Continue building your professional resume</p>
+                <h1 class="welcome-title">Welcome back, <span id="userName" class="name-gradient">User</span></h1>
+                <p class="welcome-subtitle">Your professional journey continues here.</p>
             </div>
 
-            <div id="progressTracker" class="progress-box">
-                <div class="progress-header">
-                    <span class="progress-label">Total Progress</span>
-                    <span class="progress-count"><span id="editedCount">0</span> / 5 Templates</span>
+            <div class="quick-stats">
+                <div class="stat-pill">
+                    <span class="stat-label">Templates Tried:</span>
+                    <span class="stat-value"><span id="editedCount">0</span>/5</span>
                 </div>
-                <div class="progress-bar-container">
-                    <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                <div class="stat-pill">
+                    <span class="stat-label">Last Activity:</span>
+                    <span class="stat-value" id="lastUpdated">Never</span>
                 </div>
             </div>
-        </section>
+        </header>
 
-        <!-- Primary Action Area -->
-        <section class="primary-focus-section">
-            <div id="heroActionCard" class="card hero-card">
-                <div class="card-content">
-                    <div class="card-badge">Next Step</div>
-                    <h2 class="card-title" id="heroTitle">Continue Your Resume</h2>
-                    <p class="card-desc" id="heroDesc">Pick up right where you left off on your last template.</p>
-                    <div class="card-meta" id="heroMeta">
-                        <span id="lastEditedName">ATS Template</span> •
-                        <span id="lastUpdatedTime">2 hours ago</span>
+        <!-- Main Content Grid -->
+        <div class="dashboard-grid">
+
+            <!-- Primary Action Card (Featured) -->
+            <section class="featured-card-wrapper">
+                <div class="featured-card action-card-ai">
+                    <div class="card-glass-effect"></div>
+                    <div class="featured-content">
+                        <div class="featured-badge">AI POWERED</div>
+                        <h2 class="featured-title">AI Resume Builder</h2>
+                        <p class="featured-description">Generate a professional LaTeX resume instantly by uploading your
+                            LinkedIn PDF or profile data.</p>
+                        <button onclick="window.location.href='ai-builder.html'" class="btn btn-primary btn-premium-ai">
+                            <i data-lucide="sparkles"></i>
+                            <span>Create with AI</span>
+                        </button>
                     </div>
-                    <button id="resumeEditingBtn" class="btn btn-hero">
-                        <span>Resume Editing</span>
-                        <i data-lucide="arrow-right"></i>
+                    <div class="featured-visual">
+                        <div class="floating-icons">
+                            <div class="icon-blob"><i data-lucide="file-text"></i></div>
+                            <div class="icon-blob secondary"><i data-lucide="brain-circuit"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Secondary Actions Column -->
+            <section class="secondary-actions">
+                <!-- Open Editor Card -->
+                <div class="action-card card-glass" id="editorCard">
+                    <div class="card-icon-box">
+                        <i data-lucide="layout"></i>
+                    </div>
+                    <div class="card-text">
+                        <h3 class="card-title">Live Editor</h3>
+                        <p class="card-description" id="editorCardDesc">Refine your resume with our real-time LaTeX
+                            editor.</p>
+                    </div>
+                    <button id="openEditorBtn" class="btn btn-secondary btn-full">
+                        <span id="editorCardCta">Open Editor</span>
+                        <i data-lucide="chevron-right"></i>
                     </button>
                 </div>
-                <div class="card-illustration">
-                    <div class="floating-icon">📝</div>
-                </div>
-            </div>
-        </section>
 
-        <!-- Secondary Side-by-Side Area -->
-        <section class="secondary-actions-section">
-            <div class="action-grid">
-                <!-- AI Builder -->
-                <a href="ai-builder.html" class="action-card ai-card">
-                    <div class="action-card-header">
-                        <div class="action-icon">✨</div>
-                        <h3>Create with AI</h3>
+                <!-- Browse Templates Card -->
+                <div class="action-card card-glass">
+                    <div class="card-icon-box teal">
+                        <i data-lucide="copy"></i>
                     </div>
-                    <p>Generate a professional LaTeX resume from your LinkedIn PDF.</p>
-                    <span class="action-link">Get Started <i data-lucide="chevron-right"></i></span>
-                </a>
-
-                <!-- Templates -->
-                <a href="templates.html" class="action-card gallery-card">
-                    <div class="action-card-header">
-                        <div class="action-icon">📋</div>
-                        <h3>Browse Templates</h3>
+                    <div class="card-text">
+                        <h3 class="card-title">Templates</h3>
+                        <p class="card-description">Explore our 5 professional ATS-friendly layouts.</p>
                     </div>
-                    <p>Choose from our 5 professionally designed LaTeX layouts.</p>
-                    <span class="action-link">View Gallery <i data-lucide="chevron-right"></i></span>
-                </a>
-            </div>
-        </section>
-
-        <!-- Bottom Insights Section -->
-        <section class="insights-section">
-            <div class="insights-row">
-                <!-- Tip of the day -->
-                <div class="insight-box tip-box">
-                    <h3>💡 Pro Tip</h3>
-                    <p id="proTip">Keep resumes to one page for ATS optimization.</p>
+                    <button onclick="window.location.href='templates.html'" class="btn btn-secondary btn-full">
+                        <span>Browse All</span>
+                        <i data-lucide="chevron-right"></i>
+                    </button>
                 </div>
-                <!-- Quick link to all resumes -->
-                <div class="insight-box stats-box">
-                    <div class="stats-info">
-                        <h3>View All Your Resumes</h3>
-                        <p>Manage and reset your template versions.</p>
-                    </div>
-                    <a href="my-resumes.html" class="btn btn-outline">My Resumes</a>
+            </section>
+
+            <!-- Resumes & Links Section -->
+            <section class="resumes-section">
+                <div class="section-header">
+                    <h2 class="sub-title">Recent Activity</h2>
+                    <a href="my-resumes.html" class="link-more">View all <i data-lucide="arrow-right"></i></a>
                 </div>
-            </div>
-        </section>
+
+                <div class="activity-card card-glass">
+                    <div class="activity-info">
+                        <div class="activity-main">
+                            <div class="last-edited-icon">
+                                <i data-lucide="clock"></i>
+                            </div>
+                            <div class="last-edited-details">
+                                <span class="label">Latest Template</span>
+                                <span class="value" id="lastEditedTemplate">None</span>
+                            </div>
+                        </div>
+                        <div class="activity-footer">
+                            <p class="activity-hint">You can find all your saved versions in the "My Resumes" section.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-links-grid">
+                    <a href="my-resumes.html" class="quick-link-item">
+                        <i data-lucide="folder"></i>
+                        <span>My Resumes</span>
+                    </a>
+                    <a href="docs.html" class="quick-link-item">
+                        <i data-lucide="book-open"></i>
+                        <span>Docs</span>
+                    </a>
+                    <a href="settings.html" class="quick-link-item">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </section>
+
+        </div>
     </main>
 
     <div id="app-footer"></div>

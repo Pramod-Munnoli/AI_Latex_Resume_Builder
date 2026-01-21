@@ -231,6 +231,11 @@
     box-shadow: 0 4px 12px rgba(112, 99, 243, 0.2);
 }
 
+.toggle-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Editor Views */
 .editor-view {
     display: none;
@@ -262,91 +267,6 @@
 .CodeMirror-linenumber {
     color: #6272a4 !important;
     padding-left: 12px !important;
-}
-
-/* Visual Editor Forms */
-.visual-editor-container {
-    padding: 30px;
-    background: #2f3a4c;
-    height: 100%;
-    overflow-y: auto;
-    color: #f8f8f2;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-.visual-editor-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.visual-editor-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
-
-.visual-editor-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* CodeMirror Scrollbar Polish */
-.CodeMirror-vscrollbar,
-.CodeMirror-hscrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-.CodeMirror-vscrollbar::-webkit-scrollbar,
-.CodeMirror-hscrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.CodeMirror-vscrollbar::-webkit-scrollbar-thumb,
-.CodeMirror-hscrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
-
-.visual-section {
-    margin-bottom: 30px;
-}
-
-.visual-section h4 {
-    color: #50fa7b;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 5px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 0.75rem;
-    color: #6272a4;
-    margin-bottom: 5px;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    background: #44475a;
-    border: 1px solid #6272a4;
-    border-radius: 4px;
-    color: #f8f8f2;
-    padding: 8px 12px;
-    font-size: 0.9rem;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-    border-color: #50fa7b;
-    outline: none;
 }
 
 /* Fix Preview Panel & PDF Viewer */

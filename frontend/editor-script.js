@@ -85,7 +85,12 @@
         hasChanges = false;
     }
 
-    // Handle Editor Toggling
+
+
+
+
+
+
     function setupEditorToggle() {
         const codeEditorBtn = document.getElementById('codeEditorBtn');
         const visualEditorBtn = document.getElementById('visualEditorBtn');
@@ -352,6 +357,8 @@
             setStatus('Please wait for the current compilation to finish', 'info');
             return;
         }
+
+
 
         // Check if there are any changes to compile
         const currentLatex = cm.getValue();
@@ -821,6 +828,14 @@
             };
         }
 
+        if (fitWidthBtn) {
+            fitWidthBtn.onclick = fitToWidth;
+        }
+
+        if (fitPageBtn) {
+            fitPageBtn.onclick = fitToPage;
+        }
+
         // --- Page Navigation (Scroll to page) ---
         const prevPage = document.getElementById('prevPage');
         const nextPage = document.getElementById('nextPage');
@@ -1283,78 +1298,6 @@
         }
     }
 
-    // Visual Editor Sync
-    function setupVisualEditorSync() {
-        // Initialize form from LaTeX when switching TO visual mode
-        const visualEditorBtn = document.getElementById('visualEditorBtn');
-        if (visualEditorBtn) {
-            visualEditorBtn.addEventListener('click', () => {
-                const latex = cm.getValue();
-
-                // Name
-                const nameMatch = latex.match(/\\Huge \\textbf\{([^{}]*)\}/) || latex.match(/\\textbf\{\\Huge ([^{}]*)\}/);
-                if (nameMatch) document.getElementById('vis-name').value = nameMatch[1].trim();
-
-                // Email
-                const emailMatch = latex.match(/\\href\{mailto:([^}]*)\}/);
-                if (emailMatch) document.getElementById('vis-email').value = emailMatch[1].trim();
-
-                // Phone/Location (Template specific matches)
-                const contactLineMatch = latex.match(/\\begin\{center\}([\s\S]*?)\\end\{center\}/);
-                if (contactLineMatch) {
-                    const content = contactLineMatch[1];
-                    const parts = content.split('|').map(p => p.replace(/\\textbar/g, '').trim());
-                    if (parts[0]) {
-                        // First part might be location or phone
-                        if (parts[0].includes('@')) { /* skip email */ }
-                        else if (parts[0].match(/\d/)) document.getElementById('vis-phone').value = parts[0];
-                        else if (parts[0].includes(',')) document.getElementById('vis-location').value = parts[0];
-                    }
-                }
-
-                // Summary
-                const summaryMatch = latex.match(/\\section\{Summary\}([\s\S]*?)\\section/i);
-                if (summaryMatch) {
-                    document.getElementById('vis-summary').value = summaryMatch[1].trim();
-                }
-            });
-        }
-
-        // Update LaTeX when form fields change
-        const inputs = ['vis-name', 'vis-email', 'vis-phone', 'vis-location', 'vis-summary'];
-        inputs.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('input', updateLatexFromForm);
-            }
-        });
-    }
-
-    function updateLatexFromForm() {
-        if (!cm) return;
-        let latex = cm.getValue();
-
-        const name = document.getElementById('vis-name').value;
-        const email = document.getElementById('vis-email').value;
-        const phone = document.getElementById('vis-phone').value;
-        const location = document.getElementById('vis-location').value;
-        const summary = document.getElementById('vis-summary').value;
-
-        // Replace Name
-        latex = latex.replace(/(\\Huge \\textbf\{)([^{}]*)(\})/, `$1${name}$3`);
-
-        // Replace Email (Complex because it appears twice usually)
-        latex = latex.replace(/(\\href\{mailto:)([^{}]*)(\})/, `$1${email}$3`);
-
-        // Update summary if it exists
-        if (summary) {
-            latex = latex.replace(/(\\section\{Summary\})([\s\S]*?)(\\section)/i, `$1\n${summary}\n\n$3`);
-        }
-
-        cm.setValue(latex);
-        hasChanges = true;
-    }
-
     // Initialize
     async function init() {
         await initSupabase();
@@ -1362,7 +1305,6 @@
         initCodeMirror();
         setupEditorToggle();
         setupToolbarFeatures();
-        setupVisualEditorSync();
         await loadTemplate();
         setupResizer();
         restorePanelSizes();

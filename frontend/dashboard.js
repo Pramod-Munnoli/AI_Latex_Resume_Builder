@@ -7,23 +7,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let supabase = null;
     let currentUser = null;
 
-    const TIPS = [
-        "Keep resumes to one page for ATS optimization.",
-        "Academic template suits research and university roles.",
-        "Developer templates highlight your GitHub and technical stacks.",
-        "Use active verbs like 'Developed' or 'Managed' for impact.",
-        "Ensure your contact information is up to date.",
-        "Standard fonts like Arial or Helvetica are best for ATS."
-    ];
-
-    const TEMPLATES_CONFIG = [
-        { name: 'ats-modern', field: 'ats_template_latex', label: 'ATS Template' },
-        { name: 'clean-minimalist', field: 'minimal_template_latex', label: 'Minimal Template' },
-        { name: 'academic-excellence', field: 'academic_template_latex', label: 'Academic Template' },
-        { name: 'tech-focused', field: 'developer_template_latex', label: 'Developer Template' },
-        { name: 'student', field: 'student_template_latex', label: 'Student Template' }
-    ];
-
     // Initialize Supabase and check authentication
     async function init() {
         try {
@@ -38,157 +21,169 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             currentUser = user;
-
-            // Initialize Lucide icons
-            if (window.lucide) {
-                window.lucide.createIcons();
-            }
-
-            // Set a random tip
-            setRandomTip();
-
             await loadDashboardData();
-            setupEventListeners();
         } catch (err) {
             console.error("Init failed", err);
             showToast('Failed to load dashboard', 'error');
         }
     }
 
-    function setRandomTip() {
-        const tipEl = document.getElementById('proTip');
-        if (tipEl) {
-            const index = Math.floor(Math.random() * TIPS.length);
-            tipEl.textContent = TIPS[index];
-        }
-    }
-
+    // Load dashboard data
     async function loadDashboardData() {
         try {
-            setLoading(true);
-
-            // 1. Update user name
+            // Update user name
             const displayName = currentUser.user_metadata?.username ||
                 currentUser.user_metadata?.full_name ||
                 currentUser.email.split('@')[0];
-            document.getElementById('userName').textContent = formatName(displayName);
 
-            // 2. Fetch User Resumes (Templates)
+            const formattedName = formatName(displayName);
+            document.getElementById('userName').textContent = formattedName;
+
+            // Fetch user's resume data
+            const { data: userResumes, error } = await supabase
+                .from('user_resumes')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                throw error;
+            }
+
+            // Calculate statistics
+            const stats = calculateStats(userResumes);
+            updateStats(stats);
+            updateEditorCard(stats);
+
+        } catch (err) {
+            console.error("Failed to load dashboard data", err);
+            // Show default values on error
+            updateStats({ editedCount: 0, lastEdited: null, lastUpdated: null });
+        }
+    }
+
+    // Calculate statistics from user resumes
+    function calculateStats(userResumes) {
+        if (!userResumes) {
+            return { editedCount: 0, lastEdited: null, lastUpdated: null };
+        }
+
+        const templates = [
+            { name: 'ATS', field: 'ats_template_latex' },
+            { name: 'Minimal', field: 'minimal_template_latex' },
+            { name: 'Academic', field: 'academic_template_latex' },
+            { name: 'Developer', field: 'developer_template_latex' },
+            { name: 'Student', field: 'student_template_latex' }
+        ];
+
+        let editedCount = 0;
+        let lastEditedTemplate = null;
+
+        templates.forEach(template => {
+            if (userResumes[template.field]) {
+                editedCount++;
+                lastEditedTemplate = template.name;
+            }
+        });
+
+        return {
+            editedCount,
+            lastEdited: lastEditedTemplate,
+            lastUpdated: userResumes.updated_at
+        };
+    }
+
+    // Update statistics display
+    function updateStats(stats) {
+        document.getElementById('editedCount').textContent = stats.editedCount;
+        document.getElementById('lastEditedTemplate').textContent = stats.lastEdited || 'None';
+
+        if (stats.lastUpdated) {
+            const date = new Date(stats.lastUpdated);
+            document.getElementById('lastUpdated').textContent = formatDate(date);
+        } else {
+            document.getElementById('lastUpdated').textContent = 'Never';
+        }
+    }
+
+    // Update editor card based on user's progress
+    function updateEditorCard(stats) {
+        const editorCardDesc = document.getElementById('editorCardDesc');
+        const editorCardCta = document.getElementById('editorCardCta');
+
+        if (stats.editedCount > 0 && stats.lastEdited) {
+            editorCardDesc.textContent = `Continue editing your ${stats.lastEdited} template`;
+            editorCardCta.textContent = `Open ${stats.lastEdited}`;
+        } else {
+            editorCardDesc.textContent = 'Start editing your first resume template';
+            editorCardCta.textContent = 'Open Editor';
+        }
+    }
+
+    // Handle editor button click
+    const openEditorBtn = document.getElementById('openEditorBtn');
+    if (openEditorBtn) {
+        openEditorBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await handleOpenEditor();
+        });
+    }
+
+    // Smart logic to open the most relevant resume
+    async function handleOpenEditor() {
+        try {
+            setLoading(true);
+
+            // 1. Check for AI resume first
+            const { data: aiResume } = await supabase
+                .from('resumes')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .eq('title', 'My Resume')
+                .maybeSingle();
+
+            if (aiResume) {
+                window.location.href = 'editor.html?template=ai';
+                return;
+            }
+
+            // 2. Check for template edits
             const { data: userResumes } = await supabase
                 .from('user_resumes')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .maybeSingle();
 
-            // 3. Fetch AI Resume
-            const { data: aiResume } = await supabase
-                .from('resumes')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .eq('title', 'My Resume')
-                .maybeSingle();
-
-            // 4. Calculate Stats & Identify Last Edited
-            let editedCount = 0;
-            let lastEdited = null; // { name, label, time }
+            let templateToOpen = 'ats-modern'; // Fallback default
 
             if (userResumes) {
-                TEMPLATES_CONFIG.forEach(t => {
-                    if (userResumes[t.field]) {
-                        editedCount++;
-                        const updatedTime = new Date(userResumes.updated_at);
-                        if (!lastEdited || updatedTime > lastEdited.time) {
-                            lastEdited = { name: t.name, label: t.label, time: updatedTime };
-                        }
-                    }
-                });
-            }
+                const templates = [
+                    { name: 'ats-modern', field: 'ats_template_latex' },
+                    { name: 'clean-minimalist', field: 'minimal_template_latex' },
+                    { name: 'academic-excellence', field: 'academic_template_latex' },
+                    { name: 'tech-focused', field: 'developer_template_latex' },
+                    { name: 'student', field: 'student_template_latex' }
+                ];
 
-            // Check if AI Resume is more recent
-            if (aiResume) {
-                const aiTime = new Date(aiResume.created_at);
-                if (!lastEdited || aiTime > lastEdited.time) {
-                    lastEdited = { name: 'ai', label: 'AI Resume', time: aiTime };
+                for (const template of templates) {
+                    if (userResumes[template.field]) {
+                        templateToOpen = template.name;
+                        break;
+                    }
                 }
             }
 
-            updateProgressUI(editedCount);
-            updateHeroUI(lastEdited);
+            window.location.href = `editor.html?template=${templateToOpen}`;
 
         } catch (err) {
-            console.error("Dashboard data load error", err);
+            console.error("Failed to open editor", err);
+            window.location.href = 'editor.html?template=ats-modern';
         } finally {
             setLoading(false);
         }
     }
 
-    function updateProgressUI(count) {
-        document.getElementById('editedCount').textContent = count;
-        const progressBar = document.getElementById('progressBar');
-        const percentage = (count / 5) * 100;
-        progressBar.style.width = `${percentage}%`;
-    }
-
-    function updateHeroUI(lastEdited) {
-        const heroTitle = document.getElementById('heroTitle');
-        const heroDesc = document.getElementById('heroDesc');
-        const heroMeta = document.getElementById('heroMeta');
-        const lastEditedName = document.getElementById('lastEditedName');
-        const lastUpdatedTime = document.getElementById('lastUpdatedTime');
-        const btnText = document.querySelector('#resumeEditingBtn span');
-
-        if (lastEdited) {
-            heroTitle.textContent = "Welcome Back! 👋";
-            heroDesc.textContent = "You're doing great. Continue where you left off to finish your resume.";
-            lastEditedName.textContent = lastEdited.label;
-            lastUpdatedTime.textContent = formatDate(lastEdited.time);
-            btnText.textContent = `Continue Editing ${lastEdited.label.split(' ')[0]}`;
-            heroMeta.style.display = 'block';
-
-            // Store the target for the button
-            document.getElementById('resumeEditingBtn').dataset.target = lastEdited.name;
-        } else {
-            heroTitle.textContent = "Start Your Journey";
-            heroDesc.textContent = "You haven't started any resumes yet. Choose a template or use AI to begin.";
-            heroMeta.style.display = 'none';
-            btnText.textContent = "Browse Templates";
-            document.getElementById('resumeEditingBtn').dataset.target = "templates";
-        }
-    }
-
-    function setupEventListeners() {
-        const resumeBtn = document.getElementById('resumeEditingBtn');
-        if (resumeBtn) {
-            resumeBtn.onclick = () => {
-                const target = resumeBtn.dataset.target;
-                if (target === 'templates') {
-                    window.location.href = 'templates.html';
-                } else if (target === 'ai') {
-                    window.location.href = 'editor.html?template=ai';
-                } else {
-                    window.location.href = `editor.html?template=${target}`;
-                }
-            };
-        }
-    }
-
-    // Helper functions
-    function formatName(name) {
-        if (!name) return 'User';
-        return name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-    }
-
-    function formatDate(date) {
-        if (!date) return 'Never';
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-    }
-
+    // Helper to toggle loader
     function setLoading(loading) {
         const loader = document.getElementById('appLoader');
         if (loader) {
@@ -197,5 +192,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    init();
+    // Helper function to format name
+    function formatName(name) {
+        if (!name || name.includes('@')) {
+            return name;
+        }
+        return name.split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+    }
+
+    // Helper function to format date
+    function formatDate(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+    }
+
+    // Helper function to show toast
+    function showToast(message, type = 'info') {
+        if (window.showToast) {
+            window.showToast(message, type);
+        } else {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+    }
+
+    // Initialize the dashboard
+    async function start() {
+        await init();
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    start();
 });
