@@ -9,53 +9,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Template configuration
     const TEMPLATES = [
-        {
-            id: 'ats-modern',
-            name: 'ATS Template',
-            category: 'ats',
-            icon: '📊',
-            field: 'ats_template_latex',
-            description: 'Optimized for applicant tracking systems'
-        },
-        {
-            id: 'clean-minimalist',
-            name: 'Minimal Template',
-            category: 'minimal',
-            icon: '✨',
-            field: 'minimal_template_latex',
-            description: 'Clean and elegant design'
-        },
-        {
-            id: 'academic-excellence',
-            name: 'Academic Template',
-            category: 'academic',
-            icon: '🎓',
-            field: 'academic_template_latex',
-            description: 'Perfect for research and academia'
-        },
-        {
-            id: 'tech-focused',
-            name: 'Developer Template',
-            category: 'developer',
-            icon: '💻',
-            field: 'developer_template_latex',
-            description: 'Tech-focused with modern design'
-        },
-        {
-            id: 'student',
-            name: 'Student/Fresher Template',
-            category: 'student',
-            icon: '🎒',
-            field: 'student_template_latex',
-            description: 'Ideal for students and freshers'
-        }
+        { id: 'ats-modern', name: 'ATS Template', icon: '📊', field: 'ats_template_latex', category: 'Professional' },
+        { id: 'clean-minimalist', name: 'Minimal Template', icon: '✨', field: 'minimal_template_latex', category: 'Modern' },
+        { id: 'academic-excellence', name: 'Academic Template', icon: '🎓', field: 'academic_template_latex', category: 'Academic' },
+        { id: 'tech-focused', name: 'Developer Template', icon: '💻', field: 'developer_template_latex', category: 'Technical' },
+        { id: 'student', name: 'Student Template', icon: '📝', field: 'student_template_latex', category: 'Entry-level' }
     ];
 
-    // Initialize Supabase and check authentication
     async function init() {
         try {
             setLoader(true, 'Loading your resumes...');
-
             const resp = await fetch(`${API_BASE}/api/config`);
             const config = await resp.json();
             supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
@@ -68,196 +31,231 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             currentUser = user;
             await loadUserResumes();
-
         } catch (err) {
             console.error("Init failed", err);
-            showToast('Failed to load resumes', 'error');
+            showToast('Failed to load. Please refresh.', 'error');
         } finally {
             setLoader(false);
         }
     }
 
-    // Load user's resumes
     async function loadUserResumes() {
         try {
-            // Fetch user's template resumes
-            const { data: userResumes, error: templatesError } = await supabase
+            // Fetch template data
+            const { data: userResumes } = await supabase
                 .from('user_resumes')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .single();
+                .maybeSingle();
 
-            if (templatesError && templatesError.code !== 'PGRST116') {
-                throw templatesError;
-            }
-
-            // Fetch user's AI-generated resume
-            const { data: aiResume, error: aiError } = await supabase
+            // Fetch AI resume
+            const { data: aiResume } = await supabase
                 .from('resumes')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .eq('title', 'My Resume')
                 .maybeSingle();
 
-            if (aiError && aiError.code !== 'PGRST116') {
-                console.warn('Error fetching AI resume:', aiError);
-            }
-
-            // Render templates with both data
             renderTemplates(userResumes, aiResume);
-
         } catch (err) {
-            console.error("Failed to load user resumes", err);
-            showToast('Failed to load resumes', 'error');
-            renderTemplates(null, null);
+            console.error("Load resumes failed", err);
         }
     }
 
-    // Render templates grid
     function renderTemplates(userResumes, aiResume) {
         const grid = document.getElementById('templatesGrid');
         const emptyState = document.getElementById('emptyState');
 
-        // Always show the grid with all 5 templates
+        // Prepare template data with status
+        let processedTemplates = TEMPLATES.map(t => {
+            const content = userResumes ? userResumes[t.field] : null;
+            return {
+                ...t,
+                isEdited: !!content,
+                updated_at: content ? userResumes.updated_at : null
+            };
+        });
+
+        // Sorting Logic: 
+        // 1. Last edited (most recent updated_at)
+        // 2. Others edited
+        // 3. Not edited
+        processedTemplates.sort((a, b) => {
+            if (a.isEdited && !b.isEdited) return -1;
+            if (!a.isEdited && b.isEdited) return 1;
+            if (a.isEdited && b.isEdited) {
+                return new Date(b.updated_at) - new Date(a.updated_at);
+            }
+            return 0;
+        });
+
+        const anyEdited = processedTemplates.some(t => t.isEdited) || (aiResume && aiResume.latex_content);
+
+        if (!anyEdited) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
         grid.style.display = 'grid';
         emptyState.style.display = 'none';
 
         let cardsHTML = '';
 
-        // Add AI Resume card if it exists
+        // Add AI Resume card first if it exists
         if (aiResume && aiResume.latex_content) {
-            const lastUpdated = aiResume.created_at;
-            cardsHTML += `
-                <div class="template-card template-card-ai" data-category="ai" data-template-id="ai-resume">
-                    <div class="template-header">
-                        <div class="template-icon-wrapper">
-                            🤖
-                        </div>
-                        <span class="template-status-badge status-edited">
-                            AI Generated
-                        </span>
-                    </div>
-                    
-                    <div class="template-info">
-                        <h3 class="template-name">AI Resume</h3>
-                        <div class="template-meta">
-                            <div class="template-meta-item">
-                                <span class="template-meta-label">Status:</span>
-                                <span>Ready to use</span>
-                            </div>
-                            ${lastUpdated ? `
-                                <div class="template-meta-item">
-                                    <span class="template-meta-label">Generated:</span>
-                                    <span>${formatDate(new Date(lastUpdated))}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-
-                    <div class="template-actions">
-                        <button type="button" onclick="window.location.href='editor.html?template=ai'" class="template-btn btn-open">
-                            <span>📝</span>
-                            Open in Editor
-                        </button>
-                    </div>
-                </div>
-            `;
+            cardsHTML += renderCard({
+                id: 'ai',
+                name: 'AI Generated Resume',
+                icon: '🤖',
+                isEdited: true,
+                updated_at: aiResume.created_at,
+                isAI: true
+            });
         }
 
-        // Render each template card
-        cardsHTML += TEMPLATES.map(template => {
-            const isEdited = userResumes && userResumes[template.field];
-            const lastUpdated = userResumes?.updated_at;
-
-            return `
-                <div class="template-card" data-category="${template.category}" data-template-id="${template.id}">
-                    <div class="template-header">
-                        <div class="template-icon-wrapper">
-                            ${template.icon}
-                        </div>
-                        <span class="template-status-badge ${isEdited ? 'status-edited' : 'status-not-edited'}">
-                            ${isEdited ? 'Edited' : 'Not Edited'}
-                        </span>
-                    </div>
-                    
-                    <div class="template-info">
-                        <h3 class="template-name">${template.name}</h3>
-                        <div class="template-meta">
-                            <div class="template-meta-item">
-                                <span class="template-meta-label">Status:</span>
-                                <span>${isEdited ? 'Ready to use' : 'Not edited yet'}</span>
-                            </div>
-                            ${isEdited && lastUpdated ? `
-                                <div class="template-meta-item">
-                                    <span class="template-meta-label">Last updated:</span>
-                                    <span>${formatDate(new Date(lastUpdated))}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-
-                    <div class="template-actions">
-                        ${isEdited ? `
-                            <button type="button" onclick="window.location.href='editor.html?template=${template.id}'" class="template-btn btn-open">
-                                <span>📝</span>
-                                Open
-                            </button>
-                        ` : `
-                            <button type="button" onclick="window.location.href='editor.html?template=${template.id}'" class="template-btn btn-use-template">
-                                <span>✨</span>
-                                Use Template
-                            </button>
-                        `}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
+        cardsHTML += processedTemplates.map(t => renderCard(t)).join('');
         grid.innerHTML = cardsHTML;
     }
 
-    // Helper function to format date
+    function renderCard(template) {
+        const dateStr = template.updated_at ? formatDate(new Date(template.updated_at)) : '';
+        const statusClass = template.isAI ? 'status-ai' : (template.isEdited ? 'status-edited' : 'status-new');
+        const statusLabel = template.isAI ? 'AI Ready' : (template.isEdited ? 'Edited' : 'Not Started');
+
+        return `
+            <div class="template-card ${template.isAI ? 'ai-glow' : ''}" data-id="${template.id}">
+                <div class="card-header">
+                    <div class="card-icon">${template.icon}</div>
+                    <span class="status-badge ${statusClass}">${statusLabel}</span>
+                </div>
+                <div class="card-body">
+                    <h3 class="template-name">${template.name}</h3>
+                    <div class="template-meta">
+                        ${template.isEdited ? `<span>Updated ${dateStr}</span>` : '<span>Original Template</span>'}
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button onclick="openTemplate('${template.id}')" class="btn btn-primary-sm">
+                        ${template.isEdited ? 'Open Editor' : 'Start from Template'}
+                    </button>
+                    ${template.isEdited && !template.isAI ? `
+                        <button onclick="confirmReset('${template.id}', '${template.name}')" class="btn btn-reset-sm" title="Reset to default">
+                            <i data-lucide="rotate-ccw"></i> Reset
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // Global action handlers
+    window.openTemplate = (id) => {
+        setLoader(true, 'Opening editor...');
+        window.location.href = `editor.html?template=${id}`;
+    };
+
+    window.confirmReset = async (id, name) => {
+        const modal = document.getElementById('confirmResetModal');
+        const msgEl = document.getElementById('confirmResetMessage');
+        const confirmBtn = document.getElementById('confirmResetBtn');
+        const cancelBtn = document.getElementById('cancelResetBtn');
+
+        if (!modal || !confirmBtn || !cancelBtn) {
+            // Fallback to native if modal missing
+            if (!confirm(`Are you sure you want to reset the ${name}? This will only affect this specific template.`)) return;
+            executeReset(id, name);
+            return;
+        }
+
+        // Set more specific and reassuring message
+        msgEl.innerHTML = `Are you sure you want to reset the <strong>${name}</strong>?<br><span style="font-size: 0.9em; opacity: 0.8; margin-top: 8px; display: block;">This will only discard edits for this template. Your other resumes will remain safe and untouched.</span>`;
+        modal.style.display = 'flex';
+
+        confirmBtn.onclick = async () => {
+            modal.style.display = 'none';
+            await executeReset(id, name);
+        };
+
+        cancelBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    };
+
+    async function executeReset(id, name) {
+        try {
+            setLoader(true, `Resetting ${name}...`);
+
+            const template = TEMPLATES.find(t => t.id === id);
+            if (!template) {
+                showToast('Template configuration not found', 'error');
+                return;
+            }
+
+            // Perform partial update on the specific column only
+            const { error } = await supabase
+                .from('user_resumes')
+                .update({
+                    [template.field]: null
+                    // Note: Row updated_at will change, but content in other columns is preserved
+                })
+                .eq('user_id', currentUser.id);
+
+            if (error) throw error;
+
+            showToast(`${name} has been reset to default`, 'success');
+            await loadUserResumes();
+        } catch (err) {
+            console.error("Reset failed", err);
+            showToast(`Failed to reset ${name}`, 'error');
+        } finally {
+            setLoader(false);
+        }
+    }
+
+    // Modal Helper
+    window.showCustomAlert = (message) => {
+        const modal = document.getElementById('customAlertModal');
+        const msgEl = document.getElementById('alertModalMessage');
+        const okBtn = document.getElementById('alertModalOkBtn');
+
+        if (modal && msgEl && okBtn) {
+            msgEl.textContent = message;
+            modal.style.display = 'flex';
+            okBtn.onclick = () => modal.style.display = 'none';
+        } else {
+            alert(message);
+        }
+    };
+
     function formatDate(date) {
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-
-        return date.toLocaleDateString('en-US', {
+        if (!date) return '';
+        return date.toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
-            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
         });
     }
 
-    // Helper function to show/hide loader
     function setLoader(show, msg = 'Loading...') {
         const loader = document.getElementById('appLoader');
-        const loaderMessage = document.getElementById('appLoaderMessage');
-
-        if (show) {
-            loaderMessage.textContent = msg;
-            loader.classList.add('active');
-        } else {
-            loader.classList.remove('active');
+        const loaderMsg = document.getElementById('appLoaderMessage');
+        if (loader) {
+            if (show) {
+                if (loaderMsg) loaderMsg.textContent = msg;
+                loader.classList.add('active');
+            } else {
+                loader.classList.remove('active');
+            }
         }
     }
 
-    // Helper function to show toast
-    function showToast(message, type = 'info') {
-        if (window.showToast) {
-            window.showToast(message, type);
-        } else {
-            console.log(`[${type.toUpperCase()}] ${message}`);
-        }
+    function showToast(msg, type) {
+        if (window.showToast) window.showToast(msg, type);
+        else console.log(`[${type}] ${msg}`);
     }
 
-    // Initialize the page
     init();
 });

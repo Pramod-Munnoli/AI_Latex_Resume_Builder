@@ -29,7 +29,11 @@
         <section class="page-header">
             <div class="header-content">
                 <h1 class="page-title">My Resumes</h1>
-                <p class="page-subtitle">Manage and edit your resume templates</p>
+                <p class="page-subtitle">Manage, edit, and reset your resume templates.</p>
+                <div class="helper-text">
+                    <span class="info-icon">ℹ️</span>
+                    Changes are saved only when you click <strong>Recompile</strong> in the Editor.
+                </div>
             </div>
             <div class="header-actions">
                 <a href="ai-builder.html" class="btn btn-primary">
@@ -38,31 +42,28 @@
                 </a>
                 <a href="templates.html" class="btn btn-secondary">
                     <span>📋</span>
-                    Browse Templates
+                    Browse Gallery
                 </a>
             </div>
         </section>
 
-        <!-- Resume Templates List -->
+        <!-- Resume Templates Gallery -->
         <section class="templates-list-section">
             <div id="templatesGrid" class="templates-grid">
-                <!-- Templates will be dynamically loaded here -->
+                <!-- Sorted cards injected via JS -->
             </div>
 
-            <!-- Empty State (shown when no templates are edited) -->
+            <!-- Empty State -->
             <div id="emptyState" class="empty-state" style="display: none;">
-                <div class="empty-state-icon">📄</div>
-                <h2 class="empty-state-title">You haven't edited any resumes yet</h2>
-                <p class="empty-state-description">Get started by creating a resume with AI or choosing a template</p>
-                <div class="empty-state-actions">
-                    <a href="ai-builder.html" class="btn btn-primary">
-                        <span>✨</span>
-                        Create Resume with AI
-                    </a>
-                    <a href="templates.html" class="btn btn-secondary">
-                        <span>📋</span>
-                        Browse Templates
-                    </a>
+                <div class="empty-state-card">
+                    <div class="empty-icon">📄</div>
+                    <h2 class="empty-title">No edited resumes yet</h2>
+                    <p class="empty-desc">Choose a template or use AI to start building your professional career path.
+                    </p>
+                    <div class="empty-actions">
+                        <a href="ai-builder.html" class="btn btn-primary">Create Resume with AI</a>
+                        <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -71,13 +72,28 @@
     <div id="app-footer"></div>
     <script src="components/footer.js"></script>
 
-    <div id="toastContainer" class="toast-container"></div>
+    <!-- Custom Alert Modal -->
+    <div id="customAlertModal" class="alert-modal" style="display: none;">
+        <div class="alert-modal-backdrop"></div>
+        <div class="alert-modal-content">
+            <div class="alert-modal-icon">⚠️</div>
+            <div id="alertModalMessage" class="alert-modal-message">Notification message here</div>
+            <button id="alertModalOkBtn" class="btn-alert-ok">OK</button>
+        </div>
+    </div>
 
-    <!-- Global App Loader -->
-    <div id="appLoader" class="app-loader">
-        <div class="app-loader-content">
-            <div class="app-loader-spinner"></div>
-            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+    <!-- Confirm Reset Modal -->
+    <div id="confirmResetModal" class="alert-modal" style="display: none;">
+        <div class="alert-modal-backdrop"></div>
+        <div class="alert-modal-content">
+            <div class="alert-modal-icon">♻️</div>
+            <h3 style="color: white; margin-bottom: 10px;">Reset Template?</h3>
+            <div id="confirmResetMessage" class="alert-modal-message">Are you sure you want to reset this template? Your
+                changes will be lost.</div>
+            <div class="alert-modal-actions">
+                <button id="cancelResetBtn" class="btn-alert-outline">Cancel</button>
+                <button id="confirmResetBtn" class="btn-alert-ok" style="background: #ef4444;">Reset</button>
+            </div>
         </div>
     </div>
 </body>
