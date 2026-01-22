@@ -1,7 +1,7 @@
 // Dashboard Logic
 document.addEventListener('DOMContentLoaded', async () => {
-    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-        ? ""
+    const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        ? (window.location.port === "3000" ? "" : "http://localhost:3000")
         : "https://ai-latex-resume-builder.onrender.com";
 
     let supabase = null;
