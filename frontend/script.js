@@ -65,9 +65,9 @@
 
     // --- CLOUD CONFIGURATION ---
     // Change this to your Render URL when it is Live!
-    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-        ? ""
-        : "https://ai-latex-resume-builder.onrender.com";
+    const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        ? (window.location.port === "3000" ? "" : "http://localhost:3000")
+        : "";
 
     let supabase = null;
     let currentUser = null;
@@ -1792,4 +1792,4 @@
 
 
 // Inject AI Chatbot if not already present
-(function() { if (!document.getElementById('ai-chatbot-script')) { const script = document.createElement('script'); script.id = 'ai-chatbot-script'; script.src = 'components/chatbot.js'; script.defer = true; document.body.appendChild(script); } })();
+(function () { if (!document.getElementById('ai-chatbot-script')) { const script = document.createElement('script'); script.id = 'ai-chatbot-script'; script.src = 'components/chatbot.js'; script.defer = true; document.body.appendChild(script); } })();

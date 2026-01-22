@@ -143,11 +143,20 @@ class AIChatbot {
         this.scrollToBottom();
 
         try {
-            const response = await fetch('/api/chat', {
+            const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+                ? (window.location.port === "3000" ? "" : "http://localhost:3000")
+                : "";
+
+            const response = await fetch(`${API_BASE}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text })
             });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server returned ${response.status}: ${errorText.slice(0, 100)}`);
+            }
 
             const data = await response.json();
 
@@ -161,8 +170,8 @@ class AIChatbot {
             }
         } catch (error) {
             console.error('Chat error:', error);
-            this.messagesContainer.removeChild(typingDiv);
-            this.messages.push({ role: 'bot', text: 'Connection lost. Please check your internet.' });
+            if (typingDiv.parentNode) this.messagesContainer.removeChild(typingDiv);
+            this.messages.push({ role: 'bot', text: `Error: ${error.message.includes('Unexpected token') ? 'Invalid server response' : 'Connection lost or server error'}` });
         }
 
         this.renderMessages();

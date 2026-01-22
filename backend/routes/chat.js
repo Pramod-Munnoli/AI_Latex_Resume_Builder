@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { chatWithAI } = require("../utils/ai");
 
-router.post("/", async (req, res) => {
+router.post("/chat", async (req, res) => {
     const { message } = req.body;
 
     if (!message) {
