@@ -215,8 +215,8 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s ease, filter 0.2s ease;
-    display: none;
-    /* Hidden by default, script.js will show if needed */
+    display: flex;
+    /* Default to visible on desktop */
 }
 
 .btn-auth:hover {
@@ -777,6 +777,8 @@ body {
     }
 
     /* Hide desktop-only triggers on mobile */
+    .auth-container #authBtn,
+    .auth-container #profileAvatar,
     #authBtn,
     #profileAvatar {
         display: none !important;
@@ -818,6 +820,7 @@ body {
         justify-self: center;
         width: 100%;
         justify-content: center;
+        min-width: 0 !important;
     }
 
     .nav-logo {

@@ -13,6 +13,7 @@ const recompileRouter = require("./routes/recompile");
 const templatesRouter = require("./routes/templates");
 const userResumesRouter = require("./routes/user-resumes");
 const chatRouter = require("./routes/chat");
+const deleteAccountRouter = require("./routes/delete-account");
 
 const frontendDir = path.join(__dirname, "..", "frontend");
 const tempDir = path.join(__dirname, "temp");
@@ -22,6 +23,7 @@ app.use("/api", uploadRouter);
 app.use("/api", recompileRouter);
 app.use("/api", templatesRouter);
 app.use("/api", userResumesRouter);
+app.use("/api/user", deleteAccountRouter);
 
 // Serve public config for frontend
 app.get("/api/config", (req, res) => {

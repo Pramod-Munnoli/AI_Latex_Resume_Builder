@@ -156,8 +156,8 @@ if (headerPlaceholder) {
                 const profileEmail = document.getElementById('profileEmail');
                 const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
 
-                // 1. Hide Login Button
-                if (authBtn) authBtn.style.setProperty('display', 'none', 'important');
+                // 1. Hide Login Button (Properly)
+                if (authBtn) authBtn.style.display = 'none';
 
                 // 2. Show Profile Dropdown
                 if (profileDropdown) profileDropdown.style.display = 'block';
@@ -196,14 +196,16 @@ if (headerPlaceholder) {
                 }
             }
         } else {
-            // Logged out or no cache: Show login button immediately
-            if (authBtn) authBtn.style.setProperty('display', 'flex', 'important');
+            // Logged out or no cache: Hide dropdown and clear mobile slot
             if (profileDropdown) profileDropdown.style.display = 'none';
 
             const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
             if (mobileAuthTrigger) {
                 mobileAuthTrigger.innerHTML = `<a href="login.html" class="btn-tiny-auth">Login</a>`;
             }
+
+            // Let CSS handle the #authBtn visibility via media queries
+            if (authBtn) authBtn.style.display = '';
         }
     } catch (e) {
         console.warn("Header optimistic load failed:", e);

@@ -94,12 +94,14 @@ class AIChatbot {
             // Use a slight timeout to allow display change to register before class animation
             setTimeout(() => {
                 this.window.classList.add('active');
+                this.toggleBtn.classList.add('hidden'); // Hide the toggle button
                 this.window.style.opacity = '';
                 this.window.style.visibility = '';
                 this.input.focus();
             }, 10);
         } else {
             this.window.classList.remove('active');
+            this.toggleBtn.classList.remove('hidden'); // Show the toggle button
             // Wait for transition to finish before hiding again
             setTimeout(() => {
                 if (!this.isOpen) {

@@ -1439,7 +1439,7 @@
             saveUserCache(user);
 
             // Logged In State
-            if (currentAuthBtn) currentAuthBtn.style.setProperty('display', 'none', 'important');
+            if (currentAuthBtn) currentAuthBtn.style.display = 'none';
             if (profileDropdown) profileDropdown.style.display = "block";
 
             let displayName = user.user_metadata?.username ||
@@ -1476,7 +1476,11 @@
             // Ensure cache is cleared if we are explicitly in logged out state
             localStorage.removeItem(USER_CACHE_KEY);
 
-            if (currentAuthBtn) currentAuthBtn.style.setProperty('display', 'flex', 'important');
+            if (currentAuthBtn) {
+                // Let CSS handle the hidden state on mobile via media queries
+                // We only need to ensure it's not explicitly hidden if it should be visible
+                currentAuthBtn.style.display = '';
+            }
             if (profileDropdown) profileDropdown.style.display = "none";
 
             // Update Mobile Auth Slot with Tiny Login Button
@@ -1530,27 +1534,30 @@
         if (authForm) authForm.reset();
     }
 
-    // Universal Password Visibility Toggle
+    // Universal Password Visibility Toggle (Centralized Event Delegation)
     function setupPasswordToggle() {
-        const toggleButtons = document.querySelectorAll(".password-toggle");
+        // Use document-level delegation to be "strictly performable" and robust
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest(".password-toggle");
+            if (!btn) return;
 
-        toggleButtons.forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.preventDefault();
-                const wrapper = btn.closest('.password-input-wrapper');
-                const passwordInput = wrapper ? wrapper.querySelector('input') : null;
+            e.preventDefault();
+            const wrapper = btn.closest('.password-input-wrapper');
+            // Support both direct sibling or wrapper-based search
+            const passwordInput = wrapper ? wrapper.querySelector('input') : btn.parentElement.querySelector('input');
 
-                if (!passwordInput) return;
+            if (!passwordInput) return;
 
-                const isPassword = passwordInput.type === "password";
-                passwordInput.type = isPassword ? "text" : "password";
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
 
-                const icon = btn.querySelector("i, svg");
-                if (icon && window.lucide) {
-                    icon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
-                    lucide.createIcons();
-                }
-            });
+            // Update Icon
+            btn.innerHTML = `<i data-lucide="${isPassword ? 'eye-off' : 'eye'}"></i>`;
+
+            // Re-run Lucide to swap the icons
+            if (window.lucide) {
+                lucide.createIcons();
+            }
         });
     }
 

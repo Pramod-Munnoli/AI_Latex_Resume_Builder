@@ -10,85 +10,651 @@
     <link rel="stylesheet" href="auth.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="script.js" defer></script>
     <style>
-        .settings-container {
-            max-width: 550px;
-            margin: 90px auto 40px;
-            padding: 0 20px;
+        :root {
+            --settings-sidebar-width: 280px;
+            --premium-accent: #6366f1;
+            --premium-accent-glow: rgba(99, 102, 241, 0.4);
+            --premium-bg: #030712;
+            --premium-card: rgba(17, 24, 39, 0.7);
+            --jakarta: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body.home-page {
+            background-color: var(--premium-bg);
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.1) 0%, transparent 40%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .settings-layout {
+            display: flex;
+            max-width: 1200px;
+            margin: 120px auto 60px;
+            padding: 0 40px;
+            gap: 50px;
             position: relative;
         }
 
-        .back-to-home {
-            position: fixed;
-            top: 90px;
-            left: 40px;
-            z-index: 9999;
-            margin: 0;
+        /* Sidebar Glassmorphism */
+        .settings-sidebar {
+            width: var(--settings-sidebar-width);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: sticky;
+            top: 120px;
+            height: fit-content;
         }
 
-        .settings-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
             border-radius: 16px;
-            padding: 25px;
-            backdrop-filter: blur(20px);
-            box-shadow: var(--shadow);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid transparent;
+            font-family: var(--jakarta);
+            cursor: pointer;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-item:hover {
+            color: var(--white);
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(5px);
+        }
+
+        .sidebar-item.active {
+            color: var(--white);
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+            border-left: 3px solid var(--premium-accent);
+            padding-left: 17px;
+        }
+
+        .sidebar-item i,
+        .sidebar-item svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s;
+        }
+
+        /* Content Area */
+        .settings-content {
+            flex: 1;
+            max-width: 800px;
+            animation: slideUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tab Content Control */
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .breadcrumb a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--white);
+        }
+
+        /* Premium Card */
+        .settings-main-card {
+            background: var(--premium-card);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .settings-main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--premium-accent), #a855f7);
+            opacity: 0.8;
         }
 
         .settings-header {
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 15px;
+            margin-bottom: 40px;
         }
 
-        .settings-header h2 {
-            font-size: 1.3rem;
+        .settings-header h1 {
+            font-family: var(--jakarta);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+        }
+
+        /* Hero and Sections */
+        .profile-hero {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            margin-bottom: 40px;
+        }
+
+        .profile-avatar-premium {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 12px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--jakarta);
+            font-size: 1.15rem;
             font-weight: 700;
             color: var(--white);
-            margin-bottom: 4px;
+            margin-bottom: 24px;
         }
 
-        .settings-header p {
+        .premium-form-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .auth-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 14px 18px;
+            color: white;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Info Item for static data */
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-item:last-child {
+            border: none;
+        }
+
+        .info-label {
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
-        .form-section {
+        .info-value {
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Badge Styles */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .status-pro {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Premium Deletion Modal */
+        .deletion-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .deletion-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--premium-card);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(244, 63, 94, 0.3);
+            border-radius: 10px;
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f43f5e, #dc2626);
+            border-radius: 28px 28px 0 0;
+        }
+
+        .modal-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(244, 63, 94, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .modal-icon i {
+            color: #f43f5e;
+            width: 28px;
+            height: 28px;
+        }
+
+        .modal-title {
+            font-family: var(--jakarta);
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-description {
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.5;
+            font-size: 0.9rem;
             margin-bottom: 20px;
         }
 
-        .form-section h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--text-main);
+        .modal-warning-list {
+            background: rgba(244, 63, 94, 0.05);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
         }
 
-        .btn-save {
-            background: var(--primary-gradient);
+        .modal-warning-list li {
+            color: #fda4af;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .modal-warning-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-warning-list li::before {
+            content: '•';
+            color: #f43f5e;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .modal-input-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-input-group input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .modal-input-group input:focus {
+            outline: none;
+            border-color: #f43f5e;
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.9rem;
         }
 
-        .btn-save:hover {
+        .modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-btn-delete {
+            background: linear-gradient(135deg, #f43f5e, #dc2626);
+            color: white;
+        }
+
+        .modal-btn-delete:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4);
         }
 
-        .btn-save:disabled {
+        .modal-btn-delete:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
+        }
+
+        @media (max-width: 1024px) {
+            .settings-layout {
+                flex-direction: column;
+                margin-top: 100px;
+                padding: 0 20px;
+                gap: 30px;
+            }
+
+            .settings-sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                position: static;
+                gap: 8px;
+                padding-bottom: 10px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .sidebar-item {
+                white-space: nowrap;
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+
+            .settings-content {
+                max-width: 100%;
+            }
+
+            .settings-main-card {
+                padding: 24px;
+                border-radius: 24px;
+            }
+
+            .settings-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .profile-hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .profile-avatar-premium {
+                width: 64px;
+                height: 64px;
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .settings-layout {
+                margin-top: 80px;
+                padding: 0 15px;
+            }
+
+            .breadcrumb {
+                font-size: 0.8rem;
+                margin-bottom: 20px;
+            }
+
+            .settings-main-card {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .settings-header h1 {
+                font-size: 1.4rem;
+            }
+
+            .settings-header p {
+                font-size: 0.85rem;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .premium-form-box {
+                padding: 16px;
+            }
+
+            .auth-input {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+            }
+
+            .btn-premium {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 14px 0;
+            }
+
+            .info-label {
+                font-size: 0.8rem;
+            }
+
+            .info-value {
+                font-size: 0.9rem;
+            }
+
+            /* Mobile Modal Adjustments */
+            .modal-content {
+                width: 95%;
+                padding: 24px;
+                max-height: 90vh;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-description {
+                font-size: 0.85rem;
+            }
+
+            .modal-warning-list {
+                padding: 14px;
+            }
+
+            .modal-warning-list li {
+                font-size: 0.8rem;
+            }
+
+            .modal-btn {
+                padding: 12px 8px;
+                font-size: 0.85rem;
+            }
+
+            /* Danger Zone Mobile */
+            #deleteAccountBtn {
+                padding: 10px 16px !important;
+                font-size: 0.85rem !important;
+                white-space: normal !important;
+            }
         }
     </style>
 </head>
@@ -97,83 +663,274 @@
     <div id="app-header"></div>
     <script src="components/header.js"></script>
 
-    <main class="settings-container">
-        <a href="index.html" class="back-to-home">
-            <span>←</span> Back to Home
-        </a>
-        <div class="settings-card">
-            <div class="settings-header">
-                <h2>Account Settings</h2>
-                <p>Manage your account security and preferences.</p>
+    <main class="settings-layout">
+        <aside class="settings-sidebar">
+            <button class="sidebar-item active" data-tab="security">
+                <i data-lucide="shield-check"></i>
+                <span>Security</span>
+            </button>
+            <button class="sidebar-item" data-tab="profile">
+                <i data-lucide="user-circle"></i>
+                <span>Account Profile</span>
+            </button>
+            <button class="sidebar-item" data-tab="subscription">
+                <i data-lucide="zap"></i>
+                <span>Subscription</span>
+            </button>
+            <button class="sidebar-item" data-tab="preferences">
+                <i data-lucide="layout"></i>
+                <span>Preferences</span>
+            </button>
+            <button class="sidebar-item" data-tab="activity">
+                <i data-lucide="history"></i>
+                <span>Login Activity</span>
+            </button>
+        </aside>
+
+        <div class="settings-content">
+            <nav class="breadcrumb">
+                <a href="index.html">Dashboard</a>
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                <span id="breadcrumbCurrent">Security</span>
+            </nav>
+
+            <div class="settings-main-card">
+                <div id="settingsErrorMsg" class="auth-error"></div>
+                <div id="settingsMessage" class="auth-message"></div>
+
+                <!-- SECURITY TAB -->
+                <div class="tab-pane active" id="securityTab">
+                    <div class="settings-header">
+                        <h1>Security</h1>
+                        <p>Protect your account with advanced security controls.</p>
+                    </div>
+                    <form id="changePasswordForm" class="premium-form-box">
+                        <div class="auth-form-group">
+                            <label>Current Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="currentPassword" class="auth-input" placeholder="••••••••"
+                                    required>
+                                <button type="button" class="password-toggle">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="auth-form-group" style="margin-top: 20px;">
+                            <label>New Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="newPassword" class="auth-input"
+                                    placeholder="Min. 6 characters" required minlength="6">
+                                <button type="button" class="password-toggle">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="auth-form-group" style="margin-top: 20px;">
+                            <label>Confirm New Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="confirmNewPassword" class="auth-input"
+                                    placeholder="Confirm your new password" required>
+                                <button type="button" class="password-toggle">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div
+                            style="margin-top: 25px; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: flex-start; gap: 12px;">
+                            <input type="checkbox" id="signOutOthers"
+                                style="width: 20px; height: 20px; accent-color: var(--premium-accent);">
+                            <label for="signOutOthers"
+                                style="font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+                                <strong>Privacy Shield:</strong> Sign out of all other active sessions across your
+                                devices.
+                            </label>
+                        </div>
+                        <button type="submit" id="saveBtn" class="btn-premium">
+                            <i data-lucide="lock"></i>
+                            <span>Save New Credentials</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- PROFILE TAB -->
+                <div class="tab-pane" id="profileTab">
+                    <div class="settings-header">
+                        <h1>Account Profile</h1>
+                        <p>Manage your public information and personal details.</p>
+                    </div>
+                    <div class="profile-hero">
+                        <div class="profile-avatar-premium" id="profileTabInitial">?</div>
+                        <div>
+                            <h4 id="profileTabName">Loading...</h4>
+                            <p id="profileTabEmail">Loading...</p>
+                            <span class="status-badge status-pro"
+                                style="margin-top: 8px; display: inline-block;">Premium Member</span>
+                        </div>
+                    </div>
+                    <div class="premium-form-box">
+                        <div class="info-item">
+                            <span class="info-label">Display Name</span>
+                            <span class="info-value" id="profileInfoName">User Account</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Primary Email</span>
+                            <span class="info-value" id="profileInfoEmail">email@example.com</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Account Created</span>
+                            <span class="info-value" id="profileInfoJoined">April 2024</span>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div style="margin-top: 60px; border-top: 1px solid rgba(244, 63, 94, 0.2); padding-top: 30px;">
+                        <div class="section-title" style="color: #f43f5e;">
+                            <i data-lucide="alert-triangle"></i>
+                            <span>Danger Zone</span>
+                        </div>
+                        <div
+                            style="background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 20px; padding: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+                                <div>
+                                    <h5 style="color: #fda4af; font-weight: 700; margin-bottom: 6px;">Delete Account
+                                        Permanently</h5>
+                                    <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">This action cannot
+                                        be undone. All your data, resumes, and settings will be permanently deleted.</p>
+                                </div>
+                                <button id="deleteAccountBtn"
+                                    style="background: transparent; border: 1px solid #f43f5e; color: #f43f5e; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+                                    Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBSCRIPTION TAB -->
+                <div class="tab-pane" id="subscriptionTab">
+                    <div class="settings-header">
+                        <h1>Subscription</h1>
+                        <p>Manage your plan, billing, and payment methods.</p>
+                    </div>
+                    <div class="premium-form-box"
+                        style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%); border-color: rgba(99, 102, 241, 0.2);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="color: white; font-family: var(--jakarta);">Lifetime Pro Plan</h3>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">You have full access to all AI
+                                    features.</p>
+                            </div>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <div style="margin-top: 24px;">
+                            <button class="btn-outline">Upgrade to Team</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PREFERENCES TAB -->
+                <div class="tab-pane" id="preferencesTab">
+                    <div class="settings-header">
+                        <h1>Preferences</h1>
+                        <p>Customize your workspace and notification settings.</p>
+                    </div>
+                    <div class="premium-form-box">
+                        <div class="info-item">
+                            <div>
+                                <h5 style="color: white; margin-bottom: 4px;">Dark Mode</h5>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Use the high-contrast midnight
+                                    theme.</p>
+                            </div>
+                            <input type="checkbox" checked disabled style="width: 40px; height: 20px;">
+                        </div>
+                        <div class="info-item">
+                            <div>
+                                <h5 style="color: white; margin-bottom: 4px;">Email Notifications</h5>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Receive updates about new
+                                    templates.</p>
+                            </div>
+                            <input type="checkbox" checked
+                                style="width: 40px; height: 20px; accent-color: var(--premium-accent);">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVITY TAB -->
+                <div class="tab-pane" id="activityTab">
+                    <div class="settings-header">
+                        <h1>Login Activity</h1>
+                        <p>Review and manage your recent account access sessions.</p>
+                    </div>
+                    <div id="activityContainer" class="premium-form-box">
+                        <div class="info-item">
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <div id="currentDeviceIcon">
+                                    <i data-lucide="monitor" style="color: var(--premium-accent);"></i>
+                                </div>
+                                <div>
+                                    <h5 style="color: white;" id="currentDeviceName">Current Session (Browser)</h5>
+                                    <p style="font-size: 0.8rem; color: #10b981;">Active Now • <span
+                                            id="currentSessionStatus">Your Current Device</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <i data-lucide="history" style="color: var(--text-muted);"></i>
+                                <div>
+                                    <h5 style="color: var(--white);">Last Authentic Login</h5>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);" id="lastLoginTime">Loading
+                                        login history...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div id="settingsErrorMsg" class="auth-error"></div>
-            <div id="settingsMessage" class="auth-message"></div>
-
-            <section class="form-section">
-                <h3>Change Password</h3>
-                <form id="changePasswordForm">
-                    <div class="auth-form-group">
-                        <label for="currentPassword">Current Password</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" id="currentPassword" class="auth-input" placeholder="••••••••"
-                                required>
-                            <button type="button" class="password-toggle">
-                                <i data-lucide="eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="auth-form-group">
-                        <label for="newPassword">New Password</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" id="newPassword" class="auth-input" placeholder="••••••••" required
-                                minlength="6">
-                            <button type="button" class="password-toggle">
-                                <i data-lucide="eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="auth-form-group">
-                        <label for="confirmNewPassword">Confirm New Password</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" id="confirmNewPassword" class="auth-input" placeholder="••••••••"
-                                required>
-                            <button type="button" class="password-toggle">
-                                <i data-lucide="eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="auth-form-group"
-                        style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                        <input type="checkbox" id="signOutOthers" style="width: 18px; height: 18px; cursor: pointer;">
-                        <label for="signOutOthers"
-                            style="margin: 0; font-size: 0.85rem; cursor: pointer; color: var(--text-muted);">Sign out
-                            of all other devices for privacy</label>
-                    </div>
-
-                    <button type="submit" id="saveBtn" class="btn-save" style="margin-top: 20px;">Update
-                        Password</button>
-                </form>
-            </section>
         </div>
     </main>
+
+    <!-- Premium Deletion Modal -->
+    <div class="deletion-modal" id="deletionModal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i data-lucide="alert-triangle"></i>
+            </div>
+            <h2 class="modal-title">Delete Account Permanently?</h2>
+            <p class="modal-description">
+                This action is irreversible. Once deleted, your account and all associated data cannot be recovered.
+            </p>
+            <ul class="modal-warning-list">
+                <li>All your saved resumes will be permanently deleted</li>
+                <li>Your personal information will be removed from our servers</li>
+                <li>Access to premium features will be immediately revoked</li>
+                <li>This action cannot be undone under any circumstances</li>
+            </ul>
+            <div class="modal-input-group">
+                <label for="confirmEmailInput">Type your email to confirm</label>
+                <input type="email" id="confirmEmailInput" placeholder="your.email@example.com" autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" id="cancelDeleteBtn">Cancel</button>
+                <button class="modal-btn modal-btn-delete" id="confirmDeleteBtn" disabled>Delete Forever</button>
+            </div>
+        </div>
+    </div>
 
     <div id="appLoader" class="app-loader">
         <div class="app-loader-content">
             <div class="app-loader-spinner"></div>
-            <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
+            <div id="appLoaderMessage" class="app-loader-message">Synchronizing...</div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.sidebar-item');
+            const panes = document.querySelectorAll('.tab-pane');
+            const breadcrumb = document.getElementById('breadcrumbCurrent');
             const form = document.getElementById('changePasswordForm');
             const saveBtn = document.getElementById('saveBtn');
-            const errorMsg = document.getElementById('settingsErrorMsg');
-            const successMsg = document.getElementById('settingsMessage');
             const appLoader = document.getElementById('appLoader');
 
             const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
@@ -182,6 +939,21 @@
 
             let supabase = null;
 
+            // Tab Switching Logic
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panes.forEach(p => p.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById(target + 'Tab').classList.add('active');
+                    breadcrumb.textContent = tab.querySelector('span').textContent;
+
+                    if (window.lucide) lucide.createIcons();
+                });
+            });
+
             async function init() {
                 try {
                     const resp = await fetch(`${API_BASE}/api/config`);
@@ -189,13 +961,44 @@
                     supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
 
                     const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) {
-                        window.location.href = 'login.html';
-                        return;
-                    }
-                } catch (err) {
-                    console.error("Init failed", err);
-                }
+                    if (!user) { window.location.href = 'login.html'; return; }
+
+                    const email = user.email;
+                    const initial = email.charAt(0).toUpperCase();
+                    const name = user.user_metadata?.full_name || user.user_metadata?.username || 'Premium User';
+
+                    // Update UI across tabs
+                    document.getElementById('profileTabInitial').textContent = initial;
+                    document.getElementById('profileTabEmail').textContent = email;
+                    document.getElementById('profileTabName').textContent = name;
+                    document.getElementById('profileInfoName').textContent = name;
+                    document.getElementById('profileInfoEmail').textContent = email;
+
+                    const joined = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    document.getElementById('profileInfoJoined').textContent = joined;
+
+                    // Real Login Activity Information
+                    const lastLogin = user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('en-US', {
+                        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    }) : 'Just now';
+                    document.getElementById('lastLoginTime').textContent = lastLogin;
+
+                    // Detect Device/OS
+                    const ua = navigator.userAgent;
+                    let deviceName = "Unknown Device";
+                    let iconName = "monitor";
+
+                    if (/Windows/.test(ua)) deviceName = "Windows PC";
+                    else if (/Macintosh/.test(ua)) deviceName = "MacBook / iMac";
+                    else if (/Android/.test(ua)) { deviceName = "Android Smartphone"; iconName = "smartphone"; }
+                    else if (/iPhone|iPad/.test(ua)) { deviceName = "iPhone / iPad"; iconName = "smartphone"; }
+                    else if (/Linux/.test(ua)) deviceName = "Linux Desktop";
+
+                    document.getElementById('currentDeviceName').textContent = `Current Session (${deviceName})`;
+                    document.getElementById('currentDeviceIcon').innerHTML = `<i data-lucide="${iconName}" style="color: var(--premium-accent);"></i>`;
+
+                    if (window.lucide) lucide.createIcons();
+                } catch (err) { console.error("Init failed", err); }
             }
 
             function setLoader(show, msg = 'Processing...') {
@@ -207,72 +1010,122 @@
                 }
             }
 
-            // Universal Password Toggle
-            document.querySelectorAll('.password-toggle').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const input = btn.parentElement.querySelector('input');
-                    const icon = btn.querySelector('i, svg');
-                    const isPassword = input.type === 'password';
-
-                    input.type = isPassword ? 'text' : 'password';
-                    icon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
-                    if (window.lucide) lucide.createIcons();
-                });
-            });
-
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                errorMsg.style.display = 'none';
-                successMsg.style.display = 'none';
-
                 const currentPassword = document.getElementById('currentPassword').value;
                 const newPassword = document.getElementById('newPassword').value;
                 const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
                 if (newPassword !== confirmNewPassword) {
-                    errorMsg.textContent = "New passwords do not match.";
-                    errorMsg.style.display = 'block';
+                    alert("Passwords do not match!");
                     return;
                 }
 
-                setLoader(true, 'Updating security settings...');
+                setLoader(true, 'Updating security credentials...');
                 saveBtn.disabled = true;
 
                 try {
-                    // Re-authenticate to ensure user knows their current password
                     const { data: { user } } = await supabase.auth.getUser();
-                    const { error: reauthError } = await supabase.auth.signInWithPassword({
-                        email: user.email,
-                        password: currentPassword
-                    });
+                    const { error } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword });
+                    if (error) throw new Error("Incorrect current password.");
 
-                    if (reauthError) throw new Error("Current password is incorrect.");
+                    const { error: upErr } = await supabase.auth.updateUser({ password: newPassword });
+                    if (upErr) throw upErr;
 
-                    // Update to new password
-                    const { error: updateError } = await supabase.auth.updateUser({
-                        password: newPassword
-                    });
-
-                    if (updateError) throw updateError;
-
-                    // Privacy: Sign out of all other sessions if requested
                     if (document.getElementById('signOutOthers').checked) {
-                        const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' });
-                        if (signOutError) console.warn("Privacy action failed:", signOutError.message);
+                        await supabase.auth.signOut({ scope: 'others' });
                     }
 
-                    successMsg.textContent = "Password updated successfully!";
-                    successMsg.style.display = 'block';
+                    alert("Security credentials updated successfully!");
                     form.reset();
                 } catch (err) {
-                    errorMsg.textContent = err.message || "Failed to update password.";
-                    errorMsg.style.display = 'block';
+                    alert(err.message || "Update failed.");
                 } finally {
                     setLoader(false);
                     saveBtn.disabled = false;
                 }
             });
+
+            // Delete Account Handler with Premium Modal
+            const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+            const deletionModal = document.getElementById('deletionModal');
+            const confirmEmailInput = document.getElementById('confirmEmailInput');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+            if (deleteAccountBtn && deletionModal) {
+                deleteAccountBtn.addEventListener('click', () => {
+                    deletionModal.classList.add('active');
+                    confirmEmailInput.value = '';
+                    confirmDeleteBtn.disabled = true;
+                    if (window.lucide) lucide.createIcons();
+                });
+
+                cancelDeleteBtn.addEventListener('click', () => {
+                    deletionModal.classList.remove('active');
+                });
+
+                deletionModal.addEventListener('click', (e) => {
+                    if (e.target === deletionModal) {
+                        deletionModal.classList.remove('active');
+                    }
+                });
+
+                confirmEmailInput.addEventListener('input', () => {
+                    const userEmail = document.getElementById('profileInfoEmail').textContent;
+                    confirmDeleteBtn.disabled = confirmEmailInput.value.trim() !== userEmail;
+                });
+
+                confirmDeleteBtn.addEventListener('click', async () => {
+                    setLoader(true, 'Permanently deleting your account...');
+                    confirmDeleteBtn.disabled = true;
+                    deletionModal.classList.remove('active');
+
+                    try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session) throw new Error('No active session found.');
+
+                        // Call backend API to delete account
+                        const response = await fetch(`${API_BASE}/api/user/delete-account`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${session.access_token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Failed to delete account');
+                        }
+
+                        // Sign out locally
+                        await supabase.auth.signOut();
+
+                        const successMsg = document.getElementById('settingsMessage');
+                        if (successMsg) {
+                            successMsg.textContent = 'Your account has been permanently deleted. Redirecting...';
+                            successMsg.style.display = 'block';
+                        }
+
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+
+                    } catch (err) {
+                        console.error('Account deletion error:', err);
+                        const errorMsg = document.getElementById('settingsErrorMsg');
+                        if (errorMsg) {
+                            errorMsg.textContent = 'Deletion failed: ' + (err.message || 'Unknown error');
+                            errorMsg.style.display = 'block';
+                        }
+                        deletionModal.classList.add('active');
+                        confirmDeleteBtn.disabled = false;
+                    } finally {
+                        setLoader(false);
+                    }
+                });
+            }
 
             init();
         });
