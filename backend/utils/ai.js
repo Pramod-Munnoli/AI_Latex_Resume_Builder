@@ -1,4 +1,6 @@
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 
 /* ================= HELPERS (UNCHANGED) ================= */
 
@@ -96,11 +98,60 @@ async function generateLatexWithSource(text) {
   return { latex: sanitizeLatex(basicTemplateFromText(text)), source: "fallback" };
 }
 
+async function chatWithAI(userMessage) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return "Chat service is currently unavailable.";
+
+  try {
+    const kbPath = path.join(__dirname, "..", "knowledge_base.md");
+    const knowledgeBase = fs.readFileSync(kbPath, "utf8");
+
+    const url = "https://api.groq.com/openai/v1/chat/completions";
+    const resp = await axios.post(
+      url,
+      {
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: `You are the official AI Assistant for the "AI LaTeX Resume Builder" website. 
+            Use the following Knowledge Base to answer user questions. 
+            Be professional, helpful, and concise. 
+            Use simple, clear, and user-understandable language. Avoid overly technical jargon when explaining features.
+            If the answer is not in the Knowledge Base, politely say you don't know and suggest contact the developer Pramod Munnoli.
+            
+            KNOWLEDGE BASE:
+            ${knowledgeBase}`
+          },
+          {
+            role: "user",
+            content: userMessage
+          }
+        ],
+        temperature: 0.5,
+        max_tokens: 500
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    return resp?.data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process that.";
+  } catch (err) {
+    console.error("❌ Chat API failed:", err.message);
+    return "I'm having trouble connecting right now. Please try again later.";
+  }
+}
+
 module.exports = {
   generateLatex,
   generateLatexWithSource,
   sanitizeLatex,
-  escapeLatex
+  escapeLatex,
+  chatWithAI
 };
 
 

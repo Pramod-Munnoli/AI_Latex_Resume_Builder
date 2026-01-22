@@ -1789,3 +1789,7 @@
         init();
     }
 })();
+
+
+// Inject AI Chatbot if not already present
+(function() { if (!document.getElementById('ai-chatbot-script')) { const script = document.createElement('script'); script.id = 'ai-chatbot-script'; script.src = 'components/chatbot.js'; script.defer = true; document.body.appendChild(script); } })();

@@ -17,10 +17,18 @@ const footerHTML = `
 // Inject Footer
 function loadFooter() {
     // Check if we should omit footer (removed editor exclusion)
-
     const footerPlaceholder = document.getElementById('app-footer');
     if (footerPlaceholder) {
         footerPlaceholder.innerHTML = footerHTML;
+    }
+
+    // Inject Chatbot (On all pages)
+    if (!document.getElementById('ai-chatbot-script')) {
+        const chatScript = document.createElement('script');
+        chatScript.id = 'ai-chatbot-script';
+        chatScript.src = 'components/chatbot.js';
+        chatScript.defer = true;
+        document.body.appendChild(chatScript);
     }
 }
 

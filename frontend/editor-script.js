@@ -91,29 +91,6 @@
 
 
 
-    function setupEditorToggle() {
-        const codeEditorBtn = document.getElementById('codeEditorBtn');
-        const visualEditorBtn = document.getElementById('visualEditorBtn');
-        const codeView = document.getElementById('codeView');
-        const visualView = document.getElementById('visualView');
-
-        if (!codeEditorBtn || !visualEditorBtn || !codeView || !visualView) return;
-
-        codeEditorBtn.addEventListener('click', () => {
-            codeEditorBtn.classList.add('active');
-            visualEditorBtn.classList.remove('active');
-            codeView.classList.add('active');
-            visualView.classList.remove('active');
-            if (cm) cm.refresh();
-        });
-
-        visualEditorBtn.addEventListener('click', () => {
-            visualEditorBtn.classList.add('active');
-            codeEditorBtn.classList.remove('active');
-            visualView.classList.add('active');
-            codeView.classList.remove('active');
-        });
-    }
 
     // Initialize Supabase
     async function initSupabase() {
@@ -1303,7 +1280,6 @@
         await initSupabase();
         initAuth();
         initCodeMirror();
-        setupEditorToggle();
         setupToolbarFeatures();
         await loadTemplate();
         setupResizer();
