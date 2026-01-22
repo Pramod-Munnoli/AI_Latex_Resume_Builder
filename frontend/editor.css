@@ -961,6 +961,10 @@
         border-bottom: 1px solid var(--glass-border);
         display: flex !important;
         flex: none !important;
+        /* Reset horizontal animation for mobile to prevent navbar shifting */
+        transform: translateY(20px) !important;
+        opacity: 0 !important;
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
     }
 
     .preview-panel {
@@ -970,6 +974,18 @@
         display: flex !important;
         flex: none !important;
         overflow: visible;
+        /* Reset horizontal animation for mobile */
+        transform: translateY(20px) !important;
+        opacity: 0 !important;
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        transition-delay: 0.2s !important;
+    }
+
+    /* Ensure they return to 0 transform when visible */
+    .panels-visible .editor-panel,
+    .panels-visible .preview-panel {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
     }
 
     .resizer {

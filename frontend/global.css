@@ -764,9 +764,19 @@ body {
     .nav-container {
         width: 100%;
         padding: 0 12px;
+        display: grid !important;
+        /* Critical: Enable grid for grid-column children to work */
         /* Left: Auth Trigger, Center: Logo, Right: Menu */
         grid-template-columns: auto 1fr auto;
+        align-items: center;
         gap: 8px;
+        overflow: hidden;
+        /* Prevent any internal animation from pushing navbar width */
+    }
+
+    .logo-text {
+        min-width: unset !important;
+        font-size: 1rem !important;
     }
 
     .mobile-auth-trigger {

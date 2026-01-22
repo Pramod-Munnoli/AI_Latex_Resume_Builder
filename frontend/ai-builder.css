@@ -406,6 +406,10 @@
         border-bottom: 1px solid var(--glass-border);
         display: flex !important;
         flex: none !important;
+        /* Reset horizontal animation for mobile */
+        transform: translateY(20px) !important;
+        opacity: 0 !important;
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
     }
 
     .ai-builder-workspace .preview-panel {
@@ -414,6 +418,20 @@
         min-height: 1200px;
         display: flex !important;
         flex: none !important;
+        /* Reset horizontal animation for mobile */
+        transform: translateY(20px) !important;
+        opacity: 0 !important;
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        transition-delay: 0.2s !important;
+    }
+
+    /* Ensure they return to 0 transform when visible */
+    .scroll-animate-on .editor-panel,
+    .scroll-animate-on .preview-panel,
+    .panels-visible .editor-panel,
+    .panels-visible .preview-panel {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
     }
 
     .ai-builder-workspace .resizer {

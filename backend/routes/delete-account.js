@@ -31,22 +31,42 @@ router.delete('/delete-account', async (req, res) => {
 
         const userId = user.id;
 
-        // Delete user's resumes from storage (if you have any stored files)
-        // This is optional - add if you store files in Supabase Storage
-        // const { data: files } = await supabaseAdmin.storage.from('resumes').list(userId);
-        // if (files && files.length > 0) {
-        //     const filePaths = files.map(file => `${userId}/${file.name}`);
-        //     await supabaseAdmin.storage.from('resumes').remove(filePaths);
-        // }
+        // 1. Delete user's data from custom database tables
+        // This is necessary because ON DELETE CASCADE might not be active or reliable
+        console.log(`Cleaning up data for user: ${userId}`);
 
-        // Delete user's data from database tables (if you have any custom tables)
-        // Example: await supabaseAdmin.from('user_resumes').delete().eq('user_id', userId);
+        try {
+            // Delete from user_resumes
+            const { error: resumeError } = await supabaseAdmin
+                .from('user_resumes')
+                .delete()
+                .eq('user_id', userId);
 
-        // Finally, delete the user account from Supabase Auth
+            if (resumeError) console.warn('Warning: Could not delete user_resumes:', resumeError.message);
+
+            // Delete from user_emails (if it exists)
+            const { error: emailError } = await supabaseAdmin
+                .from('user_emails')
+                .delete()
+                .eq('user_id', userId);
+
+            if (emailError) console.warn('Warning: Could not delete user_emails:', emailError.message);
+
+            // Delete user's storage folder if it exists
+            const { data: storageFiles } = await supabaseAdmin.storage.from('resumes').list(userId);
+            if (storageFiles && storageFiles.length > 0) {
+                const paths = storageFiles.map(f => `${userId}/${f.name}`);
+                await supabaseAdmin.storage.from('resumes').remove(paths);
+            }
+        } catch (cleanupError) {
+            console.warn('Non-critical cleanup error:', cleanupError.message);
+        }
+
+        // 2. Finally, delete the user account from Supabase Auth
         const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
         if (deleteError) {
-            console.error('Error deleting user:', deleteError);
+            console.error('Error deleting user from Auth:', deleteError);
             return res.status(500).json({
                 error: 'Failed to delete account',
                 details: deleteError.message
