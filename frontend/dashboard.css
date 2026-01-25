@@ -477,8 +477,30 @@
 
     .featured-visual {
         order: 1;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         flex: none;
+        width: 140px;
+        /* Give it a base size to center the absolute icons */
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .icon-blob {
+        width: 70px !important;
+        height: 70px !important;
+        font-size: 1.6rem !important;
+    }
+
+    .icon-blob.secondary {
+        top: 30px !important;
+        right: -10px !important;
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 1.2rem !important;
     }
 
     .secondary-actions {
