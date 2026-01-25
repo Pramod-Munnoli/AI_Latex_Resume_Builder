@@ -21,18 +21,70 @@
             --settings-sidebar-width: 280px;
             --premium-accent: #6366f1;
             --premium-accent-glow: rgba(99, 102, 241, 0.4);
-            --premium-bg: #030712;
-            --premium-card: rgba(17, 24, 39, 0.7);
+            --premium-bg: var(--darker-bg);
+            --premium-card: var(--card-bg);
             --jakarta: 'Plus Jakarta Sans', sans-serif;
         }
 
         body.home-page {
-            background-color: var(--premium-bg);
+            background-color: var(--darker-bg);
             background-image:
-                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.1) 0%, transparent 40%);
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.05) 0%, transparent 40%);
             min-height: 100vh;
             font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+        }
+
+        /* Light Mode Specific Overrides for Settings Page */
+        [data-theme="light"] {
+            --premium-bg: #f8fafc;
+            --premium-card: #ffffff;
+        }
+
+        [data-theme="light"] .settings-main-card {
+            background: #ffffff;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            border-color: #e2e8f0;
+        }
+
+        [data-theme="light"] .settings-main-card::before {
+            opacity: 1;
+        }
+
+        [data-theme="light"] .sidebar-item.active {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+            color: var(--primary-color);
+        }
+
+        [data-theme="light"] .profile-hero {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+        }
+
+        [data-theme="light"] .premium-form-box {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+
+        [data-theme="light"] .auth-input {
+            background: white;
+            border-color: #e2e8f0;
+            color: #1e293b;
+        }
+
+        [data-theme="light"] .info-label {
+            color: #64748b;
+        }
+
+        [data-theme="light"] .info-value {
+            color: #1e293b;
+        }
+
+        [data-theme="light"] .section-title,
+        [data-theme="light"] .settings-header h1,
+        [data-theme="light"] .settings-header p {
+            color: #0f172a;
         }
 
         .settings-layout {
@@ -656,6 +708,64 @@
                 white-space: normal !important;
             }
         }
+
+        /* Premium Toggle Switch */
+        .premium-toggle {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .premium-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.toggle-slider {
+            background: var(--premium-accent);
+            border-color: var(--premium-accent);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        [data-theme="light"] .toggle-slider {
+            background-color: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        [data-theme="light"] .toggle-slider:before {
+            background-color: white;
+        }
     </style>
 </head>
 
@@ -841,7 +951,10 @@
                                 <p style="font-size: 0.85rem; color: var(--text-muted);">Use the high-contrast midnight
                                     theme.</p>
                             </div>
-                            <input type="checkbox" checked disabled style="width: 40px; height: 20px;">
+                            <label class="premium-toggle">
+                                <input type="checkbox" id="themeToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
                         <div class="info-item">
                             <div>
@@ -1123,6 +1236,16 @@
                         confirmDeleteBtn.disabled = false;
                     } finally {
                         setLoader(false);
+                    }
+                });
+            }
+
+            // Theme Toggle Logic
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    if (window.toggleGlobalTheme) {
+                        window.toggleGlobalTheme(themeToggle.checked);
                     }
                 });
             }

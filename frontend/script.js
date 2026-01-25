@@ -15,6 +15,25 @@
     const mobilePdfLink = $("mobilePdfLink");
     const toastContainer = $("toastContainer");
 
+    // --- THEME MANAGEMENT ---
+    const THEME_KEY = "ai_resume_theme";
+    function applyTheme() {
+        const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.checked = (savedTheme === 'dark');
+        }
+    }
+    window.toggleGlobalTheme = function (isDark) {
+        const newTheme = isDark ? 'dark' : 'light';
+        localStorage.setItem(THEME_KEY, newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+        applyTheme();
+    };
+    window.applyTheme = applyTheme;
+    applyTheme(); // Run immediately
+
     // Auth elements
     const authBtn = $("authBtn");
     const logoutBtn = $("logoutBtn");
