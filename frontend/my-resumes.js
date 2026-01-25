@@ -113,6 +113,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Expose functions to window for onclick handlers
+    window.deleteAiResume = async (id) => {
+        if (!confirm('Are you sure you want to delete this AI Generated resume? This cannot be undone.')) return;
+
+        try {
+            setLoader(true, 'Deleting...');
+            const { error } = await supabase
+                .from('resumes')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            showToast('Resume deleted successfully', 'success');
+            await loadUserResumes(); // Reload list
+        } catch (err) {
+            console.error('Delete failed', err);
+            showToast('Failed to delete resume', 'error');
+        } finally {
+            setLoader(false);
+        }
+    };
+
+    window.resetTemplate = async (field) => {
+        if (!confirm('Are you sure you want to reset this template? Your customizations will be lost.')) return;
+
+        try {
+            setLoader(true, 'Resetting template...');
+
+            const updateData = {};
+            updateData[field] = null;
+
+            const { error } = await supabase
+                .from('user_resumes')
+                .update(updateData)
+                .eq('user_id', currentUser.id);
+
+            if (error) throw error;
+
+            showToast('Template reset successfully', 'success');
+            await loadUserResumes();
+        } catch (err) {
+            console.error('Reset failed', err);
+            showToast('Failed to reset template', 'error');
+        } finally {
+            setLoader(false);
+        }
+    };
+
     // Render templates grid
     function renderTemplates(userResumes, aiResume) {
         const grid = document.getElementById('templatesGrid');
@@ -160,6 +209,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <button type="button" onclick="window.location.href='editor.html?template=ai'" class="template-btn btn-open">
                             <i data-lucide="edit-3"></i>
                             Open in Editor
+                        </button>
+                        <button type="button" onclick="deleteAiResume('${aiResume.id}')" class="template-btn btn-reset" title="Delete Resume">
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 </div>
@@ -214,6 +266,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <i data-lucide="${isEdited ? 'edit-3' : 'zap'}"></i>
                             ${isEdited ? 'Open' : 'Use Template'}
                         </button>
+                        ${isEdited ? `
+                        <button type="button" onclick="resetTemplate('${template.field}')" class="template-btn btn-reset" title="Reset Template">
+                            <i data-lucide="rotate-ccw"></i>
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
             `;

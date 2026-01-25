@@ -100,25 +100,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Load template IDs and setup buttons
-    await loadTemplateIds();
-    setupTemplateButtons();
+    // 1. Trigger Animations Immediately (Critical for UX)
+    initScrollAnimations();
+    initWordReveal();
 
-    // Initialize Lucide icons
+    // 2. Initialize UI Components
     if (window.lucide) {
         lucide.createIcons();
     }
 
-    // Initialize High-End Scroll Animations
-    initScrollAnimations();
+    // 3. Load Background Data (Non-blocking)
+    loadTemplateIds().then(() => {
+        setupTemplateButtons();
+    });
 
-    // Initialize Word-by-Word Reveal
-    initWordReveal();
-
-    // Listen for Home/Logo clicks to re-trigger animation
-    setupHomeClickListeners();
-
-    // Trigger Navbar Animation (Only on fresh load or refresh)
+    // 4. Trigger Navbar Animation (Only on fresh load or refresh)
     const navbar = document.querySelector('.navbar');
     if (navbar) {
         const isReload = window.performance && window.performance.navigation && window.performance.navigation.type === 1;
@@ -136,6 +132,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             navbar.classList.add('nav-visible');
         }
     }
+
+    // 5. Listen for Home/Logo clicks to re-trigger animation
+    setupHomeClickListeners();
 });
 
 /**
@@ -176,10 +175,10 @@ function initWordReveal() {
             return span;
         });
 
-        const baseDelay = elementIndex * 250; // Reduced from 400
+        const baseDelay = elementIndex * 100; // Reduced from 250 for snapier feel
 
         spans.forEach((span, wordIndex) => {
-            const delay = baseDelay + (wordIndex * 20); // Reduced from 30
+            const delay = baseDelay + (wordIndex * 12); // Reduced from 20 for faster reveal
             maxDelay = Math.max(maxDelay, delay);
             setTimeout(() => {
                 requestAnimationFrame(() => {
@@ -204,7 +203,7 @@ function initWordReveal() {
                 heroCta.style.opacity = '1';
                 heroCta.style.transform = 'translateY(0)';
             });
-        }, maxDelay + 100); // Reduced from 200
+        }, maxDelay + 50); // Reduced from 100 for instant follow-through
     }
 }
 
@@ -267,8 +266,8 @@ function initScrollAnimations() {
     const heroElements = document.querySelectorAll('.hero-title, .hero-subtitle, .hero-cta');
     heroElements.forEach((el, index) => {
         el.classList.add('hero-scroll-init');
-        // Ultra-subtle stagger sequence
-        el.style.transitionDelay = `${index * 120}ms`;
+        // Minimal stagger for hero components to prioritize speed
+        el.style.transitionDelay = `${index * 60}ms`;
         observer.observe(el);
     });
 

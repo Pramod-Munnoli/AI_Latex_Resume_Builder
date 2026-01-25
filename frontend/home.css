@@ -31,8 +31,6 @@
 }
 
 .hero-title {
-    opacity: 0;
-    visibility: hidden;
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     font-weight: 800;
     line-height: 1.1;
@@ -45,10 +43,6 @@
 }
 
 .hero-subtitle {
-    opacity: 0;
-    /* Prevent flash */
-    visibility: hidden;
-    /* Prevent flash */
     font-size: 1.25rem;
     color: var(--text-muted);
     margin-bottom: 40px;
@@ -58,10 +52,6 @@
 }
 
 .hero-cta {
-    opacity: 0;
-    /* Prevent flash */
-    visibility: hidden;
-    /* Prevent flash */
     display: flex;
     gap: 20px;
     justify-content: center;
@@ -885,7 +875,8 @@
         /* Constraint: min 0.9 */
         transform: translateY(12px);
         /* Constraint: max 12px */
-        transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        /* Reduced from 1.2s */
         will-change: opacity, transform;
         /* Ensure distinct stacking context during animation */
         backface-visibility: hidden;
@@ -904,7 +895,8 @@
     display: inline-block;
     opacity: 0;
     transform: translateY(12px);
-    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Reduced from 0.6s */
     will-change: opacity, transform;
     /* Inherit the premium gradient/clip from the parent title if it has one */
     background: inherit;
