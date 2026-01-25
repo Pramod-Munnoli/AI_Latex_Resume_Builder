@@ -338,6 +338,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 filterTags.forEach(t => t.classList.remove('active'));
                 tag.classList.add('active');
 
+                // Automatic Horizontal Scroll (Mobile/Small Screens only)
+                if (window.innerWidth <= 768) {
+                    const container = tag.parentElement;
+                    if (container) {
+                        const scrollLeft = tag.offsetLeft - (container.clientWidth / 2) + (tag.clientWidth / 2);
+                        container.scrollTo({
+                            left: scrollLeft,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+
                 // Filter cards
                 const cards = document.querySelectorAll('.template-card');
                 let foundMatch = false;

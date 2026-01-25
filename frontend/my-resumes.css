@@ -380,37 +380,46 @@
     .filter-bar {
         width: calc(100% + 40px);
         margin-left: -20px;
-        margin-right: -20px;
-        padding: 12px 20px;
+        padding: 12px 0;
         background: transparent;
         border: none;
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        gap: 8px;
         backdrop-filter: none;
-        /* Horizontal scroll feel */
-        overflow-x: hidden;
-        -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-        mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        overflow: hidden;
+        contain: paint;
+        /* Hard containment to prevent layout leak */
+        -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
     }
 
     .filter-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         padding-left: 20px;
-        opacity: 0.8;
+        opacity: 0.7;
+        font-weight: 800;
+        letter-spacing: 0.5px;
     }
 
     .filter-tags {
         display: flex;
         flex-wrap: nowrap;
-        /* Force horizontal scroll */
         overflow-x: auto;
-        padding: 4px 20px 12px;
+        padding: 4px 20px 16px;
         width: 100%;
-        gap: 8px;
+        gap: 10px;
         scrollbar-width: none;
-        /* Hide scrollbar for clean look */
+        scroll-padding: 20px;
         -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Spacer to fix right-side gap and respect padding when scrolling to end */
+    .filter-tags::after {
+        content: '';
+        padding-left: 30px;
+        flex: 0 0 auto;
     }
 
     .filter-tags::-webkit-scrollbar {
