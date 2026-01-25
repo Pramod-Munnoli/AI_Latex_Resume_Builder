@@ -8,15 +8,27 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--darker-bg);
     color: var(--text-main);
     line-height: 1.6;
-    overflow-x: hidden;
     padding-top: 70px;
     /* Absolute stability: reserve space for scrollbar on both sides to keep layout perfectly centered */
     scrollbar-gutter: stable both-edges;
+}
+
+@media (max-width: 850px) {
+    body {
+        scrollbar-gutter: auto;
+        /* Disable gutter on mobile to save space and prevent overflow issues */
+    }
 }
 
 /* Scrollbar */

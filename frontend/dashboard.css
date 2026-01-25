@@ -6,6 +6,8 @@
     margin: 0 auto;
     padding: 60px 40px 100px;
     position: relative;
+    overflow: hidden;
+    /* Prevent decoration bleed */
 }
 
 /* Background Decorations */
