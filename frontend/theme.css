@@ -20,6 +20,9 @@
     --primary-color: #6366f1;
     --error-color: #f43f5e;
     --success-color: #10b981;
+    --scrollbar-track: var(--darker-bg);
+    --scrollbar-thumb: #334155;
+    --scrollbar-thumb-hover: #6366f1;
 }
 
 /* Premium Light Mode Overrides */
@@ -34,6 +37,9 @@
     --glass-border: rgba(0, 0, 0, 0.05);
     --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
     --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-thumb-hover: #94a3b8;
 }
 
 /* Specific elements that need adjustments in light mode */
@@ -83,6 +89,7 @@
 }
 
 [data-theme="light"] .template-card,
+[data-theme="light"] .path-card,
 [data-theme="light"] .settings-main-card,
 [data-theme="light"] .modal-content {
     background: white;
@@ -106,9 +113,13 @@
 }
 
 [data-theme="light"] .profile-menu {
-    background: white;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-    border-color: rgba(0, 0, 0, 0.05);
+    background: white !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .profile-menu-item {
+    color: #1e293b !important;
 }
 
 [data-theme="light"] .profile-menu-item:hover {
@@ -186,9 +197,6 @@
 }
 
 /* Cards */
-[data-theme="light"] .path-card,
-[data-theme="light"] .feature,
-[data-theme="light"] .step,
 [data-theme="light"] .card-glass,
 [data-theme="light"] .action-card,
 [data-theme="light"] .activity-card,
@@ -201,12 +209,11 @@
 }
 
 [data-theme="light"] .path-card:hover,
-[data-theme="light"] .feature:hover,
 [data-theme="light"] .action-card:hover {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    transform: none !important;
+    background: white !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-12px) !important;
 }
 
 /* Section Titles */
@@ -514,8 +521,8 @@
 }
 
 [data-theme="light"] .sidebar-menu {
-    background: white;
-    border-color: #e2e8f0;
+    background: transparent;
+    border: none;
 }
 
 [data-theme="light"] .sidebar-link {
@@ -569,8 +576,8 @@
 [data-theme="light"] .explanation-item,
 [data-theme="light"] .error-fix,
 [data-theme="light"] .faq-item {
-    background: white;
-    border-color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="light"] .explanation-item strong,
@@ -727,7 +734,14 @@
 
 [data-theme="light"] .drop-zone {
     background: white !important;
-    border-color: #e2e8f0 !important;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .drop-zone:hover,
+[data-theme="light"] .drop-zone.drag-over {
+    background: rgba(99, 102, 241, 0.06) !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.12);
 }
 
 [data-theme="light"] .drop-zone-text {

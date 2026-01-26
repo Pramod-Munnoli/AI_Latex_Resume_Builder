@@ -810,6 +810,7 @@
         const fitWidthBtn = document.getElementById('fitWidthBtn');
         const fitPageBtn = document.getElementById('fitPageBtn');
         const pdfViewer = document.getElementById('pdfViewer');
+        const toggleTheme = document.getElementById('toggleTheme');
 
         if (zoomIn) {
             zoomIn.onclick = () => {
@@ -824,26 +825,12 @@
                 updateVisualScale();
             };
         }
+
         if (toggleTheme) {
             toggleTheme.onclick = () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-                if (window.toggleGlobalTheme) {
-                    window.toggleGlobalTheme(newTheme === 'dark');
-                } else {
-                    document.documentElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('ai_resume_theme', newTheme);
-                }
-
-                // Also toggle PDF dark mode for full sync if desired
                 const container = document.getElementById('pdfCanvasContainer');
                 if (container) {
-                    if (newTheme === 'dark') {
-                        container.classList.add('pdf-dark-mode');
-                    } else {
-                        container.classList.remove('pdf-dark-mode');
-                    }
+                    container.classList.toggle('pdf-dark-mode');
                 }
             };
         }

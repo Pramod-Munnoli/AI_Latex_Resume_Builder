@@ -5,13 +5,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Smooth scroll functionality already handled by theme/global if using anchors,
     // but we'll add logic for active state highlighting during scroll.
 
+    const docsContent = document.querySelector('.docs-content');
+
     function updateActiveLink() {
         let currentSectionId = '';
+        const scrollContainer = (window.innerWidth > 900 && docsContent) ? docsContent : window;
+        const scrollPos = (scrollContainer === window) ? window.scrollY : docsContent.scrollTop;
 
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (window.scrollY >= sectionTop - 150) {
+            if (scrollPos >= sectionTop - 150) {
                 currentSectionId = section.getAttribute('id');
             }
         });
@@ -24,7 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (docsContent) {
+        docsContent.addEventListener('scroll', updateActiveLink);
+    }
     window.addEventListener('scroll', updateActiveLink);
+    window.addEventListener('resize', updateActiveLink);
 
     // Initial check
     updateActiveLink();
@@ -34,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
         const observerOptions = {
+            root: (window.innerWidth > 900) ? docsContent : null,
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
@@ -51,7 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el.tagName === 'H1') {
                 revealWords(el);
             } else {
-                const indexInParent = Array.from(el.parentElement.children).indexOf(el);
+                const parent = el.parentElement;
+                const indexInParent = parent ? Array.from(parent.children).indexOf(el) : 0;
                 if (indexInParent < 8) {
                     el.style.transitionDelay = `${indexInParent * 60}ms`;
                 }
@@ -96,13 +105,22 @@ document.addEventListener('DOMContentLoaded', () => {
         allElements.forEach(el => {
             if (el.tagName !== 'H1') el.classList.add('scroll-animate');
 
-            // Immediate check for elements already in view
-            const rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight && rect.bottom > 0) {
-                // Short timeout to ensure CSS is painted
-                setTimeout(() => triggerReveal(el), 100);
+            // For independent scroll, check visibility relative to docsContent
+            if (window.innerWidth > 900 && docsContent) {
+                const containerRect = docsContent.getBoundingClientRect();
+                const elRect = el.getBoundingClientRect();
+                if (elRect.top < containerRect.bottom && elRect.bottom > containerRect.top) {
+                    setTimeout(() => triggerReveal(el), 100);
+                } else {
+                    observer.observe(el);
+                }
             } else {
-                observer.observe(el);
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    setTimeout(() => triggerReveal(el), 100);
+                } else {
+                    observer.observe(el);
+                }
             }
         });
     }

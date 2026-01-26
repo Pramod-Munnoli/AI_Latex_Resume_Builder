@@ -1063,6 +1063,18 @@
                     document.getElementById(target + 'Tab').classList.add('active');
                     breadcrumb.textContent = tab.querySelector('span').textContent;
 
+                    // Smooth Horizontal Scroll to make tab visible/centered on mobile
+                    if (window.innerWidth <= 1024) {
+                        const container = tab.parentElement;
+                        if (container) {
+                            const scrollLeft = tab.offsetLeft - (container.clientWidth / 2) + (tab.clientWidth / 2);
+                            container.scrollTo({
+                                left: scrollLeft,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+
                     if (window.lucide) lucide.createIcons();
                 });
             });

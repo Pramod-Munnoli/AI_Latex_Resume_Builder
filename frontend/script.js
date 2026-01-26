@@ -1716,6 +1716,7 @@
 
         if (pdfInput) {
             pdfInput.addEventListener("change", function () {
+                const dropZone = document.getElementById('dropZone');
                 if (pdfInput.files && pdfInput.files.length) {
                     const file = pdfInput.files[0];
                     // Update UI with filename
@@ -1725,8 +1726,10 @@
                         fileNameDisplay.style.display = 'inline-block';
                     }
                     setStatus("PDF selected", "ready");
+                    if (dropZone) dropZone.classList.remove('is-empty');
                 } else {
                     setStatus("Ready", "ready");
+                    if (dropZone) dropZone.classList.add('is-empty');
                 }
             });
         }
