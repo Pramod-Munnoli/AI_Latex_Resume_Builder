@@ -166,7 +166,12 @@
             if (!resp.ok) throw new Error(data.error || "Upload failed");
 
             window.setEditorValue(data.latex || "");
-            await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
+
+            // Normalize PDF URL
+            let pdfUrl = data.pdfUrl || "/files/resume.pdf";
+            if (pdfUrl.startsWith('/') && window.API_BASE) pdfUrl = window.API_BASE + pdfUrl;
+
+            await window.loadPDF(pdfUrl);
 
             window.setStatus("Compiled successfully", "success");
 
@@ -205,7 +210,11 @@
 
             if (!resp.ok) throw new Error(data.error || "Recompile failed");
 
-            await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
+            // Normalize PDF URL
+            let pdfUrl = data.pdfUrl || "/files/resume.pdf";
+            if (pdfUrl.startsWith('/') && window.API_BASE) pdfUrl = window.API_BASE + pdfUrl;
+
+            await window.loadPDF(pdfUrl);
             originalLatexCode = latex;
             hasChanges = false;
 

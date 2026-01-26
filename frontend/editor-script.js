@@ -120,7 +120,11 @@
 
                 if (data) {
                     code = data.latex_content;
-                    if (data.pdf_url && window.loadPDF) window.loadPDF(data.pdf_url);
+                    if (data.pdf_url && window.loadPDF) {
+                        let pdfUrl = data.pdf_url;
+                        if (pdfUrl.startsWith('/') && window.API_BASE) pdfUrl = window.API_BASE + pdfUrl;
+                        window.loadPDF(pdfUrl);
+                    }
                 }
             } else {
                 // Fetch default and user version in parallel
