@@ -42,7 +42,8 @@
         });
 
         if (window.initCodeMirror) {
-            window.initCodeMirror(); // Use builder-core's cm if possible, or local
+            window.initCodeMirror();
+            cm = window._cm; // Sync with global instance
         } else {
             initLocalCodeMirror();
         }
@@ -86,37 +87,69 @@
     async function loadTemplate() {
         const params = new URLSearchParams(window.location.search);
         currentTemplateName = params.get('template') || params.get('templateName');
+        const noTemplateOverlay = $('no-template-overlay');
+        const noPreviewPlaceholder = $('no-preview-placeholder');
 
-        if (!currentTemplateName) return;
+        if (!currentTemplateName) {
+            if (noTemplateOverlay) noTemplateOverlay.style.display = 'flex';
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'flex';
+
+            // Trigger lucide icons if any in overlays
+            if (window.lucide) window.lucide.createIcons();
+            return;
+        }
+
+        if (noTemplateOverlay) noTemplateOverlay.style.display = 'none';
+        if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
 
         window.showLoader('Loading template...');
         try {
-            // Fetch default and user version in parallel
-            const [defaultRes, userRes] = await Promise.all([
-                window._supabase.from('latex_templates').select('latex_code').eq('template_name', currentTemplateName).single(),
-                currentUser ? window._supabase.from('user_resumes').select('*').eq('user_id', currentUser.id).maybeSingle() : Promise.resolve({ data: null })
-            ]);
+            let code = "";
 
-            let code = defaultRes.data?.latex_code;
-            const col = getTemplateColumn(currentTemplateName);
-            if (userRes.data && userRes.data[col]) {
-                code = userRes.data[col];
-                userHasCustomVersion = true;
-                currentTemplateSource = 'user';
+            if (currentTemplateName === 'ai') {
+                if (!currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const { data } = await window._supabase
+                    .from('resumes')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('title', 'My Resume')
+                    .maybeSingle();
+
+                if (data) {
+                    code = data.latex_content;
+                    if (data.pdf_url && window.loadPDF) window.loadPDF(data.pdf_url);
+                }
             } else {
-                currentTemplateSource = 'default';
+                // Fetch default and user version in parallel
+                const [defaultRes, userRes] = await Promise.all([
+                    window._supabase.from('latex_templates').select('latex_code').eq('template_name', currentTemplateName).single(),
+                    currentUser ? window._supabase.from('user_resumes').select('*').eq('user_id', currentUser.id).maybeSingle() : Promise.resolve({ data: null })
+                ]);
+
+                code = defaultRes.data?.latex_code;
+                const col = getTemplateColumn(currentTemplateName);
+                if (userRes.data && userRes.data[col]) {
+                    code = userRes.data[col];
+                    userHasCustomVersion = true;
+                    currentTemplateSource = 'user';
+                } else {
+                    currentTemplateSource = 'default';
+                }
+
+                // Background compile for standard templates
+                if (window.loadPDF) window.loadPDF("/files/resume.pdf");
             }
 
-            if (cm) {
+            if (cm && code) {
                 cm.setValue(code);
                 originalLatexCode = code;
                 hasChanges = false;
             }
 
             updateTemplateUI();
-
-            // Background compile
-            if (window.loadPDF) window.loadPDF("/files/resume.pdf"); // or initial compile
         } catch (e) {
             console.error(e);
         } finally {

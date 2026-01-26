@@ -71,7 +71,20 @@
             <div id="codeView" class="editor-view active">
                 <textarea id="latexEditor" spellcheck="false" autocomplete="off"
                     placeholder="Loading template..."></textarea>
+
+                <!-- No Template Overlay -->
+                <div id="no-template-overlay" class="no-template-overlay" style="display: none;">
+                    <div class="no-template-content">
+                        <div class="no-template-icon">
+                            <i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                        </div>
+                        <h2 class="no-template-title">No Template Selected</h2>
+                        <p>Please select a template from our collection to start building your resume.</p>
+                        <a href="templates.html" class="no-template-btn">Browse Templates</a>
+                    </div>
+                </div>
             </div>
+
 
 
 
@@ -136,6 +149,18 @@
                 <div id="pdfInnerContainer" class="pdf-inner-container">
                     <div id="pdfCanvasContainer" class="pdf-canvas-container"></div>
                 </div>
+
+                <!-- No Preview Placeholder -->
+                <div id="no-preview-placeholder" class="no-template-overlay" style="display: none;">
+                    <div class="no-template-content">
+                        <div class="no-template-icon">
+                            <i data-lucide="eye-off" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                        </div>
+                        <h2 class="no-template-title">No Preview Available</h2>
+                        <p>Select a template to generate a preview of your professional resume.</p>
+                    </div>
+                </div>
+
                 <!-- Loading Overlay -->
                 <div id="pdfPreviewLoader" class="pdf-preview-loader" style="display: none;">
                     <div class="loader-content">

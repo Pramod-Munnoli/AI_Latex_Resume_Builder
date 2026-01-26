@@ -264,6 +264,71 @@
     flex-direction: column;
 }
 
+/* No Template Overlay */
+.no-template-overlay {
+    position: absolute;
+    inset: 0;
+    background: #2f3a4c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    text-align: center;
+    padding: 2rem;
+    color: #94a3b8;
+    backdrop-filter: blur(4px);
+}
+
+.no-template-content {
+    max-width: 320px;
+    animation: fade-in-up 0.5s ease-out;
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.no-template-icon {
+    margin-bottom: 1.5rem;
+    color: #7063f3;
+}
+
+.no-template-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 0.75rem;
+}
+
+.no-template-btn {
+    margin-top: 1.5rem;
+    background: #7063f3;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(112, 99, 243, 0.3);
+}
+
+.no-template-btn:hover {
+    background: #5d52d9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(112, 99, 243, 0.4);
+}
+
 /* CodeMirror Overrides */
 .CodeMirror {
     flex: 1;
