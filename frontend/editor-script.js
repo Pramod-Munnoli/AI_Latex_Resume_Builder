@@ -139,8 +139,10 @@
                     currentTemplateSource = 'default';
                 }
 
-                // Background compile for standard templates
-                if (window.loadPDF) window.loadPDF("/files/resume.pdf");
+                // Auto-compile to generate the initial PDF preview
+                if (window.recompileLatex) {
+                    setTimeout(() => window.recompileLatex(), 500);
+                }
             }
 
             if (cm && code) {

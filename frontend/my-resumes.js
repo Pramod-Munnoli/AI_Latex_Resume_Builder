@@ -56,9 +56,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             setLoader(true, 'Loading your resumes...');
 
-            const resp = await fetch(`${API_BASE}/api/config`);
-            const config = await resp.json();
-            supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+            // Use shared initSupabase from auth-core.js
+            await window.initSupabase((event, session) => {
+                // Optional: handle real-time auth changes if needed
+            });
+
+            supabase = window._supabase;
+            if (!supabase) throw new Error("Supabase not initialized");
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
