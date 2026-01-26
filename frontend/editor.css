@@ -1212,3 +1212,150 @@
 .panels-visible .preview-toolbar {
     transition-delay: 0.6s;
 }
+
+/* ============================================
+   EDITOR PAGE - Light Mode Overrides
+   These MUST be at the end of the file to override
+   the hardcoded dark backgrounds above.
+   ============================================ */
+
+/* CRITICAL: Navbar override for editor page */
+[data-theme="light"] .navbar {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .panel-label {
+    background: #ffffff !important;
+    color: #475569 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .preview-toolbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .editor-container,
+[data-theme="light"] .workspace {
+    background: #f1f5f9 !important;
+}
+
+[data-theme="light"] .editor-panel {
+    border-right-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .preview-panel {
+    background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .pdf-viewer {
+    background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .pdf-inner-container {
+    background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .resizer {
+    background: #e2e8f0 !important;
+    border-left: 1px solid #cbd5e1 !important;
+    border-right: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .resizer:hover {
+    background: #cbd5e1 !important;
+}
+
+[data-theme="light"] .resizer-handle {
+    background: #94a3b8 !important;
+    border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .resizer:hover .resizer-handle {
+    background: #4f46e5 !important;
+}
+
+[data-theme="light"] .resizer-dots-top,
+[data-theme="light"] .resizer-dots-bottom {
+    color: rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .btn-icon {
+    color: #475569 !important;
+}
+
+[data-theme="light"] .btn-icon:hover {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .page-controls,
+[data-theme="light"] .zoom-controls {
+    background: #f1f5f9 !important;
+}
+
+[data-theme="light"] .page-info,
+[data-theme="light"] .zoom-value {
+    color: #475569 !important;
+}
+
+[data-theme="light"] .editor-toggle-pill {
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .toggle-btn {
+    color: #64748b !important;
+}
+
+[data-theme="light"] .toggle-btn.active {
+    background: #4f46e5 !important;
+    color: white !important;
+}
+
+[data-theme="light"] .template-name-display {
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #475569 !important;
+}
+
+[data-theme="light"] .divider {
+    background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .loader-content {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .loader-status {
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .pdf-preview-loader {
+    background: rgba(241, 245, 249, 0.9) !important;
+}
+
+[data-theme="light"] #latexEditor {
+    background: #ffffff !important;
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .CodeMirror {
+    background: #ffffff !important;
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .CodeMirror-gutters {
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .CodeMirror-linenumber {
+    color: #94a3b8 !important;
+}

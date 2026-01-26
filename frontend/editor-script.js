@@ -6,6 +6,20 @@
 (function () {
     "use strict";
 
+    // --- THEME MANAGEMENT ---
+    // This is essential since editor.html doesn't load script.js which has applyTheme()
+    const THEME_KEY = "ai_resume_theme";
+    function applyTheme() {
+        const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+    window.toggleGlobalTheme = function (isDark) {
+        const newTheme = isDark ? 'dark' : 'light';
+        localStorage.setItem(THEME_KEY, newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+    };
+    applyTheme(); // Apply theme IMMEDIATELY on script load
+
     // API Base URL
     const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
         ? (window.location.port === "3000" ? "" : "http://localhost:3000")
@@ -55,13 +69,16 @@
         return mapping[templateName];
     }
 
-    // Initialize CodeMirror
+    // Initialize CodeMirror with theme awareness
     function initCodeMirror() {
         if (!latexEditor) return;
 
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const cmTheme = currentTheme === 'light' ? 'default' : 'dracula';
+
         cm = CodeMirror.fromTextArea(latexEditor, {
             mode: "stex",
-            theme: "dracula",
+            theme: cmTheme,
             lineNumbers: true,
             lineWrapping: true,
             tabSize: 4,
@@ -83,6 +100,17 @@
         cm.setSize("100%", "100%");
         originalLatexCode = cm.getValue();
         hasChanges = false;
+
+        // Listen for global theme changes to update CodeMirror
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'data-theme') {
+                    const newTheme = document.documentElement.getAttribute('data-theme');
+                    if (cm) cm.setOption('theme', newTheme === 'light' ? 'default' : 'dracula');
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
     }
 
 
@@ -798,9 +826,24 @@
         }
         if (toggleTheme) {
             toggleTheme.onclick = () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                if (window.toggleGlobalTheme) {
+                    window.toggleGlobalTheme(newTheme === 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('ai_resume_theme', newTheme);
+                }
+
+                // Also toggle PDF dark mode for full sync if desired
                 const container = document.getElementById('pdfCanvasContainer');
                 if (container) {
-                    container.classList.toggle('pdf-dark-mode');
+                    if (newTheme === 'dark') {
+                        container.classList.add('pdf-dark-mode');
+                    } else {
+                        container.classList.remove('pdf-dark-mode');
+                    }
                 }
             };
         }

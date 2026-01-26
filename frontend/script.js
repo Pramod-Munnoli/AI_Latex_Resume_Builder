@@ -320,9 +320,12 @@
     function initCodeMirror() {
         if (!latexEditor) return;
 
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const cmTheme = currentTheme === 'light' ? 'default' : 'dracula';
+
         cm = CodeMirror.fromTextArea(latexEditor, {
             mode: "stex",
-            theme: "dracula",
+            theme: cmTheme,
             lineNumbers: true,
             lineWrapping: true,
             tabSize: 4,
@@ -347,6 +350,17 @@
         setTimeout(() => {
             if (cm) cm.refresh();
         }, 100);
+
+        // Listen for global theme changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'data-theme') {
+                    const newTheme = document.documentElement.getAttribute('data-theme');
+                    if (cm) cm.setOption('theme', newTheme === 'light' ? 'default' : 'dracula');
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
     }
 
     function setEditorValue(val) {
