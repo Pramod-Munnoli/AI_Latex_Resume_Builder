@@ -18,20 +18,28 @@
         if (cachedUser) updateAuthUI({ user: cachedUser });
 
         try {
-            await window.initSupabase((event, session) => {
-                currentUser = session?.user || null;
-                window._currentUser = currentUser; // Set global ref for other modules
-                updateAuthUI(session);
+            // Check if already initialized by another script
+            if (!window._supabase) {
+                await window.initSupabase((event, session) => {
+                    currentUser = session?.user || null;
+                    window._currentUser = currentUser;
+                    updateAuthUI(session);
 
-                // Handle specific auth events
-                if (event === "PASSWORD_RECOVERY") openAuthModal("update");
-                else if (event === "SIGNED_IN") {
-                    closeAuthModal();
-                    if (window.location.pathname.includes("ai-builder.html") && window.loadLastSavedResume) {
-                        window.loadLastSavedResume();
+                    if (event === "PASSWORD_RECOVERY") openAuthModal("update");
+                    else if (event === "SIGNED_IN") {
+                        closeAuthModal();
+                        if (window.location.pathname.includes("ai-builder.html") && window.loadLastSavedResume) {
+                            window.loadLastSavedResume();
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                // Attach listener if already initialized? 
+                // Currently auth-core only supports one listener in init, 
+                // but we can just get the user.
+                const { data } = await window._supabase.auth.getUser();
+                updateAuthUI({ user: data.user });
+            }
         } catch (err) {
             console.error("Supabase fail", err);
         }
