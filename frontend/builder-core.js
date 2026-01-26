@@ -74,11 +74,18 @@
     // --- PDF RENDERING ---
     window.loadPDF = async function (url) {
         if (!url) return;
+
+        // Normalize URL if relative
+        let finalUrl = url;
+        if (finalUrl.startsWith('/') && window.API_BASE) {
+            finalUrl = window.API_BASE + finalUrl;
+        }
+
         const loader = $('pdfPreviewLoader');
         if (loader) loader.style.display = 'flex';
 
         try {
-            const loadingTask = pdfjsLib.getDocument(url);
+            const loadingTask = pdfjsLib.getDocument(finalUrl);
             pdfDoc = await loadingTask.promise;
 
             const pageCountEl = $('pageCount');
@@ -86,7 +93,7 @@
             if (pageCountEl) pageCountEl.textContent = pdfDoc.numPages;
             if (pageNumEl) pageNumEl.textContent = 1;
 
-            await renderAllPages();
+            const renderSuccess = await renderAllPages();
 
             setTimeout(() => {
                 window.updateVisualScale();
@@ -94,8 +101,11 @@
                 if (viewer) viewer.scrollTop = 0;
             }, 100);
 
+            return renderSuccess;
+
         } catch (err) {
             console.error('Error loading PDF:', err);
+            return false;
         } finally {
             if (loader) loader.style.display = 'none';
         }
@@ -122,6 +132,7 @@
 
             await page.render({ canvasContext: context, viewport: viewport }).promise;
         }
+        return true;
     }
 
     window.updateVisualScale = function () {
@@ -167,11 +178,7 @@
 
             window.setEditorValue(data.latex || "");
 
-            // Normalize PDF URL
-            let pdfUrl = data.pdfUrl || "/files/resume.pdf";
-            if (pdfUrl.startsWith('/') && window.API_BASE) pdfUrl = window.API_BASE + pdfUrl;
-
-            await window.loadPDF(pdfUrl);
+            await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
 
             window.setStatus("Compiled successfully", "success");
 
@@ -210,11 +217,7 @@
 
             if (!resp.ok) throw new Error(data.error || "Recompile failed");
 
-            // Normalize PDF URL
-            let pdfUrl = data.pdfUrl || "/files/resume.pdf";
-            if (pdfUrl.startsWith('/') && window.API_BASE) pdfUrl = window.API_BASE + pdfUrl;
-
-            await window.loadPDF(pdfUrl);
+            await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
             originalLatexCode = latex;
             hasChanges = false;
 
@@ -264,8 +267,19 @@
 
             if (data && data.latex_content) {
                 window.setEditorValue(data.latex_content);
-                if (data.pdf_url) await window.loadPDF(data.pdf_url);
-                window.setStatus("Latest version loaded", "success");
+
+                let success = false;
+                if (data.pdf_url) {
+                    success = await window.loadPDF(data.pdf_url);
+                }
+
+                // If PDF fails to load or doesn't exist, recompile automatically
+                if (!success && window.recompileLatex) {
+                    console.log("PDF missing or failed to load, recompiling...");
+                    await window.recompileLatex();
+                } else {
+                    window.setStatus("Latest version loaded", "success");
+                }
             }
         } catch (e) {
             console.warn("Load failed", e);
