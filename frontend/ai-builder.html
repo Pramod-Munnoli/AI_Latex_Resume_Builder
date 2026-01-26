@@ -98,6 +98,19 @@
 
                 <div id="codeView" class="editor-view active">
                     <textarea id="latexEditor" placeholder="Your generated LaTeX will appear here..."></textarea>
+
+                    <!-- No Resume Overlay -->
+                    <div id="no-resume-overlay" class="no-template-overlay" style="display: none;">
+                        <div class="no-template-content">
+                            <div class="no-template-icon">
+                                <i data-lucide="upload-cloud" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                            </div>
+                            <h2 class="no-template-title">No Resume Found</h2>
+                            <p>Upload your LinkedIn profile PDF above to generate your professional LaTeX resume.</p>
+                            <button onclick="document.getElementById('pdfInput').click()" class="no-template-btn">Upload
+                                LinkedIn PDF</button>
+                        </div>
+                    </div>
                 </div>
 
                 <section id="errorPanel" class="error-panel" style="display: none;">
@@ -168,6 +181,17 @@
                 <div id="pdfViewer" class="pdf-viewer grab">
                     <div id="pdfInnerContainer" class="pdf-inner-container">
                         <div id="pdfCanvasContainer" class="pdf-canvas-container"></div>
+
+                        <!-- No Preview Placeholder -->
+                        <div id="no-preview-placeholder" class="no-template-overlay" style="display: none;">
+                            <div class="no-template-content">
+                                <div class="no-template-icon">
+                                    <i data-lucide="brain-circuit" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                                </div>
+                                <h2 class="no-template-title">Ready for Generation</h2>
+                                <p>Generate your resume to see a real-time preview of your professional profile.</p>
+                            </div>
+                        </div>
                     </div>
                     <!-- Loading Overlay -->
                     <div id="pdfPreviewLoader" class="pdf-preview-loader" style="display: none;">

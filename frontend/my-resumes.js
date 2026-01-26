@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('resumes')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .eq('title', 'My Resume')
+                .eq('title', 'AI Generated Resume')
                 .maybeSingle();
 
             if (aiError && aiError.code !== 'PGRST116') {
@@ -177,39 +177,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let cardsHTML = '';
 
-        // Add AI Resume card if it exists
-        if (aiResume && aiResume.latex_content) {
-            const lastUpdated = aiResume.created_at;
-            cardsHTML += `
-                <div class="template-card" data-category="ai" data-template-id="ai-resume">
-                    <div class="template-header">
-                        <div class="template-icon-wrapper">
-                            <i data-lucide="brain-circuit"></i>
-                        </div>
-                        <span class="template-status-badge status-edited">
-                            AI Generated
-                        </span>
-                    </div>
-                    
-                    <div class="template-info">
-                        <h3 class="template-name">AI Resume</h3>
-                        <div class="template-meta">
-                            <div class="template-meta-item">
-                                <i data-lucide="check-circle-2"></i>
-                                <span class="template-meta-label">Status:</span>
-                                <span>Ready to use</span>
-                            </div>
-                            ${lastUpdated ? `
-                                <div class="template-meta-item">
-                                    <i data-lucide="calendar"></i>
-                                    <span class="template-meta-label">Generated:</span>
-                                    <span>${formatDate(new Date(lastUpdated))}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
+        // Always show AI Resume card
+        const aiGenerated = aiResume && aiResume.latex_content;
+        const lastUpdated = aiResume?.created_at;
 
-                    <div class="template-actions">
+        cardsHTML += `
+            <div class="template-card" data-category="ai" data-template-id="ai-resume">
+                <div class="template-header">
+                    <div class="template-icon-wrapper">
+                        <i data-lucide="brain-circuit"></i>
+                    </div>
+                    <span class="template-status-badge ${aiGenerated ? 'status-edited' : 'status-not-edited'}">
+                        ${aiGenerated ? 'AI Generated' : 'AI Powered'}
+                    </span>
+                </div>
+                
+                <div class="template-info">
+                    <h3 class="template-name">AI Resume</h3>
+                    <div class="template-meta">
+                        <div class="template-meta-item">
+                            <i data-lucide="${aiGenerated ? 'check-circle-2' : 'info'}"></i>
+                            <span class="template-meta-label">Status:</span>
+                            <span>${aiGenerated ? 'Ready to use' : 'Not generated yet'}</span>
+                        </div>
+                        ${aiGenerated && lastUpdated ? `
+                            <div class="template-meta-item">
+                                <i data-lucide="calendar"></i>
+                                <span class="template-meta-label">Generated:</span>
+                                <span>${formatDate(new Date(lastUpdated))}</span>
+                            </div>
+                        ` : `
+                            <div class="template-meta-item">
+                                <i data-lucide="sparkles"></i>
+                                <span>Build from LinkedIn PDF</span>
+                            </div>
+                        `}
+                    </div>
+                </div>
+
+                <div class="template-actions">
+                    ${aiGenerated ? `
                         <button type="button" onclick="window.location.href='editor.html?template=ai'" class="template-btn btn-open">
                             <i data-lucide="edit-3"></i>
                             Open in Editor
@@ -217,12 +224,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <button type="button" onclick="deleteAiResume('${aiResume.id}')" class="template-btn btn-reset" title="Delete Resume">
                             <i data-lucide="trash-2"></i>
                         </button>
-                    </div>
+                    ` : `
+                        <button type="button" onclick="window.location.href='ai-builder.html'" class="template-btn btn-open">
+                            <i data-lucide="zap"></i>
+                            Generate Now
+                        </button>
+                    `}
                 </div>
-            `;
-        }
+            </div>
+        `;
 
-        // Render each template card
+        // Render each template card - Sorted by 'Edited' status
         const categoryIcons = {
             'ats': 'bar-chart-3',
             'minimal': 'sparkles',
@@ -231,7 +243,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             'student': 'briefcase'
         };
 
-        cardsHTML += TEMPLATES.map(template => {
+        // Create a sorted copy of templates
+        const sortedTemplates = [...TEMPLATES].sort((a, b) => {
+            const aEdited = userResumes && userResumes[a.field];
+            const bEdited = userResumes && userResumes[b.field];
+            if (aEdited && !bEdited) return -1;
+            if (!aEdited && bEdited) return 1;
+            return 0;
+        });
+
+        cardsHTML += sortedTemplates.map(template => {
             const isEdited = userResumes && userResumes[template.field];
             const lastUpdated = userResumes?.updated_at;
             const lucideIcon = categoryIcons[template.category] || 'file-text';

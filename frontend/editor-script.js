@@ -36,10 +36,20 @@
         window.initLoader();
 
         // Use shared Supabase init
-        await window.initSupabase((event, session) => {
+        const supabase = await window.initSupabase((event, session) => {
             currentUser = session?.user || null;
             window._currentUser = currentUser;
         });
+
+        // CRITICAL: Explicitly get session before loading template 
+        // to avoid race conditions where currentUser is null during first load
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            currentUser = session?.user || null;
+            window._currentUser = currentUser;
+        } catch (err) {
+            console.warn("Session fetch failed", err);
+        }
 
         if (window.initCodeMirror) {
             window.initCodeMirror();
@@ -84,78 +94,127 @@
         cm.setSize("100%", "100%");
     }
 
+    /**
+     * ADVANCED CONTENT LOADER - State Isolation Rewrite
+     * Strictly isolates AI resumes from Template resumes to prevent cross-contamination.
+     */
     async function loadTemplate() {
+        console.log("[EDITOR] Initiating Deep Reset...");
+
+        // 1. PHYSICAL STATE ISOLATION
+        if (cm) {
+            cm.setValue("");
+            cm.clearHistory();
+        }
+
+        // Wipe all global routing flags
+        window._currentTemplateField = null;
+        window._currentTemplateName = null;
+        userHasCustomVersion = false;
+        hasChanges = false;
+        originalLatexCode = "";
+
+        // Identify target from URL
         const params = new URLSearchParams(window.location.search);
-        currentTemplateName = params.get('template') || params.get('templateName');
-        const noTemplateOverlay = $('no-template-overlay');
-        const noPreviewPlaceholder = $('no-preview-placeholder');
+        const rawTarget = params.get('template') || params.get('templateName') || "";
+        const target = rawTarget.trim();
 
-        if (!currentTemplateName) {
-            if (noTemplateOverlay) noTemplateOverlay.style.display = 'flex';
-            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'flex';
+        const noOverlay = $('no-template-overlay');
+        const noPreview = $('no-preview-placeholder');
 
-            // Trigger lucide icons if any in overlays
+        if (!target) {
+            console.log("[EDITOR] No target resume specified in URL.");
+            if (noOverlay) noOverlay.style.display = 'flex';
+            if (noPreview) noPreview.style.display = 'flex';
             if (window.lucide) window.lucide.createIcons();
             return;
         }
 
-        if (noTemplateOverlay) noTemplateOverlay.style.display = 'none';
-        if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
+        if (noOverlay) noOverlay.style.display = 'none';
+        if (noPreview) noPreview.style.display = 'none';
 
-        window.showLoader('Loading template...');
+        window.showLoader('Initializing Isolated Workspace...');
+
         try {
-            let code = "";
+            let finalizedCode = "";
+            const isAI = target.toLowerCase() === 'ai' || target.toLowerCase() === 'ai-resume' || target === 'AI Generated Resume';
 
-            if (currentTemplateName === 'ai') {
+            // --- BRANCH A: AI RESUME (Resumes Table) ---
+            if (isAI) {
+                console.log("[EDITOR] Entering AI MODE - Table: 'resumes'");
+
                 if (!currentUser) {
                     window.location.href = 'login.html';
                     return;
                 }
-                const { data } = await window._supabase
+
+                // Lock logic for AI mode
+                if (window.setResumeTitle) window.setResumeTitle('AI Generated Resume');
+                window._currentTemplateField = null; // Ensuring no template field is set (Critical)
+
+                const { data, error } = await window._supabase
                     .from('resumes')
-                    .select('*')
+                    .select('latex_content, pdf_url')
                     .eq('user_id', currentUser.id)
-                    .eq('title', 'My Resume')
+                    .eq('title', 'AI Generated Resume')
                     .maybeSingle();
 
+                if (error) throw error;
                 if (data) {
-                    code = data.latex_content;
+                    finalizedCode = data.latex_content;
                     if (data.pdf_url && window.loadPDF) {
-                        window.loadPDF(data.pdf_url);
+                        await window.loadPDF(data.pdf_url);
                     }
                 }
-            } else {
-                // Fetch default and user version in parallel
+            }
+            // --- BRANCH B: STANDARD TEMPLATE (Template Table) ---
+            else {
+                console.log(`[EDITOR] Entering TEMPLATE MODE: ${target} - Table: 'user_resumes'`);
+
+                const col = getTemplateColumn(target);
+                if (!col) {
+                    throw new Error(`Template '${target}' is not recognized correctly.`);
+                }
+
+                // Explicitly lock to Template Table column
+                window._currentTemplateField = col;
+                window._currentTemplateName = target;
+                if (window.setResumeTitle) window.setResumeTitle('My Resume');
+
                 const [defaultRes, userRes] = await Promise.all([
-                    window._supabase.from('latex_templates').select('latex_code').eq('template_name', currentTemplateName).single(),
+                    window._supabase.from('latex_templates').select('latex_code').eq('template_name', target).single(),
                     currentUser ? window._supabase.from('user_resumes').select('*').eq('user_id', currentUser.id).maybeSingle() : Promise.resolve({ data: null })
                 ]);
 
-                code = defaultRes.data?.latex_code;
-                const col = getTemplateColumn(currentTemplateName);
+                finalizedCode = defaultRes.data?.latex_code;
+
                 if (userRes.data && userRes.data[col]) {
-                    code = userRes.data[col];
+                    finalizedCode = userRes.data[col];
                     userHasCustomVersion = true;
                     currentTemplateSource = 'user';
                 } else {
                     currentTemplateSource = 'default';
                 }
 
-                // Auto-compile to generate the initial PDF preview
+                // Auto-compile template for preview
                 if (window.recompileLatex) {
-                    setTimeout(() => window.recompileLatex(), 500);
+                    setTimeout(() => window.recompileLatex(), 300);
                 }
             }
 
-            if (cm && code) {
-                cm.setValue(code);
-                originalLatexCode = code;
+            // 3. FINAL SYNC - Apply code to clean editor
+            if (cm && finalizedCode) {
+                cm.setValue(finalizedCode);
+                originalLatexCode = finalizedCode;
                 hasChanges = false;
+                cm.clearHistory();
+                console.log("[EDITOR] Workspace isolation complete.");
             }
 
             updateTemplateUI();
         } catch (e) {
-            console.error(e);
+            console.error("[EDITOR_FATAL]", e);
+            window.showToast("Critical Error loading resume content", "error");
         } finally {
             window.hideLoader();
         }

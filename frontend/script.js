@@ -13,6 +13,13 @@
     async function init() {
         window.initLoader();
 
+        // --- PRE-AUTH SETUP ---
+        // Set the core resume title based on the page immediately
+        const path = window.location.pathname;
+        if (path.includes("ai-builder.html")) {
+            if (window.setResumeTitle) window.setResumeTitle("AI Generated Resume");
+        }
+
         // Load cached user for fast UI feedback
         const cachedUser = window.loadUserCache();
         if (cachedUser) updateAuthUI({ user: cachedUser });
@@ -127,6 +134,7 @@
             if (window.initCodeMirror) window.initCodeMirror();
             if (window.setupToolbarFeatures) window.setupToolbarFeatures();
             if (window.setupResizer) window.setupResizer();
+            if (window.setupDragAndDrop) window.setupDragAndDrop();
             if (window.restorePanelSizes) window.restorePanelSizes();
 
             // Re-bind actions
@@ -180,90 +188,8 @@
             if (container) {
                 setTimeout(() => container.classList.add('panels-visible'), 100);
             }
-        } else if (path.includes("login.html") || path.includes("signup.html")) {
-            setupAuthPageListeners();
         }
-    }
-
-    // --- AUTH PAGE LOGIC ---
-    function setupAuthPageListeners() {
-        const form = $('authForm');
-        if (!form) return;
-
-        // Toggle Password Visibility
-        document.querySelectorAll('.password-toggle').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const input = this.previousElementSibling;
-                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                input.setAttribute('type', type);
-                // Update icon
-                const iconName = type === 'password' ? 'eye' : 'eye-off';
-                if (window.lucide) {
-                    this.innerHTML = `<i data-lucide="${iconName}"></i>`;
-                    window.lucide.createIcons();
-                } else {
-                    this.textContent = type === 'password' ? '👁' : '🚫';
-                }
-            });
-        });
-
-        // Form Submit
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = $('submitBtn');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = "Processing...";
-            window.showLoader("Authenticating...");
-
-            const email = $('email').value;
-            const password = $('password').value;
-            const isSignup = $('signupPage'); // check for body id
-            const errorDiv = $('authErrorMsg');
-            if (errorDiv) errorDiv.textContent = '';
-
-            try {
-                if (!window._supabase) {
-                    throw new Error("Authentication service unavailable");
-                }
-
-                if (isSignup) {
-                    const username = $('username').value;
-                    const confirmPass = $('confirmPassword').value;
-
-                    if (password !== confirmPass) throw new Error("Passwords do not match");
-
-                    const { data, error } = await window._supabase.auth.signUp({
-                        email,
-                        password,
-                        options: { data: { username } }
-                    });
-                    if (error) throw error;
-
-                    window.showToast("Account created!", "success");
-                    // Redirect or show message
-                    window.location.href = "my-resumes.html";
-
-                } else {
-                    // Login
-                    const { data, error } = await window._supabase.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-                    if (error) throw error;
-
-                    window.location.href = "my-resumes.html";
-                }
-            } catch (err) {
-                console.error(err);
-                if (errorDiv) errorDiv.textContent = err.message;
-                window.showToast(err.message, "error");
-                btn.disabled = false;
-                btn.textContent = originalText;
-            } finally {
-                window.hideLoader();
-            }
-        });
+        // Note: login.html and signup.html now use their own dedicated scripts (login.js, signup.js)
     }
 
     // Start App

@@ -156,9 +156,81 @@
     };
 
     // --- BUILDER ACTIONS ---
-    window.uploadPdf = async function () {
+    // --- BUILDER ACTIONS ---
+    window.setupDragAndDrop = function () {
+        const dropZone = $('dropZone');
+        const fileInput = $('pdfInput');
+        const fileNameDisplay = $('selectedFileName');
+
+        if (!dropZone || !fileInput) return;
+
+        // Click to browse
+        dropZone.onclick = function (e) {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        };
+
+        fileInput.onchange = function () {
+            if (fileInput.files.length > 0) {
+                handleFileSelection(fileInput.files[0]);
+            }
+        };
+
+        // Drag & Drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type !== "application/pdf") {
+                    window.setStatus("Only PDF files are allowed", "error");
+                    return;
+                }
+
+                // Update file input manually
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+
+                handleFileSelection(file);
+            }
+        }
+
+        function handleFileSelection(file) {
+            if (fileNameDisplay) {
+                fileNameDisplay.textContent = `Selected: ${file.name}`;
+                fileNameDisplay.style.display = 'block';
+            }
+            dropZone.classList.remove('is-empty');
+            // Optional: Auto-enable upload button styling if needed
+        }
+    };
+
+    window.uploadPdf = async function (fileArg) {
         const pdfInput = $('pdfInput');
-        const file = pdfInput.files && pdfInput.files[0];
+        // Prefer passed argument (if any), otherwise check input
+        const file = fileArg instanceof File ? fileArg : (pdfInput.files && pdfInput.files[0]);
+
         if (!file) {
             window.setStatus("Please select a PDF first", "warning");
             return;
@@ -176,8 +248,20 @@
 
             if (!resp.ok) throw new Error(data.error || "Upload failed");
 
-            window.setEditorValue(data.latex || "");
+            // Hide overlays as we now have content
+            const noResumeOverlay = $('no-resume-overlay');
+            const noPreviewPlaceholder = $('no-preview-placeholder');
+            if (noResumeOverlay) noResumeOverlay.style.display = 'none';
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
 
+            // Update filename if it wasn't already
+            const fileNameDisplay = $('selectedFileName');
+            if (fileNameDisplay && file.name) {
+                fileNameDisplay.textContent = `Selected: ${file.name}`;
+                fileNameDisplay.style.display = 'block';
+            }
+
+            window.setEditorValue(data.latex || "");
             await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
 
             window.setStatus("Compiled successfully", "success");
@@ -233,22 +317,45 @@
         }
     };
 
+    let activeResumeTitle = "My Resume";
+
+    window.setResumeTitle = function (title) {
+        if (title) activeResumeTitle = title;
+    };
+
     window.saveToSupabase = async function (latex, pdfUrl) {
         if (!window._supabase || !window._currentUser) return;
 
         try {
-            let permUrl = pdfUrl;
-            // logic to upload to storage if needed... (Condensed for performance)
-            const { error } = await window._supabase
-                .from("resumes")
-                .upsert({
+            // If we are editing a specific template (ATS, Minimal, etc.), save to user_resumes table
+            if (window._currentTemplateField) {
+                const updateData = {
                     user_id: window._currentUser.id,
-                    title: "My Resume",
-                    latex_content: latex,
-                    pdf_url: permUrl,
-                    created_at: new Date().toISOString()
-                }, { onConflict: 'user_id,title' });
-            if (error) throw error;
+                    updated_at: new Date().toISOString()
+                };
+                updateData[window._currentTemplateField] = latex;
+
+                const { error } = await window._supabase
+                    .from("user_resumes")
+                    .upsert(updateData, { onConflict: 'user_id' });
+
+                if (error) throw error;
+                console.log("Template saved to user_resumes");
+            }
+            // Otherwise, save to the general resumes table (for AI generated or standalone resumes)
+            else {
+                const { error } = await window._supabase
+                    .from("resumes")
+                    .upsert({
+                        user_id: window._currentUser.id,
+                        title: activeResumeTitle,
+                        latex_content: latex,
+                        pdf_url: pdfUrl,
+                        created_at: new Date().toISOString()
+                    }, { onConflict: 'user_id,title' });
+                if (error) throw error;
+                console.log("Resume saved to resumes table");
+            }
         } catch (e) {
             console.warn("Cloud save failed", e);
         }
@@ -257,15 +364,22 @@
     window.loadLastSavedResume = async function () {
         if (!window._supabase || !window._currentUser) return;
 
+        const noResumeOverlay = $('no-resume-overlay');
+        const noPreviewPlaceholder = $('no-preview-placeholder');
+
         try {
             const { data } = await window._supabase
                 .from("resumes")
                 .select("*")
                 .eq("user_id", window._currentUser.id)
-                .eq("title", "My Resume")
+                .eq("title", activeResumeTitle)
                 .maybeSingle();
 
             if (data && data.latex_content) {
+                // Hide overlays if content exists
+                if (noResumeOverlay) noResumeOverlay.style.display = 'none';
+                if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
+
                 window.setEditorValue(data.latex_content);
 
                 let success = false;
@@ -280,6 +394,12 @@
                 } else {
                     window.setStatus("Latest version loaded", "success");
                 }
+            } else {
+                // No existing resume found, show overlays to guide user
+                console.log("No existing resume found for title:", activeResumeTitle);
+                if (noResumeOverlay) noResumeOverlay.style.display = 'flex';
+                if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'flex';
+                if (window.lucide) window.lucide.createIcons();
             }
         } catch (e) {
             console.warn("Load failed", e);
