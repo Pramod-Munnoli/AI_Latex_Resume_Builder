@@ -54,6 +54,14 @@
         if (window.setupResizer) window.setupResizer();
         if (window.restorePanelSizes) window.restorePanelSizes();
 
+        // Ensure visibility
+        const container = document.querySelector('.editor-container');
+        if (container) {
+            setTimeout(() => {
+                container.classList.add('panels-visible');
+            }, 100);
+        }
+
         setupEditorListeners();
     }
 

@@ -106,6 +106,11 @@
                 openAuthModal();
             }
         });
+
+        $('profileAvatar')?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            $('profileMenu')?.classList.toggle('active');
+        });
     }
 
     function handlePageSpecificInit() {
@@ -127,10 +132,46 @@
             if (currentUser && window.loadLastSavedResume) {
                 window.loadLastSavedResume();
             }
+
+            // Restore entrance animations for AI Builder
+            const triggers = [
+                { s: '.ai-builder-hero h1', type: 'style', prop: 'opacity', val: '1' },
+                { s: '.ai-builder-hero h1', type: 'style', prop: 'visibility', val: 'visible' },
+                { s: '.ai-builder-hero p', type: 'style', prop: 'opacity', val: '1' },
+                { s: '.ai-builder-hero p', type: 'style', prop: 'visibility', val: 'visible' },
+                { s: '.instruction-step', type: 'class', val: 'is-visible' },
+                { s: '.upload-container', type: 'class', val: 'is-visible' }
+            ];
+
+            setTimeout(() => {
+                const heroH1 = document.querySelector('.ai-builder-hero h1');
+                if (heroH1) {
+                    heroH1.style.opacity = '1';
+                    heroH1.style.visibility = 'visible';
+                }
+                const heroP = document.querySelector('.ai-builder-hero p');
+                if (heroP) {
+                    heroP.style.opacity = '1';
+                    heroP.style.visibility = 'visible';
+                }
+                document.querySelectorAll('.instruction-step').forEach(el => el.style.opacity = '1');
+                const uploadBox = document.querySelector('.upload-container');
+                if (uploadBox) uploadBox.style.opacity = '1';
+            }, 100);
+
+            const workspace = document.querySelector('.ai-builder-workspace');
+            if (workspace) {
+                setTimeout(() => workspace.classList.add('panels-visible'), 200);
+            }
         } else if (path.includes("editor.html")) {
             // Editor handles most of its own init for now
             if (window.setupResizer) window.setupResizer();
             if (window.restorePanelSizes) window.restorePanelSizes();
+
+            const container = document.querySelector('.editor-container');
+            if (container) {
+                setTimeout(() => container.classList.add('panels-visible'), 100);
+            }
         }
     }
 
