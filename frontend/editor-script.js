@@ -406,19 +406,20 @@
 
 
 
-        // Check if there are any changes to compile
+        // Always allow recompilation 
         const currentLatex = cm.getValue();
-        if (!hasChanges && currentLatex === originalLatexCode) {
-            showAlert('No changes to compile. Edit the code first!', 'info');
+        if (!currentLatex.trim()) {
+            setStatus('Editor is empty!', 'error');
             return;
         }
 
         try {
             // 1. Check authentication
             const { data: { user } } = await supabase.auth.getUser();
+            currentUser = user; // Update local state just in case
 
             if (!user) {
-                setStatus('Please login to save changes', 'error');
+                // Redirect immediately if not logged in
                 window.location.href = 'login.html';
                 return;
             }
@@ -431,9 +432,9 @@
 
             setStatus('Recompiling and saving...', 'info');
 
-            // 4. Handle special AI Resume case
+            // 3. Save to database
+            // Handle special AI Resume case
             if (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume') {
-                // Keep a timestamped URL in the database to ensure external links are fresh
                 const versionedPdfUrl = lastCompiledPdfUrl ? (lastCompiledPdfUrl.includes('?') ? lastCompiledPdfUrl : `${lastCompiledPdfUrl}?v=${Date.now()}`) : null;
 
                 const { error: aiError } = await supabase
@@ -448,11 +449,9 @@
 
                 if (aiError) throw aiError;
             } else {
-                // Determine which column to update for template
                 const columnName = getTemplateColumn(currentTemplateName);
                 if (!columnName) throw new Error('Invalid template column mapping');
 
-                // 5. Check if user row exists in user_resumes
                 const { data: existingRow, error: checkError } = await supabase
                     .from('user_resumes')
                     .select('user_id')
@@ -461,7 +460,6 @@
 
                 if (checkError) throw checkError;
 
-                // 6. INSERT or UPDATE template resume
                 if (!existingRow) {
                     const { error: insertError } = await supabase
                         .from('user_resumes')
@@ -483,18 +481,15 @@
                 }
             }
 
-            // 7. Update original code and compile
-            originalLatexCode = currentLatex;
-            hasChanges = false;
-
-            // 8. Compile to PDF
-            await compileLatex(currentLatex);
-
-            // 9. Update state - user now has custom version
+            // Update state - user now has custom version
             userHasCustomVersion = true;
             currentTemplateSource = 'user';
             updateVersionButtons();
+            originalLatexCode = currentLatex;
+            hasChanges = false;
 
+            // 4. Compile to PDF
+            await compileLatex(currentLatex);
             setStatus('Saved and compiled successfully!', 'success');
 
         } catch (error) {
