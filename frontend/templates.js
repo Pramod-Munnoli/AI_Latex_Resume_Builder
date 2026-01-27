@@ -92,10 +92,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Fetch template IDs from database
     async function loadTemplateIds() {
+        console.log('[Templates] API_BASE:', API_BASE);
         try {
-            const response = await fetch(`${API_BASE}/api/templates`);
+            const url = `${API_BASE}/api/templates`.replace(/([^:])\/\//g, '$1/');
+            console.log('[Templates] Fetching from:', url);
+            const response = await fetch(url);
             if (!response.ok) {
-                console.error('Failed to fetch template IDs:', response.status);
+                console.error('[Templates] Fetch failed:', response.status);
                 return;
             }
             const data = await response.json();
@@ -105,9 +108,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 templateIdMap[template.template_name] = template.id;
             });
 
-            // Template IDs loaded
+            console.log('[Templates] Mapping loaded:', Object.keys(templateIdMap).length);
         } catch (error) {
-            console.error('Error loading template IDs:', error);
+            console.error('[Templates] Error loading template IDs:', error);
         }
     }
 

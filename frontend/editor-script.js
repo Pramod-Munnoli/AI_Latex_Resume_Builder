@@ -125,11 +125,18 @@
 
     // Initialize Supabase
     async function initSupabase() {
+        console.log('[Init] API_BASE:', API_BASE);
         try {
-            const resp = await fetch(`${API_BASE}/api/config`);
-            if (!resp.ok) throw new Error(`Server responded with ${resp.status}`);
-            const config = await resp.json();
+            const configUrl = `${API_BASE}/api/config`.replace(/([^:])\/\//g, '$1/');
+            console.log('[Init] Fetching config from:', configUrl);
+            const resp = await fetch(configUrl);
 
+            if (!resp.ok) {
+                console.error(`[Init] Config failed: ${resp.status}`);
+                throw new Error(`Server responded with ${resp.status}`);
+            }
+
+            const config = await resp.json();
             if (config.supabaseUrl && config.supabaseAnonKey) {
                 supabase = window.supabase.createClient(
                     config.supabaseUrl.trim(),
@@ -144,10 +151,11 @@
                 // Get current session
                 const { data: { session } } = await supabase.auth.getSession();
                 currentUser = session?.user || null;
+                console.log('[Init] Supabase set up. User:', currentUser ? currentUser.email : 'Guest');
             }
         } catch (err) {
-            console.warn('Supabase initialization excluded: ' + err.message);
-            supabase = null; // Explicitly set to null to trigger fallbacks
+            console.warn('[Init] Supabase initialization failed: ' + err.message);
+            supabase = null; // Trigger fallbacks
         }
     }
 
@@ -255,21 +263,29 @@
                     }
                 }
 
-                // 3. Fallback to default template from latex_templates
+                // 3. Fallback to default template from back-end API (more reliable)
                 if (!latexCode) {
-                    if (!supabase) {
-                        throw new Error("Cannot load template: Connection to database failed.");
-                    }
-                    const { data: defaultData, error: defaultError } = await supabase
-                        .from('latex_templates')
-                        .select('latex_code')
-                        .eq('template_name', currentTemplateName)
-                        .maybeSingle();
+                    const templateId = params.templateId;
+                    const fetchUrl = templateId
+                        ? `${API_BASE}/api/templates/${templateId}`
+                        : `${API_BASE}/api/templates/by-name/${currentTemplateName}`;
 
-                    if (defaultError || !defaultData) {
-                        throw new Error('Failed to load template: ' + (defaultError?.message || 'Template not found'));
+                    const cleanFetchUrl = fetchUrl.replace(/([^:])\/\//g, '$1/');
+                    console.log('[Load] Fetching template from:', cleanFetchUrl);
+
+                    const resp = await fetch(cleanFetchUrl);
+                    if (!resp.ok) {
+                        throw new Error(`Failed to load template from API: ${resp.status}`);
                     }
-                    latexCode = defaultData.latex_code;
+
+                    const data = await resp.json();
+                    const templateData = data.template;
+
+                    if (!templateData || !templateData.latex_code) {
+                        throw new Error('Template data is empty or missing');
+                    }
+
+                    latexCode = templateData.latex_code;
                     currentTemplateSource = 'default';
                 }
             }

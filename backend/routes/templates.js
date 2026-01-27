@@ -56,4 +56,26 @@ router.get('/templates/:id', async (req, res) => {
     }
 });
 
+// Fetch a specific template by Name
+router.get('/templates/by-name/:name', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('latex_templates')
+            .select('*')
+            .eq('template_name', req.params.name)
+            .maybeSingle();
+
+        if (error || !data) {
+            return res.status(404).json({
+                error: 'Template not found'
+            });
+        }
+
+        res.json({ template: data });
+    } catch (err) {
+        console.error('Error in /api/templates/by-name/:name:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;

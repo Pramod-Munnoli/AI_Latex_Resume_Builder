@@ -18,20 +18,21 @@ const deleteAccountRouter = require("./routes/delete-account");
 const frontendDir = path.join(__dirname, "..", "frontend");
 const tempDir = path.join(__dirname, "temp");
 
+// Serve public config for frontend
+app.get("/api/config", (req, res) => {
+  console.log('[API] serving /api/config');
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+  });
+});
+
 app.use("/api", chatRouter);
 app.use("/api", uploadRouter);
 app.use("/api", recompileRouter);
 app.use("/api", templatesRouter);
 app.use("/api", userResumesRouter);
 app.use("/api/user", deleteAccountRouter);
-
-// Serve public config for frontend
-app.get("/api/config", (req, res) => {
-  res.json({
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY
-  });
-});
 
 // Serve compiled files (PDF) with no-cache for fresh reloads
 app.use("/files", express.static(tempDir, {
