@@ -23,9 +23,7 @@
     // API Base URL
     const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
         ? (window.location.port === "3000" ? "" : "http://localhost:3000")
-        : (window.location.hostname.includes("vercel.app")
-            ? "" // Also relative if on Vercel (using Vercel rewrites or same-domain API)
-            : "https://ai-latex-resume-builder.onrender.com");
+        : "https://ai-latex-resume-builder.onrender.com";
 
     function $(id) { return document.getElementById(id); }
 
