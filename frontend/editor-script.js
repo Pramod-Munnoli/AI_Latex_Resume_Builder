@@ -146,7 +146,8 @@
                 currentUser = session?.user || null;
             }
         } catch (err) {
-            console.error('Failed to initialize Supabase:', err);
+            console.warn('Supabase initialization excluded: ' + err.message);
+            supabase = null; // Explicitly set to null to trigger fallbacks
         }
     }
 
@@ -170,6 +171,7 @@
             currentTemplateName = params.template || params.templateName;
 
             if (!currentTemplateName) {
+                // ... (keep overlay handling)
                 // Show overlays
                 const noTemplateOverlay = document.getElementById('no-template-overlay');
                 const noPreviewPlaceholder = document.getElementById('no-preview-placeholder');
@@ -198,8 +200,12 @@
             let latexCode = null;
             let isUserVersion = false;
 
-            // Fetch user info first
-            const { data: { user } } = await supabase.auth.getUser();
+            // Fetch user info first (safely)
+            let user = null;
+            if (supabase) {
+                const { data } = await supabase.auth.getUser();
+                user = data?.user;
+            }
             currentUser = user;
 
             // 1. Handle special AI Resume case
@@ -251,6 +257,9 @@
 
                 // 3. Fallback to default template from latex_templates
                 if (!latexCode) {
+                    if (!supabase) {
+                        throw new Error("Cannot load template: Connection to database failed.");
+                    }
                     const { data: defaultData, error: defaultError } = await supabase
                         .from('latex_templates')
                         .select('latex_code')
@@ -292,8 +301,15 @@
 
         } catch (error) {
             console.error('Error loading template:', error);
-            setStatus('Error loading template: ' + error.message, 'error');
-            hideLoader(); // Ensure loader is hidden on total failure
+            // Hide loader first
+            hideLoader();
+
+            // Suppress error status for expected guest behavior or provide friendlier message
+            if (error.message.includes("Connection to database failed") || error.message.includes("null") || error.message.includes("'auth'")) {
+                setStatus('Loaded in guest mode', 'warning');
+            } else {
+                setStatus('Error: ' + error.message, 'error');
+            }
         }
     }
 
@@ -414,9 +430,15 @@
         }
 
         try {
-            // 1. Check authentication
-            const { data: { user } } = await supabase.auth.getUser();
-            currentUser = user; // Update local state just in case
+            // 1. Check authentication (Only if Supabase is available)
+            let user = null;
+            if (supabase) {
+                const { data } = await supabase.auth.getUser();
+                user = data?.user;
+            } else {
+                console.warn("Supabase client not initialized. Proceeding as guest.");
+            }
+            currentUser = user;
 
             if (!user) {
                 // Redirect immediately if not logged in
