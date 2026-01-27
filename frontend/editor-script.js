@@ -169,7 +169,13 @@
 
     async function loadTemplate() {
         try {
-            showLoader('Fetching template code...');
+            // Remove global loader
+            // showLoader('Fetching template code...');
+
+            // Show skeleton instead
+            const skeletonLoader = document.getElementById('pdfPreviewLoader');
+            if (skeletonLoader) skeletonLoader.style.display = 'flex';
+
             setStatus('Loading template...', 'info');
 
             // Get template name from URL
@@ -556,8 +562,13 @@
      */
     async function handleLoadUserVersion() {
         try {
-            showLoader('Loading your saved version...');
+            // Remove global loader
+            // showLoader('Loading your saved version...');
             setStatus('Loading your saved version...', 'info');
+
+            // Show skeleton instead
+            const skeletonLoader = document.getElementById('pdfPreviewLoader');
+            if (skeletonLoader) skeletonLoader.style.display = 'flex';
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -593,6 +604,10 @@
             const cleanNew = userTemplate[columnName] ? userTemplate[columnName].trim() : "";
 
             if (cleanPrev !== cleanNew || !pdfDoc) {
+                // Show skeleton loader immediately before compilation starts
+                const skeletonLoader = document.getElementById('pdfPreviewLoader');
+                if (skeletonLoader) skeletonLoader.style.display = 'flex';
+
                 await compileLatex(userTemplate[columnName]);
                 setStatus('Your saved version loaded', 'success');
             } else {
@@ -640,10 +655,14 @@
      */
     async function handleLoadOriginal() {
         try {
-            showLoader('Loading original template...');
+            // Remove global loader
+            // showLoader('Loading original template...');
             setStatus('Loading original template...', 'info');
 
-            // Load default template from database
+            // Show skeleton instead
+            const skeletonLoader = document.getElementById('pdfPreviewLoader');
+            if (skeletonLoader) skeletonLoader.style.display = 'flex';
+
             const { data: defaultTemplate, error } = await supabase
                 .from('latex_templates')
                 .select('latex_code')
@@ -673,6 +692,10 @@
             const cleanNew = defaultTemplate.latex_code ? defaultTemplate.latex_code.trim() : "";
 
             if (cleanPrev !== cleanNew || !pdfDoc) {
+                // Show skeleton loader immediately before compilation starts
+                const skeletonLoader = document.getElementById('pdfPreviewLoader');
+                if (skeletonLoader) skeletonLoader.style.display = 'flex';
+
                 await compileLatex(defaultTemplate.latex_code);
                 setStatus('Original template loaded', 'success');
             } else {

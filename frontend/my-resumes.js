@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase and check authentication
     async function init() {
         try {
-            setLoader(true, 'Loading your resumes...');
+            // Remove global loader - skeleton cards will show instead
+            // setLoader(true, 'Loading your resumes...');
 
             const resp = await fetch(`${API_BASE}/api/config`);
             const config = await resp.json();
@@ -72,9 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             console.error("Init failed", err);
             showToast('Failed to load resumes', 'error');
-        } finally {
-            setLoader(false);
         }
+        // finally {
+        //     setLoader(false);
+        // }
     }
 
     // Load user's resumes

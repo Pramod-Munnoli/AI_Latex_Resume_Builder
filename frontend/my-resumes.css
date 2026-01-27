@@ -479,3 +479,75 @@
     border-color: rgba(239, 68, 68, 0.4);
     transform: translateY(-2px);
 }
+/* Skeleton Card Styles */
+.skeleton-card {
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.skeleton-shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.5s infinite;
+    z-index: 1;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.skeleton-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+}
+
+.skeleton-badge {
+    width: 80px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+}
+
+.skeleton-title {
+    width: 70%;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.skeleton-meta-line {
+    width: 100%;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.skeleton-meta-line.short {
+    width: 60%;
+}
+
+.skeleton-btn {
+    flex: 1;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+}
+
+.skeleton-btn.small {
+    flex: 0 0 50px;
+}
