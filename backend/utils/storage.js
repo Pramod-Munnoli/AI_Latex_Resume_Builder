@@ -26,22 +26,6 @@ async function uploadToStorage(localFilePath, userId, bucketName = 'resumes') {
         // This ensures each user has their own unique path and only ONE resume at a time
         const storagePath = `users/${userId}/resume.pdf`;
 
-        // Use service role for admin tasks like listing/creating buckets
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some(b => b.name === bucketName);
-
-        if (!bucketExists) {
-            console.log(`Creating public bucket: ${bucketName}`);
-            await supabase.storage.createBucket(bucketName, {
-                public: true,
-                allowedMimeTypes: ['application/pdf']
-            });
-        }
-
-        // Explicitly remove the old file first to force a fresh upload/CDN invalidation
-        console.log(`Ensuring fresh upload by removing existing file at: ${storagePath}`);
-        await supabase.storage.from(bucketName).remove([storagePath]);
-
         // Upload file to Supabase Storage
         console.log(`Uploading to Supabase: ${bucketName}/${storagePath} (size: ${fileBuffer.length} bytes, cacheControl: no-cache)`);
         const { data, error } = await supabase.storage

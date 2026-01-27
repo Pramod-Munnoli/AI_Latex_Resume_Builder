@@ -3,8 +3,10 @@ const express = require("express");
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env"), override: true });
 const cors = require("cors");
+const compression = require("compression");
 
 const app = express();
+app.use(compression({ threshold: 0 })); // Force compression for all files
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 

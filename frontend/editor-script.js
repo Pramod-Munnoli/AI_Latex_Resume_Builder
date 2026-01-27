@@ -468,53 +468,35 @@
 
             setStatus('Recompiling and saving...', 'info');
 
-            // 3. Save to database
-            // Handle special AI Resume case
+            // 3. Save to database using atomic upserts
+            // This reduces network round-trips and prevents race conditions
             if (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume') {
                 const versionedPdfUrl = lastCompiledPdfUrl ? (lastCompiledPdfUrl.includes('?') ? lastCompiledPdfUrl : `${lastCompiledPdfUrl}?v=${Date.now()}`) : null;
 
                 const { error: aiError } = await supabase
                     .from('resumes')
-                    .update({
+                    .upsert({
+                        user_id: user.id,
+                        title: 'AI Generated Resume',
                         latex_content: currentLatex,
                         pdf_url: versionedPdfUrl,
                         updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', user.id)
-                    .eq('title', 'AI Generated Resume');
+                    }, { onConflict: 'user_id,title' });
 
                 if (aiError) throw aiError;
             } else {
                 const columnName = getTemplateColumn(currentTemplateName);
                 if (!columnName) throw new Error('Invalid template column mapping');
 
-                const { data: existingRow, error: checkError } = await supabase
+                const { error: saveError } = await supabase
                     .from('user_resumes')
-                    .select('user_id')
-                    .eq('user_id', user.id)
-                    .maybeSingle();
+                    .upsert({
+                        user_id: user.id,
+                        [columnName]: currentLatex,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id' });
 
-                if (checkError) throw checkError;
-
-                if (!existingRow) {
-                    const { error: insertError } = await supabase
-                        .from('user_resumes')
-                        .insert({
-                            user_id: user.id,
-                            [columnName]: currentLatex,
-                            updated_at: new Date().toISOString()
-                        });
-                    if (insertError) throw insertError;
-                } else {
-                    const { error: updateError } = await supabase
-                        .from('user_resumes')
-                        .update({
-                            [columnName]: currentLatex,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('user_id', user.id);
-                    if (updateError) throw updateError;
-                }
+                if (saveError) throw saveError;
             }
 
             // Update state - user now has custom version
@@ -732,15 +714,12 @@
 
     async function loadPDF(url) {
         const loader = document.getElementById('pdfPreviewLoader');
-        const status = document.getElementById('pdfLoaderStatus');
         if (loader) loader.style.display = 'flex';
-        if (status) status.textContent = 'Loading Document...';
 
         try {
             const loadingTask = pdfjsLib.getDocument(url);
             pdfDoc = await loadingTask.promise;
 
-            if (status) status.textContent = 'Rendering Pages...';
             document.getElementById('pageCount').textContent = pdfDoc.numPages;
             const pageNumEl = document.getElementById('pageNum');
             if (pageNumEl) pageNumEl.textContent = 1;
