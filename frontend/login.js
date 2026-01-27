@@ -91,8 +91,14 @@
                 if (error) throw error;
 
                 // Success - redirect to dashboard
-                window.showToast("Login successful!", "success");
-                window.location.href = "my-resumes.html";
+                const successDiv = $('authMessage');
+                if (successDiv) {
+                    successDiv.textContent = "Login successful! Redirecting...";
+                    successDiv.style.display = 'block';
+                }
+                setTimeout(() => {
+                    window.location.href = "my-resumes.html";
+                }, 500);
 
             } catch (err) {
                 console.error("Login error:", err);
@@ -103,7 +109,6 @@
                     errorDiv.textContent = errorMessage;
                     errorDiv.style.display = 'block';
                 }
-                window.showToast(errorMessage, "error");
 
                 // Reset button
                 btn.disabled = false;

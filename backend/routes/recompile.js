@@ -34,14 +34,22 @@ router.post("/recompile", async (req, res) => {
     const user = await getAuthenticatedUser(req);
     const userId = user ? user.id : 'guest';
 
+    console.log(`[Recompile] Starting request ${requestId} for user ${userId}`);
+
     const safeLatex = sanitizeLatex(latex);
+    console.log(`[Recompile] Writing LaTeX to ${requestTempDir}...`);
     await writeLatexToTemp(requestTempDir, safeLatex);
+
+    console.log(`[Recompile] Compiling LaTeX...`);
     const { stdout, stderr } = await compileLatex(requestTempDir);
     const log = `${stdout || ""}\n${stderr || ""}`.trim();
+    console.log(`[Recompile] Compilation finished. Log length: ${log.length}`);
 
     // Upload to Supabase Storage (S3-compatible) in user folder
     const pdfPath = path.join(requestTempDir, "resume.pdf");
+    console.log(`[Recompile] Uploading PDF to storage...`);
     const publicUrl = await uploadToStorage(pdfPath, userId);
+    console.log(`[Recompile] Upload successful: ${publicUrl}`);
 
     // Append cache buster
     const cacheBuster = `?t=${Date.now()}`;

@@ -143,8 +143,14 @@
                 }
 
                 // Success
-                window.showToast("Account created successfully!", "success");
-                window.location.href = "my-resumes.html";
+                const successDiv = $('authMessage');
+                if (successDiv) {
+                    successDiv.textContent = "Account created successfully! Redirecting...";
+                    successDiv.style.display = 'block';
+                }
+                setTimeout(() => {
+                    window.location.href = "my-resumes.html";
+                }, 1000);
 
             } catch (err) {
                 console.error("Signup error:", err);
@@ -152,7 +158,6 @@
                 // Show error message
                 const errorMessage = getErrorMessage(err);
                 showError(errorDiv, errorMessage);
-                window.showToast(errorMessage, "error");
 
                 // Reset button
                 btn.disabled = false;

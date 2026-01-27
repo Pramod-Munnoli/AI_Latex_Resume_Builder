@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('user_resumes')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .single();
+                .maybeSingle();
 
             if (error && error.code !== 'PGRST116') {
                 throw error;

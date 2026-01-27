@@ -23,7 +23,9 @@
     // API Base URL
     const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
         ? (window.location.port === "3000" ? "" : "http://localhost:3000")
-        : "https://ai-latex-resume-builder.onrender.com";
+        : (window.location.hostname.includes("vercel.app")
+            ? "" // Also relative if on Vercel (using Vercel rewrites or same-domain API)
+            : "https://ai-latex-resume-builder.onrender.com");
 
     function $(id) { return document.getElementById(id); }
 
@@ -192,20 +194,16 @@
                 if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
             }
 
-            // Start parallel fetching for better performance
-            const [authResult, defaultTemplateResult] = await Promise.all([
-                supabase.auth.getUser(),
-                supabase.from('latex_templates').select('latex_code').eq('template_name', currentTemplateName).single()
-            ]);
-
-            const { data: { user } } = authResult;
-            currentUser = user;
-
+            const isAIResume = (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume');
             let latexCode = null;
             let isUserVersion = false;
 
+            // Fetch user info first
+            const { data: { user } } = await supabase.auth.getUser();
+            currentUser = user;
+
             // 1. Handle special AI Resume case
-            if (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume') {
+            if (isAIResume) {
                 if (user) {
                     const { data: aiData, error: aiError } = await supabase
                         .from('resumes')
@@ -218,15 +216,12 @@
                         latexCode = aiData.latex_content;
                         lastCompiledPdfUrl = aiData.pdf_url;
                         isUserVersion = true;
-                        userHasCustomVersion = false; // It's an AI resume, not a template override
+                        userHasCustomVersion = false;
                         currentTemplateSource = 'ai';
                         currentTemplateId = 'ai';
 
-                        // Show Copy Link button for AI resumes
                         const copyLinkBtn = document.getElementById('copyLinkBtn');
-                        if (copyLinkBtn) {
-                            copyLinkBtn.style.display = 'flex';
-                        }
+                        if (copyLinkBtn) copyLinkBtn.style.display = 'flex';
                     } else {
                         throw new Error('No AI-generated resume found. Please create one in the AI Builder.');
                     }
@@ -234,35 +229,40 @@
                     window.location.href = 'login.html';
                     return;
                 }
-            }
-            // 2. Try to fetch user's custom version if logged in
-            else if (user) {
-                const columnName = getTemplateColumn(currentTemplateName);
-                if (columnName) {
-                    const { data: userTemplate, error: userError } = await supabase
-                        .from('user_resumes')
-                        .select(columnName)
-                        .eq('user_id', user.id)
-                        .maybeSingle();
+            } else {
+                // 2. Try to fetch user's custom version if logged in
+                if (user) {
+                    const columnName = getTemplateColumn(currentTemplateName);
+                    if (columnName) {
+                        const { data: userTemplate, error: userError } = await supabase
+                            .from('user_resumes')
+                            .select(columnName)
+                            .eq('user_id', user.id)
+                            .maybeSingle();
 
-                    if (!userError && userTemplate && userTemplate[columnName]) {
-                        latexCode = userTemplate[columnName];
-                        isUserVersion = true;
-                        userHasCustomVersion = true;
-                        currentTemplateSource = 'user';
-                    } else {
-                        userHasCustomVersion = false;
+                        if (!userError && userTemplate && userTemplate[columnName]) {
+                            latexCode = userTemplate[columnName];
+                            isUserVersion = true;
+                            userHasCustomVersion = true;
+                            currentTemplateSource = 'user';
+                        }
                     }
                 }
-            }
 
-            // 3. Fallback to default template if no user version found and not an AI resume
-            if (!latexCode) {
-                if (defaultTemplateResult.error) {
-                    throw new Error('Failed to load default template: ' + defaultTemplateResult.error.message);
+                // 3. Fallback to default template from latex_templates
+                if (!latexCode) {
+                    const { data: defaultData, error: defaultError } = await supabase
+                        .from('latex_templates')
+                        .select('latex_code')
+                        .eq('template_name', currentTemplateName)
+                        .maybeSingle();
+
+                    if (defaultError || !defaultData) {
+                        throw new Error('Failed to load template: ' + (defaultError?.message || 'Template not found'));
+                    }
+                    latexCode = defaultData.latex_code;
+                    currentTemplateSource = 'default';
                 }
-                latexCode = defaultTemplateResult.data.latex_code;
-                currentTemplateSource = 'default';
             }
 
             // 3. IMMEDIATELY populate editor and hide global loader
@@ -635,7 +635,7 @@
                 .from('latex_templates')
                 .select('latex_code')
                 .eq('template_name', currentTemplateName)
-                .single();
+                .maybeSingle();
 
             if (error) {
                 throw error;

@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('user_resumes')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .single();
+                .maybeSingle();
 
             if (templatesError && templatesError.code !== 'PGRST116') {
                 throw templatesError;
