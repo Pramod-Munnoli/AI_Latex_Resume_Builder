@@ -24,10 +24,6 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.303.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="common.js" defer></script>
-    <script src="auth-core.js" defer></script>
-    <script src="builder-core.js" defer></script>
-    <script src="script.js" defer></script>
     <script src="editor-script.js" defer></script>
 </head>
 
@@ -72,7 +68,7 @@
                 <textarea id="latexEditor" spellcheck="false" autocomplete="off"
                     placeholder="Loading template..."></textarea>
 
-                <!-- No Template Overlay -->
+                <!-- No Template Selected Overlay -->
                 <div id="no-template-overlay" class="no-template-overlay" style="display: none;">
                     <div class="no-template-content">
                         <div class="no-template-icon">
@@ -84,7 +80,6 @@
                     </div>
                 </div>
             </div>
-
 
 
 
@@ -126,8 +121,8 @@
                     <button id="fitWidthBtn" class="btn-icon" title="Fit to Width">
                         <i data-lucide="move-horizontal"></i>
                     </button>
-                    <button id="fitPageBtn" class="btn-icon" title="Fit to Page">
-                        <i data-lucide="maximize"></i>
+                    <button id="copyLinkBtn" class="btn-icon" title="Copy PDF Link" style="display: none;">
+                        <i data-lucide="link"></i>
                     </button>
                     <div class="divider"></div>
                     <div class="page-controls">
@@ -148,19 +143,18 @@
             <div id="pdfViewer" class="pdf-viewer grab">
                 <div id="pdfInnerContainer" class="pdf-inner-container">
                     <div id="pdfCanvasContainer" class="pdf-canvas-container"></div>
-                </div>
 
-                <!-- No Preview Placeholder -->
-                <div id="no-preview-placeholder" class="no-template-overlay" style="display: none;">
-                    <div class="no-template-content">
-                        <div class="no-template-icon">
-                            <i data-lucide="eye-off" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                    <!-- No Preview Available Placeholder -->
+                    <div id="no-preview-placeholder" class="no-template-overlay" style="display: none;">
+                        <div class="no-template-content">
+                            <div class="no-template-icon">
+                                <i data-lucide="eye-off" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                            </div>
+                            <h2 class="no-template-title">No Preview Available</h2>
+                            <p>Select a template to generate a preview of your professional resume.</p>
                         </div>
-                        <h2 class="no-template-title">No Preview Available</h2>
-                        <p>Select a template to generate a preview of your professional resume.</p>
                     </div>
                 </div>
-
                 <!-- Loading Overlay -->
                 <div id="pdfPreviewLoader" class="pdf-preview-loader" style="display: none;">
                     <div class="loader-content">

@@ -140,9 +140,6 @@
             // Re-bind actions
             $('uploadBtn')?.addEventListener("click", window.uploadPdf);
             $('recompileBtn')?.addEventListener("click", window.recompileLatex);
-            $('downloadBtn')?.addEventListener("click", () => {
-                window.open(`${API_BASE}/api/download`, "_blank");
-            });
 
             // If logged in, load resume
             if (currentUser && window.loadLastSavedResume) {

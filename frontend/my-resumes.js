@@ -56,13 +56,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             setLoader(true, 'Loading your resumes...');
 
-            // Use shared initSupabase from auth-core.js
-            await window.initSupabase((event, session) => {
-                // Optional: handle real-time auth changes if needed
-            });
-
-            supabase = window._supabase;
-            if (!supabase) throw new Error("Supabase not initialized");
+            const resp = await fetch(`${API_BASE}/api/config`);
+            const config = await resp.json();
+            supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -177,46 +173,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let cardsHTML = '';
 
-        // Always show AI Resume card
-        const aiGenerated = aiResume && aiResume.latex_content;
-        const lastUpdated = aiResume?.created_at;
-
-        cardsHTML += `
-            <div class="template-card" data-category="ai" data-template-id="ai-resume">
-                <div class="template-header">
-                    <div class="template-icon-wrapper">
-                        <i data-lucide="brain-circuit"></i>
-                    </div>
-                    <span class="template-status-badge ${aiGenerated ? 'status-edited' : 'status-not-edited'}">
-                        ${aiGenerated ? 'AI Generated' : 'AI Powered'}
-                    </span>
-                </div>
-                
-                <div class="template-info">
-                    <h3 class="template-name">AI Resume</h3>
-                    <div class="template-meta">
-                        <div class="template-meta-item">
-                            <i data-lucide="${aiGenerated ? 'check-circle-2' : 'info'}"></i>
-                            <span class="template-meta-label">Status:</span>
-                            <span>${aiGenerated ? 'Ready to use' : 'Not generated yet'}</span>
+        // 1. Render AI Resume card first if it exists (Highest priority)
+        if (aiResume && aiResume.latex_content) {
+            const lastUpdated = aiResume.updated_at || aiResume.created_at;
+            cardsHTML += `
+                <div class="template-card" data-category="ai" data-template-id="ai-resume">
+                    <div class="template-header">
+                        <div class="template-icon-wrapper">
+                            <i data-lucide="brain-circuit"></i>
                         </div>
-                        ${aiGenerated && lastUpdated ? `
-                            <div class="template-meta-item">
-                                <i data-lucide="calendar"></i>
-                                <span class="template-meta-label">Generated:</span>
-                                <span>${formatDate(new Date(lastUpdated))}</span>
-                            </div>
-                        ` : `
-                            <div class="template-meta-item">
-                                <i data-lucide="sparkles"></i>
-                                <span>Build from LinkedIn PDF</span>
-                            </div>
-                        `}
+                        <span class="template-status-badge status-edited">
+                            AI Generated
+                        </span>
                     </div>
-                </div>
+                    
+                    <div class="template-info">
+                        <h3 class="template-name">AI Resume</h3>
+                        <div class="template-meta">
+                            <div class="template-meta-item">
+                                <i data-lucide="check-circle-2"></i>
+                                <span class="template-meta-label">Status:</span>
+                                <span>Ready to use</span>
+                            </div>
+                            ${lastUpdated ? `
+                                <div class="template-meta-item">
+                                    <i data-lucide="calendar"></i>
+                                    <span class="template-meta-label">Generated:</span>
+                                    <span>${formatDate(new Date(lastUpdated))}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
 
-                <div class="template-actions">
-                    ${aiGenerated ? `
+                    <div class="template-actions">
                         <button type="button" onclick="window.location.href='editor.html?template=ai'" class="template-btn btn-open">
                             <i data-lucide="edit-3"></i>
                             Open in Editor
@@ -224,17 +213,49 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <button type="button" onclick="deleteAiResume('${aiResume.id}')" class="template-btn btn-reset" title="Delete Resume">
                             <i data-lucide="trash-2"></i>
                         </button>
-                    ` : `
-                        <button type="button" onclick="window.location.href='ai-builder.html'" class="template-btn btn-open">
-                            <i data-lucide="zap"></i>
-                            Generate Now
-                        </button>
-                    `}
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // 1b. Render "Generate with AI" placeholder if no AI resume exists
+            cardsHTML += `
+                <div class="template-card placeholder-card" data-category="ai" data-template-id="ai-gen-placeholder">
+                    <div class="template-header">
+                        <div class="template-icon-wrapper placeholder-icon">
+                            <i data-lucide="sparkles"></i>
+                        </div>
+                        <span class="template-status-badge status-not-edited">
+                            Not Generated
+                        </span>
+                    </div>
+                    
+                    <div class="template-info">
+                        <h3 class="template-name">AI Resume Builder</h3>
+                        <p class="template-description" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
+                            Create a professional resume instantly using our advanced AI engine.
+                        </p>
+                    </div>
 
-        // Render each template card - Sorted by 'Edited' status
+                    <div class="template-actions">
+                        <button type="button" onclick="window.location.href='ai-builder.html'" class="template-btn btn-use-template">
+                            <i data-lucide="zap"></i>
+                            Generate with AI
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. Sort TEMPLATES: Edited first, then Not Edited
+        const sortedTemplates = [...TEMPLATES].sort((a, b) => {
+            const aEdited = userResumes && userResumes[a.field];
+            const bEdited = userResumes && userResumes[b.field];
+            if (aEdited && !bEdited) return -1;
+            if (!aEdited && bEdited) return 1;
+            return 0; // Maintain original order if both same status
+        });
+
+        // 3. Render each sorted template card
         const categoryIcons = {
             'ats': 'bar-chart-3',
             'minimal': 'sparkles',
@@ -242,15 +263,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             'developer': 'code-2',
             'student': 'briefcase'
         };
-
-        // Create a sorted copy of templates
-        const sortedTemplates = [...TEMPLATES].sort((a, b) => {
-            const aEdited = userResumes && userResumes[a.field];
-            const bEdited = userResumes && userResumes[b.field];
-            if (aEdited && !bEdited) return -1;
-            if (!aEdited && bEdited) return 1;
-            return 0;
-        });
 
         cardsHTML += sortedTemplates.map(template => {
             const isEdited = userResumes && userResumes[template.field];
@@ -347,7 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.showToast) {
             window.showToast(message, type);
         } else {
-            console.log(`[${type.toUpperCase()}] ${message}`);
+            console.log(`[${type.toUpperCase()}] ${message} `);
         }
     }
 

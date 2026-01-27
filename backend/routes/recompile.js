@@ -2,11 +2,16 @@ const express = require("express");
 const path = require("path");
 const { sanitizeLatex } = require("../utils/ai");
 const { writeLatexToTemp, compileLatex } = require("../utils/latex");
+const { uploadToStorage } = require("../utils/storage");
+const { getAuthenticatedUser } = require("../utils/auth");
 
 const router = express.Router();
 const tempDir = path.resolve(__dirname, "..", "temp");
 
 router.post("/recompile", async (req, res) => {
+  const requestId = Date.now() + "_" + Math.floor(Math.random() * 1000);
+  const requestTempDir = path.join(tempDir, requestId);
+
   try {
     const { latex } = req.body || {};
     if (!latex || typeof latex !== "string") {
@@ -25,11 +30,22 @@ router.post("/recompile", async (req, res) => {
       });
     }
 
+    // Authenticate user to get ID for storage
+    const user = await getAuthenticatedUser(req);
+    const userId = user ? user.id : 'guest';
+
     const safeLatex = sanitizeLatex(latex);
-    await writeLatexToTemp(tempDir, safeLatex);
-    const { stdout, stderr } = await compileLatex(tempDir);
+    await writeLatexToTemp(requestTempDir, safeLatex);
+    const { stdout, stderr } = await compileLatex(requestTempDir);
     const log = `${stdout || ""}\n${stderr || ""}`.trim();
-    return res.json({ pdfUrl: "/files/resume.pdf", log });
+
+    // Upload to Supabase Storage (S3-compatible) in user folder
+    const pdfPath = path.join(requestTempDir, "resume.pdf");
+    const publicUrl = await uploadToStorage(pdfPath, userId);
+
+    // Append cache buster
+    const cacheBuster = `?t=${Date.now()}`;
+    return res.json({ pdfUrl: publicUrl + cacheBuster, log });
   } catch (err) {
     console.error("Recompile error:", err);
 

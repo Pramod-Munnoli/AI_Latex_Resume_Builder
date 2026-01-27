@@ -101,9 +101,36 @@
         if (loaderMessage) loaderMessage.textContent = message;
     };
 
-    window.showToast = function (title, message, type = "info") {
-        // Shared interface for future toast implementation
-        console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
+    window.showToast = function (message, type = "info") {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        // Add icon based on type
+        let icon = 'info';
+        if (type === 'success') icon = 'check-circle';
+        else if (type === 'error') icon = 'alert-circle';
+        else if (type === 'warning') icon = 'alert-triangle';
+
+        toast.innerHTML = `
+            <i data-lucide="${icon}"></i>
+            <span>${message}</span>
+        `;
+
+        container.appendChild(toast);
+
+        // Init icon
+        if (window.lucide) window.lucide.createIcons();
+
+        // Remove after delay
+        setTimeout(() => {
+            toast.classList.add('toast-hiding');
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 500);
+        }, 3000);
     };
 
     // --- GLOBAL API BASE ---

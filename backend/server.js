@@ -43,16 +43,18 @@ app.use("/files", express.static(tempDir, {
 // Serve the frontend
 app.use(express.static(frontendDir));
 
-// PDF preview endpoint (optional; static serving also works)
+// PDF preview endpoint (LEGACY - use Supabase storage instead)
 app.get("/api/pdf", (req, res) => {
+  console.warn("Legacy /api/pdf called. This endpoint is deprecated.");
   const pdfPath = path.join(tempDir, "resume.pdf");
   res.sendFile(pdfPath, (err) => {
     if (err) return res.status(500).json({ error: "PDF not available" });
   });
 });
 
-// Download endpoint
+// Download endpoint (LEGACY - use Supabase storage instead)
 app.get("/api/download", (req, res) => {
+  console.warn("Legacy /api/download called. This endpoint is deprecated.");
   const pdfPath = path.join(tempDir, "resume.pdf");
   res.setHeader("Content-Disposition", "attachment; filename=\"resume.pdf\"");
   res.sendFile(pdfPath, (err) => {

@@ -4,6 +4,8 @@ const path = require("path");
 const { extractTextFromPdf } = require("../utils/pdf");
 const ai = require("../utils/ai");
 const { writeLatexToTemp, compileLatex } = require("../utils/latex");
+const { uploadToStorage } = require("../utils/storage");
+const { getAuthenticatedUser } = require("../utils/auth");
 
 const router = express.Router();
 const upload = multer({
@@ -20,6 +22,9 @@ const upload = multer({
 const tempDir = path.resolve(__dirname, "..", "temp");
 
 router.post("/upload", upload.single("pdf"), async (req, res) => {
+  const requestId = Date.now() + "_" + Math.floor(Math.random() * 1000);
+  const requestTempDir = path.join(tempDir, requestId);
+
   try {
     if (!req.file || !req.file.buffer) {
       return res.status(400).json({
@@ -39,13 +44,29 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
       });
     }
 
+    // Authenticate user to get ID for storage
+    const user = await getAuthenticatedUser(req);
+    const userId = user ? user.id : 'guest';
+
     const gen = ai.generateLatexWithSource
       ? ai.generateLatexWithSource
       : async (t) => ({ latex: await ai.generateLatex(t), source: "fallback" });
     const { latex, source } = await gen(text);
-    await writeLatexToTemp(tempDir, latex);
-    await compileLatex(tempDir);
-    return res.json({ latex, pdfUrl: "/files/resume.pdf", source });
+
+    // Use unique temp dir for this specific request
+    await writeLatexToTemp(requestTempDir, latex);
+    await compileLatex(requestTempDir);
+
+    // Upload to Supabase Storage in user folder
+    const pdfPath = path.join(requestTempDir, "resume.pdf");
+    const publicUrl = await uploadToStorage(pdfPath, userId);
+
+    // Clean up local temp files (sync attempt)
+    // fs.rm(requestTempDir, { recursive: true, force: true }).catch(() => {});
+
+    // Append cache buster
+    const cacheBuster = `?t=${Date.now()}`;
+    return res.json({ latex, pdfUrl: publicUrl + cacheBuster, source });
   } catch (err) {
     console.error("Upload error:", err);
 

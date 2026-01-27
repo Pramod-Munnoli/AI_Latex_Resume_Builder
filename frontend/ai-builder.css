@@ -230,13 +230,20 @@
 
 .ai-builder-workspace .editor-panel,
 .ai-builder-workspace .preview-panel {
-    flex: 1;
     display: flex;
     flex-direction: column;
     position: relative;
     min-width: 0;
     height: 100%;
     overflow: hidden;
+}
+
+.ai-builder-workspace .editor-panel {
+    flex: none;
+}
+
+.ai-builder-workspace .preview-panel {
+    flex: 1;
 }
 
 .ai-builder-workspace .editor-view.active {
@@ -451,8 +458,10 @@
     /* Ensure they return to 0 transform when visible */
     .scroll-animate-on .editor-panel,
     .scroll-animate-on .preview-panel,
+    .scroll-animate-on .resizer,
     .panels-visible .editor-panel,
-    .panels-visible .preview-panel {
+    .panels-visible .preview-panel,
+    .panels-visible .resizer {
         transform: translateY(0) !important;
         opacity: 1 !important;
     }

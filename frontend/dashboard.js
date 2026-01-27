@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('resumes')
                 .select('id')
                 .eq('user_id', currentUser.id)
-                .eq('title', 'My Resume')
+                .eq('title', 'AI Generated Resume')
                 .maybeSingle();
 
             if (aiResume) {

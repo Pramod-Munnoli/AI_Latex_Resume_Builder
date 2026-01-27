@@ -14,6 +14,7 @@
     let originalLatexCode = "";
     let hasChanges = false;
     let isCompiling = false;
+    let latestGeneratedPdfUrl = null;
 
     // --- PDF.js CONFIG ---
     if (typeof pdfjsLib !== 'undefined') {
@@ -80,6 +81,10 @@
         if (finalUrl.startsWith('/') && window.API_BASE) {
             finalUrl = window.API_BASE + finalUrl;
         }
+
+        // Add internal cache buster to ensure PDF.js doesn't cache the request
+        const buster = finalUrl.includes('?') ? `&t_v=${Date.now()}` : `?t_v=${Date.now()}`;
+        finalUrl += buster;
 
         const loader = $('pdfPreviewLoader');
         if (loader) loader.style.display = 'flex';
@@ -243,7 +248,17 @@
         window.setStatus("Uploading and generating...", "loading");
 
         try {
-            const resp = await fetch(`${API_BASE}/api/upload`, { method: "POST", body: fd });
+            const { data: { session } } = await window._supabase.auth.getSession();
+            const headers = {};
+            if (session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+
+            const resp = await fetch(`${API_BASE}/api/upload`, {
+                method: "POST",
+                body: fd,
+                headers: headers
+            });
             const data = await resp.json();
 
             if (!resp.ok) throw new Error(data.error || "Upload failed");
@@ -262,9 +277,17 @@
             }
 
             window.setEditorValue(data.latex || "");
+            latestGeneratedPdfUrl = data.pdfUrl;
             await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
 
             window.setStatus("Compiled successfully", "success");
+
+            // Update download button
+            const downloadBtn = $('downloadBtn');
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.onclick = () => window.open(data.pdfUrl, "_blank");
+            }
 
             // Auto-save if possible
             if (window._supabase && window._currentUser) {
@@ -292,15 +315,22 @@
         window.setStatus("Compiling...", "loading");
 
         try {
+            const { data: { session } } = await window._supabase.auth.getSession();
+            const headers = { "Content-Type": "application/json" };
+            if (session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+
             const resp = await fetch(`${API_BASE}/api/recompile`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: headers,
                 body: JSON.stringify({ latex })
             });
             const data = await resp.json();
 
             if (!resp.ok) throw new Error(data.error || "Recompile failed");
 
+            latestGeneratedPdfUrl = data.pdfUrl;
             await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
             originalLatexCode = latex;
             hasChanges = false;
@@ -308,6 +338,14 @@
             if (window._supabase && window._currentUser) {
                 await window.saveToSupabase(latex, data.pdfUrl);
             }
+
+            // Update download button
+            const downloadBtn = $('downloadBtn');
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.onclick = () => window.open(data.pdfUrl, "_blank");
+            }
+
             window.setStatus("Compiled successfully", "success");
         } catch (err) {
             window.setStatus("Compilation failed", "error");
@@ -344,14 +382,17 @@
             }
             // Otherwise, save to the general resumes table (for AI generated or standalone resumes)
             else {
+                // Keep a timestamped URL in the database to ensure external links (like Supabase dashboard) are fresh
+                const versionedPdfUrl = pdfUrl ? (pdfUrl.includes('?') ? pdfUrl : `${pdfUrl}?v=${Date.now()}`) : null;
+
                 const { error } = await window._supabase
                     .from("resumes")
                     .upsert({
                         user_id: window._currentUser.id,
                         title: activeResumeTitle,
                         latex_content: latex,
-                        pdf_url: pdfUrl,
-                        created_at: new Date().toISOString()
+                        pdf_url: versionedPdfUrl,
+                        updated_at: new Date().toISOString()
                     }, { onConflict: 'user_id,title' });
                 if (error) throw error;
                 console.log("Resume saved to resumes table");
@@ -387,6 +428,14 @@
                     success = await window.loadPDF(data.pdf_url);
                 }
 
+                // Update download button
+                const downloadBtn = $('downloadBtn');
+                if (downloadBtn && data.pdf_url) {
+                    latestGeneratedPdfUrl = data.pdf_url;
+                    downloadBtn.disabled = false;
+                    downloadBtn.onclick = () => window.open(data.pdf_url, "_blank");
+                }
+
                 // If PDF fails to load or doesn't exist, recompile automatically
                 if (!success && window.recompileLatex) {
                     console.log("PDF missing or failed to load, recompiling...");
@@ -410,8 +459,13 @@
     window.setupResizer = function () {
         const resizer = $('resizer');
         const panel = document.querySelector('.editor-panel');
+        // Check for either the standard editor container or the specific ai-builder-workspace class
         const container = document.querySelector('.ai-builder-workspace') || document.querySelector('.editor-container');
-        if (!resizer || !panel || !container) return;
+
+        if (!resizer || !panel || !container) {
+            console.warn('Resizer initialization failed: Missing elements', { resizer: !!resizer, panel: !!panel, container: !!container });
+            return;
+        }
 
         let isResizing = false;
 
@@ -444,12 +498,36 @@
             container.style.userSelect = '';
         };
 
-        resizer.onmousedown = startResizing;
-        resizer.ontouchstart = (e) => { startResizing(); e.preventDefault(); };
-        document.onmousemove = (e) => doResizing(e.clientX, e.clientY);
-        document.ontouchmove = (e) => doResizing(e.touches[0].clientX, e.touches[0].clientY);
-        document.onmouseup = stopResizing;
-        document.ontouchend = stopResizing;
+        const onMouseDown = (e) => startResizing();
+        const onTouchStart = (e) => {
+            startResizing();
+            // Don't preventDefault here as it might block scroll if not on handle
+        };
+
+        const onMouseMove = (e) => doResizing(e.clientX, e.clientY);
+        const onTouchMove = (e) => {
+            if (isResizing && e.touches.length > 0) {
+                doResizing(e.touches[0].clientX, e.touches[0].clientY);
+                e.preventDefault(); // Prevent scroll while resizing
+            }
+        };
+
+        const onMouseUp = () => stopResizing();
+        const onTouchEnd = () => stopResizing();
+
+        resizer.addEventListener('mousedown', onMouseDown);
+        resizer.addEventListener('touchstart', onTouchStart, { passive: true });
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
+
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('touchend', onTouchEnd);
+
+        // Initial refresh
+        setTimeout(() => {
+            if (cm) cm.refresh();
+        }, 500);
     };
 
     window.restorePanelSizes = function () {
@@ -465,17 +543,236 @@
         if (cm) cm.refresh();
     };
 
+    function getPdfPadding() {
+        return window.innerWidth <= 768 ? 20 : 120;
+    }
+
+    function fitToWidth() {
+        if (!pdfDoc) return;
+        const viewer = $('pdfViewer');
+        if (!viewer) return;
+
+        pdfDoc.getPage(1).then(page => {
+            const viewport = page.getViewport({ scale: 1.0 });
+            const padding = getPdfPadding();
+            const availableWidth = viewer.clientWidth - padding;
+            currentScale = Math.min(availableWidth / viewport.width, 2.3);
+            window.updateVisualScale();
+        });
+    }
+
+    function fitToPage() {
+        if (!pdfDoc) return;
+        const viewer = $('pdfViewer');
+        if (!viewer) return;
+
+        pdfDoc.getPage(1).then(page => {
+            const viewport = page.getViewport({ scale: 1.0 });
+            const padding = getPdfPadding();
+            const availableHeight = viewer.clientHeight - padding;
+            currentScale = Math.min(availableHeight / viewport.height, 2.3);
+            window.updateVisualScale();
+        });
+    }
+
     window.setupToolbarFeatures = function () {
         const zoomIn = $('zoomIn');
         const zoomOut = $('zoomOut');
-        if (zoomIn) zoomIn.onclick = () => { currentScale = Math.min(currentScale + 0.1, 2.3); window.updateVisualScale(); };
-        if (zoomOut) zoomOut.onclick = () => { currentScale = Math.max(currentScale - 0.1, 0.4); window.updateVisualScale(); };
-
+        const fitWidthBtn = $('fitWidthBtn');
+        const copyLinkBtn = $('copyLinkBtn');
+        const pdfViewer = $('pdfViewer');
         const toggleTheme = $('toggleTheme');
+        const pageNum = $('pageNum');
+
+        if (zoomIn) {
+            zoomIn.onclick = () => {
+                currentScale = Math.min(currentScale + 0.1, 2.3);
+                window.updateVisualScale();
+            };
+        }
+        if (zoomOut) {
+            zoomOut.onclick = () => {
+                currentScale = Math.max(currentScale - 0.1, 0.4);
+                window.updateVisualScale();
+            };
+        }
+
         if (toggleTheme) {
             toggleTheme.onclick = () => {
                 $('pdfCanvasContainer')?.classList.toggle('pdf-dark-mode');
             };
+        }
+
+        if (fitWidthBtn) fitWidthBtn.onclick = fitToWidth;
+        if (copyLinkBtn) {
+            copyLinkBtn.onclick = async () => {
+                if (!latestGeneratedPdfUrl) {
+                    window.showToast("No PDF link available yet", "warning");
+                    return;
+                }
+                const cleanUrl = latestGeneratedPdfUrl.split('?')[0];
+                try {
+                    await navigator.clipboard.writeText(cleanUrl);
+
+                    // Visual feedback on button
+                    const originalHTML = copyLinkBtn.innerHTML;
+                    copyLinkBtn.innerHTML = '<i data-lucide="check"></i>';
+                    if (window.lucide) window.lucide.createIcons();
+
+                    setTimeout(() => {
+                        copyLinkBtn.innerHTML = originalHTML;
+                        if (window.lucide) window.lucide.createIcons();
+                    }, 1500);
+                } catch (err) {
+                    console.error("Failed to copy link", err);
+                    window.showToast("Failed to copy link", "error");
+                }
+            };
+        }
+
+        // --- Page Navigation (Scroll to page) ---
+        const prevPage = $('prevPage');
+        const nextPage = $('nextPage');
+
+        if (prevPage) {
+            prevPage.onclick = () => {
+                const current = parseInt(pageNum.textContent);
+                if (current > 1) scrollToPage(current - 1);
+            };
+        }
+
+        if (nextPage) {
+            nextPage.onclick = () => {
+                const current = parseInt(pageNum.textContent);
+                const total = parseInt($('pageCount').textContent);
+                if (current < total) scrollToPage(current + 1);
+            };
+        }
+
+        function scrollToPage(num) {
+            const container = $('pdfCanvasContainer');
+            const canvases = container.querySelectorAll('.pdf-page-canvas');
+            if (canvases[num - 1]) {
+                canvases[num - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                pageNum.textContent = num;
+            }
+        }
+
+        // --- PDF Interaction Logic (Mouse & Touch) ---
+        if (pdfViewer) {
+            // 1. Mouse Wheel (Ctrl + Wheel = Zoom)
+            pdfViewer.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    const oldScale = currentScale;
+                    currentScale = Math.min(Math.max(currentScale + delta, 0.4), 2.3);
+
+                    const rect = pdfViewer.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    const scrollX = pdfViewer.scrollLeft;
+                    const scrollY = pdfViewer.scrollTop;
+                    const ratio = currentScale / oldScale;
+
+                    window.updateVisualScale();
+
+                    pdfViewer.scrollLeft = (scrollX + mouseX) * ratio - mouseX;
+                    pdfViewer.scrollTop = (scrollY + mouseY) * ratio - mouseY;
+                }
+            }, { passive: false });
+
+            // 2. Mouse Pan (Hand Tool behavior)
+            let isPanning = false;
+            let startX, startY, startScrollLeft, startScrollTop;
+
+            pdfViewer.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // Left click
+                    isPanning = true;
+                    pdfViewer.classList.add('grabbing');
+                    pdfViewer.classList.remove('grab');
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startScrollLeft = pdfViewer.scrollLeft;
+                    startScrollTop = pdfViewer.scrollTop;
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isPanning) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                pdfViewer.scrollLeft = startScrollLeft - dx;
+                pdfViewer.scrollTop = startScrollTop - dy;
+            });
+
+            window.addEventListener('mouseup', () => {
+                isPanning = false;
+                pdfViewer.classList.remove('grabbing');
+                pdfViewer.classList.add('grab');
+            });
+
+            // 3. Touch Interactions (Panning & Pinch Zoom)
+            let isTouchPanning = false;
+            let lastTouchDistance = 0;
+
+            pdfViewer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isTouchPanning = true;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    startScrollLeft = pdfViewer.scrollLeft;
+                    startScrollTop = pdfViewer.scrollTop;
+                } else if (e.touches.length === 2) {
+                    isTouchPanning = false;
+                    lastTouchDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                }
+            }, { passive: false });
+
+            pdfViewer.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isTouchPanning) {
+                    const dx = e.touches[0].clientX - startX;
+                    const dy = e.touches[0].clientY - startY;
+                    pdfViewer.scrollLeft = startScrollLeft - dx;
+                    pdfViewer.scrollTop = startScrollTop - dy;
+                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) e.preventDefault();
+                } else if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const currentDistance = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                    const delta = (currentDistance - lastTouchDistance) / 200;
+                    if (Math.abs(delta) > 0.01) {
+                        currentScale = Math.min(Math.max(currentScale + delta, 0.4), 2.3);
+                        window.updateVisualScale();
+                        lastTouchDistance = currentDistance;
+                    }
+                }
+            }, { passive: false });
+
+            pdfViewer.addEventListener('touchend', () => {
+                isTouchPanning = false;
+                lastTouchDistance = 0;
+            });
+
+            // Update page info on scroll
+            pdfViewer.addEventListener('scroll', () => {
+                const canvases = pdfViewer.querySelectorAll('.pdf-page-canvas');
+                const viewerRect = pdfViewer.getBoundingClientRect();
+
+                canvases.forEach((canvas, index) => {
+                    const rect = canvas.getBoundingClientRect();
+                    if (rect.top < viewerRect.bottom && rect.bottom > viewerRect.top) {
+                        if (rect.top < viewerRect.top + viewerRect.height / 2) {
+                            pageNum.textContent = index + 1;
+                        }
+                    }
+                });
+            });
         }
     };
 
