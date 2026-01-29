@@ -1517,7 +1517,28 @@
 
 [data-theme="light"] .pdf-preview-loader {
     background: rgba(255, 255, 255, 0.3) !important;
-    /* Very transparent light mode overlay */
+}
+
+[data-theme="light"] .skeleton-container {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .skeleton-header,
+[data-theme="light"] .skeleton-subheader,
+[data-theme="light"] .skeleton-line {
+    background: #f1f5f9 !important;
+}
+
+[data-theme="light"] .skeleton-section-title {
+    background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .skeleton-shimmer {
+    background: linear-gradient(90deg,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 0.05) 50%,
+            rgba(0, 0, 0, 0) 100%);
 }
 
 [data-theme="light"] #latexEditor {
