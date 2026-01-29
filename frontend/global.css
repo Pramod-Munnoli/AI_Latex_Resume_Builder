@@ -838,16 +838,15 @@ body {
 .app-loader {
     position: fixed;
     inset: 0;
-    background: rgba(2, 6, 23, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 9998;
+    background: #020617;
+    /* Solid Dark Navy */
+    z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s ease;
     pointer-events: none;
 }
 
@@ -865,14 +864,15 @@ body {
     align-items: center;
     gap: 28px;
     padding: 48px 56px;
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0f172a;
+    /* Solid background for certainty */
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 24px;
     box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-        0 1px 0 rgba(255, 255, 255, 0.05) inset;
+        0 25px 80px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     min-width: 340px;
+    max-width: 90%;
 }
 
 /* Premium Skeleton Loader Container */
@@ -907,11 +907,15 @@ body {
 }
 
 .skeleton-line {
-    height: 12px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06);
+    height: 16px;
+    border-radius: 8px;
+    background: #475569 !important;
+    /* Steel blue */
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: block !important;
+    margin-bottom: 12px;
 }
 
 .skeleton-line.w-70 {
@@ -949,7 +953,8 @@ body {
 /* Premium Shimmer Animation */
 .skeleton-avatar::after,
 .skeleton-line::after,
-.skeleton-card-item::after {
+.skeleton-card-item::after,
+.skeleton-rect::after {
     content: '';
     position: absolute;
     top: 0;
@@ -958,9 +963,9 @@ body {
     height: 100%;
     background: linear-gradient(90deg,
             transparent 0%,
-            rgba(255, 255, 255, 0.04) 20%,
-            rgba(255, 255, 255, 0.08) 50%,
-            rgba(255, 255, 255, 0.04) 80%,
+            rgba(255, 255, 255, 0.1) 20%,
+            rgba(255, 255, 255, 0.25) 50%,
+            rgba(255, 255, 255, 0.1) 80%,
             transparent 100%);
     animation: skeletonShimmer 1.8s ease-in-out infinite;
 }
@@ -995,10 +1000,134 @@ body {
 /* Skeleton Footer Lines */
 .skeleton-footer {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
     width: 100%;
 }
+
+/* Workspace Specific Skeleton Loader */
+.skeleton-workspace {
+    display: flex !important;
+    gap: 40px;
+    width: 100%;
+    min-width: 850px;
+    height: 450px;
+    align-items: stretch;
+    justify-content: center;
+    background: transparent;
+    padding: 20px;
+}
+
+.skeleton-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.skeleton-divider {
+    width: 2px;
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-divider::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 50%,
+            transparent 100%);
+    animation: skeletonShimmerVertical 2s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmerVertical {
+    0% {
+        top: -100%;
+    }
+
+    60%,
+    100% {
+        top: 100%;
+    }
+}
+
+.skeleton-rect {
+    width: 100%;
+    min-height: 220px;
+    background: #334155 !important;
+    /* Lighter slate blue */
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    display: block !important;
+    flex-direction: column;
+}
+
+.skeleton-rect.h-large {
+    flex: 1;
+    /* Best for filling panels */
+    min-height: 200px;
+}
+
+.skeleton-rect.h-medium {
+    height: 160px;
+}
+
+.skeleton-rect.h-small {
+    height: 32px;
+}
+
+/* Light mode workspace overrides */
+[data-theme="light"] .skeleton-workspace {
+    min-width: 800px;
+}
+
+[data-theme="light"] .skeleton-divider {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .skeleton-rect {
+    background: #cbd5e1 !important;
+    /* Darker gray in light mode info */
+    border-color: #94a3b8;
+}
+
+[data-theme="light"] .skeleton-rect::after {
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(0, 0, 0, 0.02) 20%,
+            rgba(0, 0, 0, 0.08) 50%,
+            rgba(0, 0, 0, 0.02) 80%,
+            transparent 100%) !important;
+}
+
+[data-theme="light"] .skeleton-divider::after {
+    background: linear-gradient(180deg,
+            transparent 0%,
+            rgba(0, 0, 0, 0.03) 50%,
+            transparent 100%);
+}
+
+/* Responsiveness for the workspace skeleton */
+@media (max-width: 900px) {
+    .skeleton-workspace {
+        min-width: unset;
+        flex-direction: column;
+        height: auto;
+    }
+
+    .skeleton-divider {
+        width: 100%;
+        height: 2px;
+    }
+}
+
 
 /* Status message */
 .app-loader-message {

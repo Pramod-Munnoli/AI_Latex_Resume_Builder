@@ -169,8 +169,7 @@
 
     async function loadTemplate() {
         try {
-            // Remove global loader
-            // showLoader('Fetching template code...');
+            showLoader('Fetching template code...');
 
             // Show skeleton instead
             const skeletonLoader = document.getElementById('pdfPreviewLoader');
@@ -564,7 +563,7 @@
     async function handleLoadUserVersion() {
         try {
             // Remove global loader
-            // showLoader('Loading your saved version...');
+            showLoader('Loading your saved version...');
             setStatus('Loading your saved version...', 'info');
 
             // Show skeleton instead
@@ -657,7 +656,7 @@
     async function handleLoadOriginal() {
         try {
             // Remove global loader
-            // showLoader('Loading original template...');
+            showLoader('Loading original template...');
             setStatus('Loading original template...', 'info');
 
             // Show skeleton instead

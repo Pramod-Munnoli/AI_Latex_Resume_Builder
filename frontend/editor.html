@@ -227,21 +227,36 @@
     <div id="appLoader" class="app-loader">
         <div class="app-loader-content">
             <div class="skeleton-loader">
-                <div class="skeleton-loader-header">
-                    <div class="skeleton-avatar"></div>
-                    <div class="skeleton-header-lines">
-                        <div class="skeleton-line w-70"></div>
-                        <div class="skeleton-line w-50"></div>
+                <div class="skeleton-workspace">
+                    <div class="skeleton-panel">
+                        <div class="skeleton-line w-40"></div>
+                        <div class="skeleton-rect h-large">
+                            <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <div class="skeleton-line w-85"></div>
+                                <div class="skeleton-line w-70"></div>
+                                <div class="skeleton-line w-90"></div>
+                                <div class="skeleton-line w-60"></div>
+                                <div class="skeleton-line w-80"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="skeleton-cards">
-                    <div class="skeleton-card-item"></div>
-                    <div class="skeleton-card-item"></div>
-                    <div class="skeleton-card-item"></div>
-                </div>
-                <div class="skeleton-footer">
-                    <div class="skeleton-line w-85"></div>
-                    <div class="skeleton-line w-40"></div>
+                    <div class="skeleton-divider"></div>
+                    <div class="skeleton-panel">
+                        <div class="skeleton-line w-30"></div>
+                        <div class="skeleton-rect h-large">
+                            <div
+                                style="padding: 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                                <div class="skeleton-line w-60"></div>
+                                <div class="skeleton-line w-40"></div>
+                                <div
+                                    style="width: 100%; height: 2px; background: rgba(255,255,255,0.05); margin: 10px 0;">
+                                </div>
+                                <div class="skeleton-line w-90"></div>
+                                <div class="skeleton-line w-85"></div>
+                                <div class="skeleton-line w-95"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
