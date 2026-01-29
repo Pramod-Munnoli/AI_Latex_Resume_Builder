@@ -37,7 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 currentUser.email.split('@')[0];
 
             const formattedName = formatName(displayName);
-            document.getElementById('userName').textContent = formattedName;
+            const userNameEl = document.getElementById('userName');
+            userNameEl.textContent = formattedName;
+            userNameEl.classList.remove('skeleton');
 
             // Fetch user's resume data
             const { data: userResumes, error } = await supabase
@@ -98,12 +100,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('editedCount').textContent = stats.editedCount;
         document.getElementById('lastEditedTemplate').textContent = stats.lastEdited || 'None';
 
+        // Remove skeleton class from stats
+        const editedWrapper = document.getElementById('editedCountWrapper');
+        if (editedWrapper) editedWrapper.classList.remove('skeleton');
+
+        const lastUpdatedEl = document.getElementById('lastUpdated');
         if (stats.lastUpdated) {
             const date = new Date(stats.lastUpdated);
-            document.getElementById('lastUpdated').textContent = formatDate(date);
+            lastUpdatedEl.textContent = formatDate(date);
         } else {
-            document.getElementById('lastUpdated').textContent = 'Never';
+            lastUpdatedEl.textContent = 'Never';
         }
+        lastUpdatedEl.classList.remove('skeleton');
     }
 
     // Update editor card based on user's progress
