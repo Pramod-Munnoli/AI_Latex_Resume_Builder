@@ -1011,11 +1011,9 @@ body {
     width: 100%;
     width: 850px;
     max-width: 100%;
-    height: 380px;
-    align-items: stretch;
-    justify-content: center;
-    background: transparent;
-    padding: 20px;
+    height: 520px;
+    /* Taller to reflect actual workspace better */
+    padding: 30px;
 }
 
 .skeleton-panel {
@@ -1074,7 +1072,7 @@ body {
 .skeleton-rect.h-large {
     flex: 1;
     /* Best for filling panels */
-    min-height: 200px;
+    min-height: 280px;
 }
 
 .skeleton-rect.h-medium {

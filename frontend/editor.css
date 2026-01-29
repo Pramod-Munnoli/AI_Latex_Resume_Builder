@@ -358,12 +358,13 @@
 .pdf-preview-loader {
     position: absolute;
     inset: 0;
-    background: rgba(30, 41, 59, 0.4);
-    /* Significantly lighter dark mode overlay */
+    background: rgba(15, 23, 42, 0.2);
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding-top: 60px;
+    /* Match actual PDF padding */
     z-index: 100;
 }
 
@@ -404,14 +405,18 @@
 /* Skeleton Loader */
 .skeleton-container {
     width: 600px;
-    /* Approximate PDF width at 100% scale */
+    max-width: 90%;
+    aspect-ratio: 1 / 1.414;
+    /* A4 Ratio */
+    height: auto;
     background: white;
-    padding: 40px;
+    padding: 60px;
+    /* More realistic margins */
     border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 30px;
     position: relative;
     overflow: hidden;
 }
