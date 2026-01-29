@@ -105,6 +105,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.warn('Error fetching AI resume:', aiError);
             }
 
+            // Hide skeleton of all cards before rendering
+            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('loading-state'));
+
             // Render templates with both data
             renderTemplates(userResumes, aiResume);
 
@@ -115,53 +118,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Expose functions to window for onclick handlers
-    window.deleteAiResume = async (id) => {
-        if (!confirm('Are you sure you want to delete this AI Generated resume? This cannot be undone.')) return;
+    /**
+     * Show a premium confirmation modal
+     * @param {string} message - The message to show
+     * @param {Function} onConfirm - Callback if user clicks OK
+     * @param {string} icon - Emoji or Lucide icon name
+     */
+    function showConfirm(message, onConfirm, icon = '⚠️') {
+        const modal = document.getElementById('customAlertModal');
+        const messageEl = document.getElementById('alertModalMessage');
+        const iconEl = modal.querySelector('.alert-modal-icon');
+        const okBtn = document.getElementById('alertModalOkBtn');
 
-        try {
-            setLoader(true, 'Deleting...');
-            const { error } = await supabase
-                .from('resumes')
-                .delete()
-                .eq('id', id);
+        if (!modal || !messageEl) return;
 
-            if (error) throw error;
+        messageEl.textContent = message;
+        if (iconEl) iconEl.textContent = icon;
 
-            showToast('Resume deleted successfully', 'success');
-            await loadUserResumes(); // Reload list
-        } catch (err) {
-            console.error('Delete failed', err);
-            showToast('Failed to delete resume', 'error');
-        } finally {
-            setLoader(false);
+        // Show the modal
+        modal.style.display = 'flex';
+
+        // Temporarily change OK button text and add secondary button if needed
+        const originalText = okBtn.textContent;
+        okBtn.textContent = 'Yes, Proceed';
+
+        // Add a Cancel button if it doesn't exist
+        let cancelBtn = document.getElementById('alertModalCancelBtn');
+        if (!cancelBtn) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.id = 'alertModalCancelBtn';
+            cancelBtn.className = 'btn-alert-cancel';
+            cancelBtn.textContent = 'Cancel';
+            okBtn.parentNode.appendChild(cancelBtn);
         }
+        cancelBtn.style.display = 'block';
+
+        const closeModal = () => {
+            modal.style.display = 'none';
+            okBtn.textContent = originalText;
+            cancelBtn.style.display = 'none';
+        };
+
+        okBtn.onclick = () => {
+            closeModal();
+            onConfirm();
+        };
+
+        cancelBtn.onclick = closeModal;
+    }
+
+    // Expose delete function with custom confirm
+    window.deleteAiResume = (id) => {
+        showConfirm('Are you sure you want to delete this AI Generated resume? This cannot be undone.', async () => {
+            try {
+                // Show skeleton loading instead of setLoader
+                const card = document.querySelector(`.template-card[data-template-id="ai-resume"]`);
+                if (card) card.classList.add('loading-state');
+
+                const { error } = await supabase
+                    .from('resumes')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showToast('Resume deleted successfully', 'success');
+                await loadUserResumes(); // Reload list
+            } catch (err) {
+                console.error('Delete failed', err);
+                showToast('Failed to delete resume', 'error');
+            }
+        }, '🗑️');
     };
 
-    window.resetTemplate = async (field) => {
-        if (!confirm('Are you sure you want to reset this template? Your customizations will be lost.')) return;
+    // Expose reset function with custom confirm
+    window.resetTemplate = (field) => {
+        showConfirm('Are you sure you want to reset this template? Your customizations will be lost.', async () => {
+            try {
+                // Find the card being reset to show skeleton
+                const template = TEMPLATES.find(t => t.field === field);
+                const card = document.querySelector(`.template-card[data-template-id="${template?.id}"]`);
+                if (card) card.classList.add('loading-state');
 
-        try {
-            setLoader(true, 'Resetting template...');
+                const updateData = {};
+                updateData[field] = null;
 
-            const updateData = {};
-            updateData[field] = null;
+                const { error } = await supabase
+                    .from('user_resumes')
+                    .update(updateData)
+                    .eq('user_id', currentUser.id);
 
-            const { error } = await supabase
-                .from('user_resumes')
-                .update(updateData)
-                .eq('user_id', currentUser.id);
+                if (error) throw error;
 
-            if (error) throw error;
-
-            showToast('Template reset successfully', 'success');
-            await loadUserResumes();
-        } catch (err) {
-            console.error('Reset failed', err);
-            showToast('Failed to reset template', 'error');
-        } finally {
-            setLoader(false);
-        }
+                showToast('Template reset successfully', 'success');
+                await loadUserResumes();
+            } catch (err) {
+                console.error('Reset failed', err);
+                showToast('Failed to reset template', 'error');
+            }
+        }, '🔄');
     };
 
     // Render templates grid

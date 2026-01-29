@@ -551,3 +551,80 @@
 .skeleton-btn.small {
     flex: 0 0 50px;
 }
+
+/* Skeleton Loading State for Cards */
+.template-card.loading-state {
+    position: relative;
+    pointer-events: none;
+}
+
+.template-card.loading-state::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+    border-radius: inherit;
+}
+
+.template-card.loading-state::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin-top: -15px;
+    margin-left: -15px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--primary-light);
+    border-radius: 50%;
+    animation: loaderSpin 0.8s linear infinite;
+    z-index: 11;
+}
+
+/* Custom Alert Modal Enhancements */
+.alert-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-alert-cancel {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-alert-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-alert-ok {
+    flex: 1;
+    width: auto;
+}
+
+[data-theme="light"] .template-card.loading-state::after {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .btn-alert-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .btn-alert-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
