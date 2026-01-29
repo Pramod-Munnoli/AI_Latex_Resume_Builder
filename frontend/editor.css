@@ -358,7 +358,8 @@
 .pdf-preview-loader {
     position: absolute;
     inset: 0;
-    background: rgba(47, 58, 76, 0.8);
+    background: rgba(30, 41, 59, 0.4);
+    /* Significantly lighter dark mode overlay */
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
@@ -1515,7 +1516,8 @@
 }
 
 [data-theme="light"] .pdf-preview-loader {
-    background: rgba(241, 245, 249, 0.9) !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    /* Very transparent light mode overlay */
 }
 
 [data-theme="light"] #latexEditor {

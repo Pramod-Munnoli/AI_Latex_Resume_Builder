@@ -839,8 +839,9 @@ body {
     position: fixed;
     inset: 0;
     background: #020617;
-    /* Solid Dark Navy */
-    z-index: 99999;
+    /* Solid Dark Navy to ensure full coverage */
+    z-index: 100000;
+    /* Extremely high to cover navbar (2100) */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -909,8 +910,8 @@ body {
 .skeleton-line {
     height: 16px;
     border-radius: 8px;
-    background: #475569 !important;
-    /* Steel blue */
+    background: #707d91;
+    /* Much lighter for clarity */
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -1058,8 +1059,8 @@ body {
 .skeleton-rect {
     width: 100%;
     min-height: 220px;
-    background: #1e293b !important;
-    /* Lighter slate blue */
+    background: #334155;
+    /* Lighter slate blue for better visibility */
     border-radius: 12px;
     position: relative;
     overflow: hidden;
@@ -1093,17 +1094,22 @@ body {
 }
 
 [data-theme="light"] .skeleton-rect {
-    background: #cbd5e1 !important;
-    /* Darker gray in light mode info */
-    border-color: #94a3b8;
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .skeleton-line,
+[data-theme="light"] .skeleton-section-title {
+    background: #f1f5f9 !important;
+    border-color: #f8fafc;
 }
 
 [data-theme="light"] .skeleton-rect::after {
     background: linear-gradient(90deg,
             transparent 0%,
-            rgba(0, 0, 0, 0.012) 20%,
-            rgba(0, 0, 0, 0.04) 50%,
-            rgba(0, 0, 0, 0.012) 80%,
+            rgba(0, 0, 0, 0.02) 20%,
+            rgba(0, 0, 0, 0.08) 50%,
+            rgba(0, 0, 0, 0.02) 80%,
             transparent 100%) !important;
 }
 
