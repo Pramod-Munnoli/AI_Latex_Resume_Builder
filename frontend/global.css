@@ -963,9 +963,9 @@ body {
     height: 100%;
     background: linear-gradient(90deg,
             transparent 0%,
-            rgba(255, 255, 255, 0.1) 20%,
-            rgba(255, 255, 255, 0.25) 50%,
-            rgba(255, 255, 255, 0.1) 80%,
+            rgba(255, 255, 255, 0.03) 20%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.03) 80%,
             transparent 100%);
     animation: skeletonShimmer 1.8s ease-in-out infinite;
 }
@@ -1058,7 +1058,7 @@ body {
 .skeleton-rect {
     width: 100%;
     min-height: 220px;
-    background: #334155 !important;
+    background: #1e293b !important;
     /* Lighter slate blue */
     border-radius: 12px;
     position: relative;
@@ -1101,9 +1101,9 @@ body {
 [data-theme="light"] .skeleton-rect::after {
     background: linear-gradient(90deg,
             transparent 0%,
-            rgba(0, 0, 0, 0.02) 20%,
-            rgba(0, 0, 0, 0.08) 50%,
-            rgba(0, 0, 0, 0.02) 80%,
+            rgba(0, 0, 0, 0.012) 20%,
+            rgba(0, 0, 0, 0.04) 50%,
+            rgba(0, 0, 0, 0.012) 80%,
             transparent 100%) !important;
 }
 

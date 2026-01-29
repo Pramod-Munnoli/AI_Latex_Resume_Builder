@@ -188,9 +188,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Load template IDs and setup buttons
-    await loadTemplateIds();
+    // Setup buttons immediately so they are functional before the async fetch
     setupTemplateButtons();
+
+    // Load template IDs in the background
+    await loadTemplateIds();
 
     // Initialize icons
     if (window.lucide) {
