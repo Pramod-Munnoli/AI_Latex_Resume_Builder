@@ -92,10 +92,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Fetch template IDs from database
     async function loadTemplateIds() {
-        console.log('[Templates] API_BASE:', API_BASE);
+        // console.log('[Templates] API_BASE:', API_BASE);
         try {
             const url = `${API_BASE}/api/templates`.replace(/([^:])\/\//g, '$1/');
-            console.log('[Templates] Fetching from:', url);
+            // console.log('[Templates] Fetching from:', url);
             const response = await fetch(url);
             if (!response.ok) {
                 console.error('[Templates] Fetch failed:', response.status);
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 templateIdMap[template.template_name] = template.id;
             });
 
-            console.log('[Templates] Mapping loaded:', Object.keys(templateIdMap).length);
+            // console.log('[Templates] Mapping loaded:', Object.keys(templateIdMap).length);
         } catch (error) {
             console.error('[Templates] Error loading template IDs:', error);
         }
@@ -164,8 +164,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const templateId = templateIdMap[templateName];
 
                 if (templateId) {
-                    // Show loader before redirecting
-                    showLoader('Preparing your editor...');
+                    // Remove global loader - editor page will show skeleton instead
+                    // showLoader('Preparing your editor...');
                     // Navigate to editor with template ID
                     window.location.href = `editor.html?templateId=${templateId}&templateName=${templateName}`;
                 } else {

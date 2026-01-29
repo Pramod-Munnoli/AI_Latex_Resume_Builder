@@ -243,6 +243,7 @@
 
         const fd = new FormData();
         fd.append("pdf", file);
+        fd.append("title", activeResumeTitle);
 
         window.showLoader('Generating LaTeX resume...');
         window.setStatus("Uploading and generating...", "loading");
@@ -324,7 +325,7 @@
             const resp = await fetch(`${API_BASE}/api/recompile`, {
                 method: "POST",
                 headers: headers,
-                body: JSON.stringify({ latex })
+                body: JSON.stringify({ latex, title: activeResumeTitle })
             });
             const data = await resp.json();
 
@@ -355,14 +356,17 @@
         }
     };
 
-    let activeResumeTitle = "My Resume";
+    let activeResumeTitle = "AI Generated Resume";
 
     window.setResumeTitle = function (title) {
         if (title) activeResumeTitle = title;
     };
 
     window.saveToSupabase = async function (latex, pdfUrl) {
-        if (!window._supabase || !window._currentUser) return;
+        if (!window._supabase || !window._currentUser) {
+            console.warn("Cannot save: Supabase or User not initialized");
+            return;
+        }
 
         try {
             // If we are editing a specific template (ATS, Minimal, etc.), save to user_resumes table
@@ -377,28 +381,45 @@
                     .from("user_resumes")
                     .upsert(updateData, { onConflict: 'user_id' });
 
-                if (error) throw error;
-                console.log("Template saved to user_resumes");
+                if (error) {
+                    console.error("Template save error:", error);
+                    throw error;
+                }
+                // console.log("Template saved to user_resumes");
             }
             // Otherwise, save to the general resumes table (for AI generated or standalone resumes)
             else {
-                // Keep a timestamped URL in the database to ensure external links (like Supabase dashboard) are fresh
+                // Keep a timestamped URL in the database to ensure external links are fresh
                 const versionedPdfUrl = pdfUrl ? (pdfUrl.includes('?') ? pdfUrl : `${pdfUrl}?v=${Date.now()}`) : null;
 
-                const { error } = await window._supabase
+                const payload = {
+                    user_id: window._currentUser.id,
+                    title: activeResumeTitle,
+                    latex_content: latex,
+                    pdf_url: versionedPdfUrl,
+                    updated_at: new Date().toISOString()
+                };
+
+                // console.log("Saving resume payload:", payload);
+
+                const { data, error } = await window._supabase
                     .from("resumes")
-                    .upsert({
-                        user_id: window._currentUser.id,
-                        title: activeResumeTitle,
-                        latex_content: latex,
-                        pdf_url: versionedPdfUrl,
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: 'user_id,title' });
-                if (error) throw error;
-                console.log("Resume saved to resumes table");
+                    .upsert(payload, { onConflict: 'user_id,title' })
+                    .select();
+
+                if (error) {
+                    console.error("Resume table upsert error:", error.message, error.details, error.hint);
+                    // Fallback: If onConflict fails due to missing constraint, try a normal insert or update
+                    if (error.code === '42703' || error.code === '42P10') {
+                        console.warn("Possible constraint or column mismatch. Check Supabase 'resumes' table structure.");
+                    }
+                    throw error;
+                }
+                // console.log("Resume saved successfully to resumes table:", data);
             }
         } catch (e) {
-            console.warn("Cloud save failed", e);
+            console.error("Cloud save failed fundamentally:", e);
+            window.setStatus && window.setStatus("Cloud save failed", "warning");
         }
     };
 
@@ -438,14 +459,14 @@
 
                 // If PDF fails to load or doesn't exist, recompile automatically
                 if (!success && window.recompileLatex) {
-                    console.log("PDF missing or failed to load, recompiling...");
+                    // console.log("PDF missing or failed to load, recompiling...");
                     await window.recompileLatex();
                 } else {
                     window.setStatus("Latest version loaded", "success");
                 }
             } else {
                 // No existing resume found, show overlays to guide user
-                console.log("No existing resume found for title:", activeResumeTitle);
+                // console.log("No existing resume found for title:", activeResumeTitle);
                 if (noResumeOverlay) noResumeOverlay.style.display = 'flex';
                 if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'flex';
                 if (window.lucide) window.lucide.createIcons();

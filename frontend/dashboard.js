@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.showToast) {
             window.showToast(message, type);
         } else {
-            console.log(`[${type.toUpperCase()}] ${message}`);
+            // console.log(`[${type.toUpperCase()}] ${message}`);
         }
     }
 

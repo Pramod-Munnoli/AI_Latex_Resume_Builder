@@ -45,10 +45,11 @@ router.post("/recompile", async (req, res) => {
     const log = `${stdout || ""}\n${stderr || ""}`.trim();
     console.log(`[Recompile] Compilation finished. Log length: ${log.length}`);
 
-    // Upload to Supabase Storage (S3-compatible) in user folder
+    // Upload to Supabase Storage (S3-compatible) in user folder with descriptive name
     const pdfPath = path.join(requestTempDir, "resume.pdf");
-    console.log(`[Recompile] Uploading PDF to storage...`);
-    const publicUrl = await uploadToStorage(pdfPath, userId);
+    const resumeTitle = req.body.title || 'AI Generated Resume';
+    console.log(`[Recompile] Uploading PDF to storage as ${resumeTitle}...`);
+    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', resumeTitle);
     console.log(`[Recompile] Upload successful: ${publicUrl}`);
 
     // Append cache buster

@@ -123,10 +123,10 @@
 
     // Initialize Supabase
     async function initSupabase() {
-        console.log('[Init] API_BASE:', API_BASE);
+        // console.log('[Init] API_BASE:', API_BASE);
         try {
             const configUrl = `${API_BASE}/api/config`.replace(/([^:])\/\//g, '$1/');
-            console.log('[Init] Fetching config from:', configUrl);
+            // console.log('[Init] Fetching config from:', configUrl);
             const resp = await fetch(configUrl);
 
             if (!resp.ok) {
@@ -149,7 +149,7 @@
                 // Get current session
                 const { data: { session } } = await supabase.auth.getSession();
                 currentUser = session?.user || null;
-                console.log('[Init] Supabase set up. User:', currentUser ? currentUser.email : 'Guest');
+                // console.log('[Init] Supabase set up. User:', currentUser ? currentUser.email : 'Guest');
             }
         } catch (err) {
             console.warn('[Init] Supabase initialization failed: ' + err.message);
@@ -275,7 +275,7 @@
                         : `${API_BASE}/api/templates/by-name/${currentTemplateName}`;
 
                     const cleanFetchUrl = fetchUrl.replace(/([^:])\/\//g, '$1/');
-                    console.log('[Load] Fetching template from:', cleanFetchUrl);
+                    // console.log('[Load] Fetching template from:', cleanFetchUrl);
 
                     const resp = await fetch(cleanFetchUrl);
                     if (!resp.ok) {
@@ -491,6 +491,7 @@
 
                 if (aiError) throw aiError;
             } else {
+                // console.log("Template saved to user_resumes");
                 const columnName = getTemplateColumn(currentTemplateName);
                 if (!columnName) throw new Error('Invalid template column mapping');
 

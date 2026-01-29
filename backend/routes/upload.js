@@ -47,6 +47,7 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     // Authenticate user to get ID for storage
     const user = await getAuthenticatedUser(req);
     const userId = user ? user.id : 'guest';
+    const resumeTitle = req.body.title || 'AI Generated Resume';
 
     const gen = ai.generateLatexWithSource
       ? ai.generateLatexWithSource
@@ -57,9 +58,9 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     await writeLatexToTemp(requestTempDir, latex);
     await compileLatex(requestTempDir);
 
-    // Upload to Supabase Storage in user folder
+    // Upload to Supabase Storage in user folder with descriptive name
     const pdfPath = path.join(requestTempDir, "resume.pdf");
-    const publicUrl = await uploadToStorage(pdfPath, userId);
+    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', resumeTitle);
 
     // Clean up local temp files (sync attempt)
     // fs.rm(requestTempDir, { recursive: true, force: true }).catch(() => {});

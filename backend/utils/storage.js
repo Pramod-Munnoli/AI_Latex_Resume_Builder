@@ -16,15 +16,19 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  * @param {string} localFilePath - Path to the local file
  * @param {string} userId - ID of the user (used for folder naming)
  * @param {string} bucketName - Name of the bucket (default: 'resumes')
+ * @param {string} fileName - Optional specific filename (default: 'resume.pdf')
  * @returns {Promise<string>} - The public URL of the uploaded file
  */
-async function uploadToStorage(localFilePath, userId, bucketName = 'resumes') {
+async function uploadToStorage(localFilePath, userId, bucketName = 'resumes', fileName = 'resume.pdf') {
     try {
         const fileBuffer = await fs.readFile(localFilePath);
 
-        // Final location: users/{userId}/resume.pdf
-        // This ensures each user has their own unique path and only ONE resume at a time
-        const storagePath = `users/${userId}/resume.pdf`;
+        // Sanitize filename: remove special characters, keep extension .pdf
+        let sanitizedName = fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        if (!sanitizedName.endsWith('.pdf')) sanitizedName += '.pdf';
+
+        // Final location: users/{userId}/{sanitizedName}
+        const storagePath = `users/${userId}/${sanitizedName}`;
 
         // Upload file to Supabase Storage
         console.log(`Uploading to Supabase: ${bucketName}/${storagePath} (size: ${fileBuffer.length} bytes, cacheControl: no-cache)`);

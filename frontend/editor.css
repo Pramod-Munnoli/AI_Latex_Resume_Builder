@@ -1536,3 +1536,7 @@
 [data-theme="light"] .CodeMirror-linenumber {
     color: #94a3b8 !important;
 }
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}

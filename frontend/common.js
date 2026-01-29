@@ -103,7 +103,7 @@
 
     window.showToast = function (message, type = "info") {
         // Toast messages removed by user request
-        console.log(`[${type.toUpperCase()}] ${message}`);
+        // console.log(`[${type.toUpperCase()}] ${message}`);
     };
 
     // --- GLOBAL API BASE ---
