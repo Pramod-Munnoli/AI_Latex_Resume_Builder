@@ -396,7 +396,8 @@
 
 /* App Loader */
 [data-theme="light"] .app-loader {
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: #f8fafc !important;
+    /* Solid background to match dark mode behavior */
 }
 
 [data-theme="light"] .app-loader-content {
