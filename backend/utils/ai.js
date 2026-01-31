@@ -1,6 +1,36 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const GROQ_KEYS = [
+  process.env.GROQ_API_KEY,
+  process.env.GROQ_API_KEY_2
+].filter(Boolean);
+
+async function callGroq(payload) {
+  for (let i = 0; i < GROQ_KEYS.length; i++) {
+    try {
+      const resp = await axios.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${GROQ_KEYS[i]}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      return resp;
+    } catch (err) {
+      const isRateLimit = err.response && (err.response.status === 429 || err.response.status === 413);
+      if (isRateLimit && i < GROQ_KEYS.length - 1) {
+        console.warn(`⚠️ Groq Key ${i + 1} rate limited, trying next key...`);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error("All Groq API keys failed or are unavailable.");
+}
 
 /* ================= HELPERS (UNCHANGED) ================= */
 
@@ -36,6 +66,34 @@ function sanitizeLatex(latex) {
   safe = safe.replace(/\\ule\{/g, "\\rule{"); // Fix \ule -> \rule
   safe = safe.replace(/\\rule\{linewidth\}/g, "\\rule{\\linewidth}"); // Fix missing backslash
   safe = safe.replace(/\\hrule\s*$/gm, "\\hrule"); // Ensure \hrule is valid
+
+  // Auto-close itemize environments before new sections or end document
+  const lines = safe.split('\n');
+  let openItemizeCount = 0;
+  const processedLines = [];
+
+  for (let line of lines) {
+    const trimmed = line.trim();
+
+    // If we have open itemize and hit a section or end document, close them first
+    if (openItemizeCount > 0 && (trimmed.startsWith('\\section') || trimmed.startsWith('\\end{document}'))) {
+      while (openItemizeCount > 0) {
+        processedLines.push('\\end{itemize}');
+        openItemizeCount--;
+      }
+    }
+
+    // Count begins and ends - regex to handle multiple on one line if they exist
+    const begins = (trimmed.match(/\\begin\{itemize\}/g) || []).length;
+    const ends = (trimmed.match(/\\end\{itemize\}/g) || []).length;
+
+    openItemizeCount += begins;
+    openItemizeCount -= ends;
+    if (openItemizeCount < 0) openItemizeCount = 0;
+
+    processedLines.push(line);
+  }
+  safe = processedLines.join('\n');
 
   // Remove redefinitions of built-in LaTeX commands
   safe = safe.replace(/\\newcommand\{\\hrulefill\}.*$/gm, "% removed redefinition of \\hrulefill");
@@ -107,46 +165,36 @@ async function generateLatexWithSource(text) {
 }
 
 async function chatWithAI(userMessage) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return "Chat service is currently unavailable.";
+  if (GROQ_KEYS.length === 0) return "Chat service is currently unavailable.";
 
   try {
     const kbPath = path.join(__dirname, "..", "knowledge_base.md");
     const knowledgeBase = fs.readFileSync(kbPath, "utf8");
 
-    const url = "https://api.groq.com/openai/v1/chat/completions";
-    const resp = await axios.post(
-      url,
-      {
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "system",
-            content: `You are the official AI Assistant for the "AI LaTeX Resume Builder" website. 
-            Use the following Knowledge Base to answer user questions. 
-            Be professional, helpful, and concise. 
-            Use simple, clear, and user-understandable language. Avoid overly technical jargon when explaining features.
-            If the answer is not in the Knowledge Base, politely say you don't know and suggest contact the developer Pramod Munnoli.
-            
-            KNOWLEDGE BASE:
-            ${knowledgeBase}`
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
-        ],
-        temperature: 0.5,
-        max_tokens: 500
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
+    const payload = {
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `You are the official AI Assistant for the "AI LaTeX Resume Builder" website. 
+          Use the following Knowledge Base to answer user questions. 
+          Be professional, helpful, and concise. 
+          Use simple, clear, and user-understandable language. Avoid overly technical jargon when explaining features.
+          If the answer is not in the Knowledge Base, politely say you don't know and suggest contact the developer Pramod Munnoli.
+          
+          KNOWLEDGE BASE:
+          ${knowledgeBase}`
+        },
+        {
+          role: "user",
+          content: userMessage
         }
-      }
-    );
+      ],
+      temperature: 0.5,
+      max_tokens: 500
+    };
 
+    const resp = await callGroq(payload);
     return resp?.data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process that.";
   } catch (err) {
     console.error("❌ Chat API failed:", err.message);
@@ -165,19 +213,15 @@ module.exports = {
 
 /* ================= groq FALLBACK (UNCHANGED) ================= */
 async function generateViaGroq(text) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
+  if (GROQ_KEYS.length === 0) return null;
 
   try {
-    const url = "https://api.groq.com/openai/v1/chat/completions";
-    const resp = await axios.post(
-      url,
-      {
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "user",
-            content: `
+    const payload = {
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: `
 You are a professional LaTeX resume expert. Your task is to extract user information and fill it into the high-quality LaTeX resume template provided below.
 
 GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
@@ -191,7 +235,7 @@ STRICT RULES:
     - Add/Expand "Leadership \\& Volunteering" and "Honors \\& Awards".
     - Elaborate on "Relevant Coursework" to include 12-15 technical subjects.
 4.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
-5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} - THIS IS CRITICAL. Every environment must be closed before the final \\end{document}
+5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} IMMEDIATELY before starting a new section or the end of the document. THIS IS CRITICAL. Failure to close environments will break the build.
 6.  **ADDRESS SHORTENING**: Shorten address to EXACTLY 1 or 2 words (e.g., "City, State").
 7.  **MISSING CONTACT INFO**: If links are missing, ALWAYS provide professional placeholders: "\\href{https://linkedin.com/in/username}{LinkedIn}", "\\href{https://github.com/username}{GitHub}", and "\\href{https://portfolio.com/username}{Portfolio}".
 
@@ -291,18 +335,12 @@ SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
 \\end{document}
 >>>
 `
-          }
-        ],
-        temperature: 0.2
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
         }
-      }
-    );
+      ],
+      temperature: 0.2
+    };
 
+    const resp = await callGroq(payload);
     const latex = resp?.data?.choices?.[0]?.message?.content;
     if (!latex) return null;
     console.log("✅ Groq used");
@@ -340,7 +378,7 @@ STRICT RULES:
     - Add/Expand "Leadership \\& Volunteering" and "Honors \\& Awards".
     - Elaborate on "Relevant Coursework" to include 12-15 specific technical subjects.
 4.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
-5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} - THIS IS CRITICAL. Every environment must be closed before the final \\end{document}
+5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} IMMEDIATELY before starting a new section or the end of the document. THIS IS CRITICAL. Failure to close environments will break the build.
 6.  **ADDRESS SHORTENING**: Shorten address to EXACTLY 1 or 2 words (e.g., "City, State").
 7.  **MISSING CONTACT INFO**: If links are missing, ALWAYS provide professional placeholders: "\\href{https://linkedin.com/in/username}{LinkedIn}", "\\href{https://github.com/username}{GitHub}", and "\\href{https://portfolio.com/username}{Portfolio}".
 
