@@ -347,7 +347,9 @@
 
         if (loaderMessageEl) loaderMessageEl.textContent = message;
         appLoader.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        document.body.classList.add('lock-scroll');
+        document.body.style.setProperty('overflow', 'hidden', 'important');
+        document.body.style.setProperty('overflow-y', 'hidden', 'important');
     }
 
     /**
@@ -364,7 +366,10 @@
         const isSkeletonVisible = skeletonLoader && skeletonLoader.style.display === 'flex';
 
         if (!isSkeletonVisible) {
-            document.body.style.overflow = ''; // Restore scrolling
+            document.body.classList.remove('lock-scroll');
+            document.body.style.overflow = '';
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('overflow-y');
         }
     }
 
@@ -378,17 +383,34 @@
 
         if (show) {
             skeletonLoader.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            document.body.classList.add('lock-scroll');
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('overflow-y', 'hidden', 'important');
         } else {
             skeletonLoader.style.display = 'none';
 
             // Only restore scrolling if app loader is also hidden
             const appLoaderActive = appLoader && appLoader.classList.contains('active');
             if (!appLoaderActive) {
-                document.body.style.overflow = ''; // Restore scrolling
+                document.body.classList.remove('lock-scroll');
+                document.body.style.overflow = '';
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('overflow-y');
             }
         }
     }
+
+    // Reinforce scroll lock on focus/restore
+    window.addEventListener('focus', () => {
+        const skeletonLoader = document.getElementById('pdfPreviewLoader');
+        const isActive = (skeletonLoader && skeletonLoader.style.display === 'flex') ||
+            (appLoader && appLoader.classList.contains('active'));
+        if (isActive) {
+            document.body.classList.add('lock-scroll');
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('overflow-y', 'hidden', 'important');
+        }
+    });
 
     // Compile LaTeX code
     async function compileLatex(latex) {

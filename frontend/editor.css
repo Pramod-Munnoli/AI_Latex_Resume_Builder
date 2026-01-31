@@ -1,6 +1,6 @@
 .editor-body {
-    height: auto !important;
-    overflow-y: auto !important;
+    height: auto;
+    overflow-y: auto;
 }
 
 @media (min-width: 1024px) {

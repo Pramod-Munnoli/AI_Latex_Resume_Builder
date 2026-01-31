@@ -407,12 +407,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (loaderMessage) loaderMessage.textContent = msg;
             if (loader) {
                 loader.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                document.body.style.setProperty('overflow', 'hidden', 'important');
+                document.body.style.setProperty('overflow-y', 'hidden', 'important');
             }
         } else {
             if (loader) {
                 loader.classList.remove('active');
                 document.body.style.overflow = '';
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('overflow-y');
             }
         }
     }

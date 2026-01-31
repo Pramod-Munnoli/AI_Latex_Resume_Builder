@@ -88,7 +88,9 @@
         if (!appLoader) return;
         if (loaderMessage) loaderMessage.textContent = message;
         appLoader.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('lock-scroll');
+        document.body.style.setProperty('overflow', 'hidden', 'important');
+        document.body.style.setProperty('overflow-y', 'hidden', 'important');
     };
 
     window.hideLoader = function () {
@@ -100,9 +102,24 @@
         const isSkeletonVisible = skeletonLoader && skeletonLoader.style.display === 'flex';
 
         if (!isSkeletonVisible) {
+            document.body.classList.remove('lock-scroll');
             document.body.style.overflow = '';
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('overflow-y');
         }
     };
+
+    // Reinforce on focus
+    window.addEventListener('focus', () => {
+        const skeletonLoader = $('pdfPreviewLoader');
+        const isActive = (skeletonLoader && skeletonLoader.style.display === 'flex') ||
+            (appLoader && appLoader.classList.contains('active'));
+        if (isActive) {
+            document.body.classList.add('lock-scroll');
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('overflow-y', 'hidden', 'important');
+        }
+    });
 
     window.updateLoaderMessage = function (message) {
         if (loaderMessage) loaderMessage.textContent = message;

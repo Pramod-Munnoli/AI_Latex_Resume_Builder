@@ -78,17 +78,35 @@
 
         if (show) {
             loader.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('lock-scroll');
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('overflow-y', 'hidden', 'important');
         } else {
             loader.style.display = 'none';
             // Only restore if global loader is hidden
             const appLoader = $('appLoader');
             const isAppLoaderActive = appLoader && appLoader.classList.contains('active');
             if (!isAppLoaderActive) {
+                document.body.classList.remove('lock-scroll');
                 document.body.style.overflow = '';
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('overflow-y');
             }
         }
     }
+
+    // Reinforce lock on focus
+    window.addEventListener('focus', () => {
+        const loader = $('pdfPreviewLoader');
+        const appLoader = $('appLoader');
+        const isActive = (loader && loader.style.display === 'flex') ||
+            (appLoader && appLoader.classList.contains('active'));
+        if (isActive) {
+            document.body.classList.add('lock-scroll');
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('overflow-y', 'hidden', 'important');
+        }
+    });
 
     // --- PDF RENDERING ---
     window.loadPDF = async function (url) {

@@ -7,8 +7,8 @@
 
 /* AI Builder Specific Layout */
 .ai-builder-body {
-    height: auto !important;
-    overflow-y: auto !important;
+    height: auto;
+    overflow-y: auto;
 }
 
 .ai-builder-hero {
@@ -417,8 +417,8 @@
 
     .editor-body,
     .ai-builder-body {
-        height: auto !important;
-        overflow: auto !important;
+        height: auto;
+        overflow: auto;
     }
 
     .ai-builder-workspace {

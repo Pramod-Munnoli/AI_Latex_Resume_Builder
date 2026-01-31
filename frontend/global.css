@@ -31,6 +31,14 @@ body {
     }
 }
 
+/* Scroll Lock Utility */
+.lock-scroll {
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    touch-action: none;
+    -ms-touch-action: none;
+}
+
 /* Premium Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
