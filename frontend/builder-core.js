@@ -342,7 +342,7 @@
             const resp = await fetch(`${API_BASE}/api/recompile`, {
                 method: "POST",
                 headers: headers,
-                body: JSON.stringify({ latex, title: activeResumeTitle })
+                body: JSON.stringify({ latex, title: activeResumeTitle, type: 'ai' })
             });
             const data = await resp.json();
 

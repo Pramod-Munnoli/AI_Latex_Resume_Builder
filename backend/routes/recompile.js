@@ -32,18 +32,21 @@ router.post("/recompile", async (req, res) => {
     const user = await getAuthenticatedUser(req);
     const userId = user ? user.id : 'guest';
 
+    // Use single 'temp' directory for both (as requested)
+    const workDir = tempDir;
+
     console.log(`[Recompile] Updating latest resume in temp for user ${userId}`);
 
     const safeLatex = sanitizeLatex(latex);
-    // Write to the root temp dir (overwrites existing resume.tex)
-    await writeLatexToTemp(tempDir, safeLatex);
+    // Write to the temp dir (overwrites existing resume.tex)
+    await writeLatexToTemp(workDir, safeLatex);
 
     console.log(`[Recompile] Compiling LaTeX...`);
-    const { stdout, stderr } = await compileLatex(tempDir);
+    const { stdout, stderr } = await compileLatex(workDir);
     const log = `${stdout || ""}\n${stderr || ""}`.trim();
 
     // Upload to Supabase Storage
-    const pdfPath = path.join(tempDir, "resume.pdf");
+    const pdfPath = path.join(workDir, "resume.pdf");
     const resumeTitle = req.body.title || 'AI Generated Resume';
     const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', resumeTitle);
 

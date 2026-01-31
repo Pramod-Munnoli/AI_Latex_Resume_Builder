@@ -407,10 +407,14 @@
                 headers['Authorization'] = `Bearer ${session.access_token}`;
             }
 
+            const isAI = (currentTemplateName === 'ai' || currentTemplateName === 'ai-resume');
+            const type = isAI ? 'ai' : 'template';
+            const title = isAI ? 'AI Generated Resume' : (currentTemplateName || 'Resume');
+
             const response = await fetch(`${API_BASE}/api/recompile`, {
                 method: 'POST',
                 headers: headers,
-                body: JSON.stringify({ latex })
+                body: JSON.stringify({ latex, type, title })
             });
 
             const data = await response.json();

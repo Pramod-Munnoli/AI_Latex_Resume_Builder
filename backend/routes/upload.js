@@ -52,12 +52,13 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
       : async (t) => ({ latex: await ai.generateLatex(t), source: "fallback" });
     const { latex, source } = await gen(text);
 
-    // Use root temp dir for this request (overwrites existing files)
-    await writeLatexToTemp(tempDir, latex);
-    await compileLatex(tempDir);
+    // Use single 'temp' directory (as requested)
+    const workDir = tempDir;
+    await writeLatexToTemp(workDir, latex);
+    await compileLatex(workDir);
 
     // Upload to Supabase Storage
-    const pdfPath = path.join(tempDir, "resume.pdf");
+    const pdfPath = path.join(workDir, "resume.pdf");
     const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', resumeTitle);
 
     // Append cache buster
