@@ -25,7 +25,7 @@ function compileLatex(tempDir) {
         const candidate = path.join(exe, "pdflatex.exe");
         if (fsSync.existsSync(candidate)) exe = candidate;
       }
-    } catch (_) {}
+    } catch (_) { }
     const cmd = `"${exe}" -interaction=nonstopmode -halt-on-error resume.tex`;
     exec(cmd, { cwd: tempDir, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) {

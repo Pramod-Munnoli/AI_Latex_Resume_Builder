@@ -169,242 +169,115 @@ async function generateViaGroq(text) {
         messages: [
           {
             role: "user",
-            content: `You are generating a highly professional, ATS-optimized LaTeX resume to be compiled using pdflatex (TeX Live).
+            content: `
+You are a professional LaTeX resume expert. Your task is to extract user information and fill it into the high-quality LaTeX resume template provided below.
 
-            STRICT OUTPUT RULES (NON-NEGOTIABLE):
-            - Output ONLY valid LaTeX source code
-            - Do NOT include explanations, comments, markdown, or plain text
-            - Do NOT include fences inside the output
-            - The output MUST start with \documentclass and end with \end{document}
-            - If you violate any rule, the output is INVALID
-            
-            COMPILATION RULES:
-            - pdflatex ONLY (TeX Live)
-            - Do NOT use XeLaTeX or LuaLaTeX
-            - Do NOT use \input, \include, shell-escape, \write18, or system commands
-            
-            PACKAGE RULES:
-            - Use \documentclass[11pt,a4paper]{article}
-            - Allowed packages ONLY:
-              geometry, enumitem, hyperref, titlesec, fancyhdr, xcolor
-            - Do NOT use tables, multicolumn layouts, icons, images, TikZ, graphics, or custom .sty files
-            
-            ENCODING RULES:
-            - ASCII characters ONLY
-            - Replace smart quotes with normal quotes
-            - Replace Unicode bullets with hyphens
-            - Avoid special Unicode symbols
-            - Ensure pdflatex compiles with ZERO errors
-            
-            PAGE & SPACING RULES (VERY IMPORTANT):
-            - STRICT ONE-PAGE ONLY (MANDATORY)
-            - Reduce margins and vertical spacing aggressively
-            - No unnecessary blank lines
-            - Compact section spacing
-            - Bullets must NOT exceed two lines
-            - No content should overflow to a second page
-            
-            HEADER RULES (CRITICAL):
-            - Place at VERY TOP (NO horizontal line here)
-            - Center FULL NAME in VERY LARGE, BOLD font
-            - Name must be the most visually dominant element
-            
-            - Below the name, ONE centered single-line row:
-              Mobile Number | Email | LinkedIn | GitHub | Portfolio
-            - Display links ONLY as labels IF the link exists
-            - Do NOT display labels without valid links
-            - NEVER allow wrapping to a second line
-            - Slightly reduce font size if required to keep one line
-            
-            CONTACT DISPLAY RULES:
-            - Do NOT use dashes, bullets, vertical bars, or separators
-            - Use spacing only between items
-            - Header must stay on ONE line
-            - Slightly reduce font size ONLY if required to avoid wrapping
-            - If header content risks overflow, reduce font size by at most one step; NEVER wrap
-            
-            LINK RULES (STRICT):
-            - Display a link ONLY if a valid URL exists
-            - Do NOT show labels without links
-            - Links must be clickable using hyperref
-            - Display links as LABELS only (LinkedIn, GitHub, Portfolio)
-            - All links must appear in BLUE color
-            - Do NOT invent or infer missing links
-            
-            SECTION TITLE & HORIZONTAL LINE RULES:
-            - Do NOT use numbers in section titles
-            - Section titles must be LEFT aligned
-            - Place ONE horizontal rule DIRECTLY BELOW each section
-            - USE horizontal rule at the end of sections
-            - NO extra vertical space above or below the rule
-            - Summary section MUST also have a horizontal rule
-            - Horizontal rules MUST be placed immediately after section  and NEVER inside itemize, enumerate, or paragraph blocks. Using \rule inside lists is strictly forbidden.
-            
-            HORIZONTAL LINE ALIGNMENT RULE (STRICT):
-            - Horizontal rules MUST appear ONLY at the END of a section
-            - NEVER place a rule directly under a section title
-            - Horizontal rules MUST NOT be inside itemize or any list environment
-            - Reset indentation before drawing the rule
-            
-            MANDATORY LaTeX COMMAND:
-            \par\noindent\rule{\linewidth}{1pt}
-            
-            USAGE ORDER (STRICT):
-            - Section title
-            - Section content (paragraphs or itemize)
-            - Horizontal rule using the command above
-            
-            FORBIDDEN:
-            - \hrule
-            - \textwidth
-            - Rules inside lists
-            - Extra spacing or indentation before the rule
-            
-            
-            SECTION ORDER (STRICT):
-            - Summary
-            - Technical Skills
-            - Experience(use this section only if the applicant has work experience)
-            - Projects
-            - Education
-            - Certifications
-            - Additional Information (use this when page in complete)
-            
-            SUMMARY RULES:
-            - Exactly 2–3 lines
-            - No bullets
-            - Compact paragraph
-            - Optimized for ATS keywords
-            - Role + core skills + career focus
-            - No fluff or storytelling
-            
-            Technical SKILLS RULES (VERY IMPORTANT):
-            - Merge Technical Skills and Professional Skills into ONE section
-            - Use itemize environment ONLY
-            - Group related skills logically into ONE bullet per group
-            - Example grouping:
-              - Technical Skills:
-              - Programming Languages: Java, Python, JavaScript
-              - Web Technologies: HTML, CSS
-              - Tools and Concepts: Git, Data Structures, Problem Solving
-              - Core Competencies: Problem Solving, Team Collaboration, Time Management
-              - bold the text of grouping names only not entire bullet points
-            - Do NOT split related skills into separate bullets
-            - Bullets must be compact and aligned vertically under the section
-            - No bullets should overflow outside the section margin
-            - The section name MUST be exactly "Technical Skills"
-            - Do NOT create a separate "Professional Skills" section
-            
-            EXPERIENCE RULES(use this section only if the applicant has work experience):
-            - If no work experience is explicitly present, OMIT the Experience section entirely
-            - Use concise, impact-focused bullets
-            - Mention tools and technologies already provided
-            - Avoid repetition and filler phrases
-            
-            PROJECT RULES (CRITICAL):
-            - Include ONLY the 3 most important projects
-            - Automatically ignore minor projects
-            - Project name MUST appear directly ABOVE its bullets
-            - Project name should be concise and clean
-            - Use itemize environment
-            - EXACTLY 2–3 bullets per project
-            - Each bullet must:
-              - Start with an action verb
-              - Mention the technology used
-              - State the outcome or purpose
-            - Bullets must NOT exceed two lines
-            
-            EDUCATION RULES:
-            - Single compact entry
-            - Degree, Institution, Dates in one or two lines max
-            
-            CERTIFICATIONS RULES:
-            - Use itemize
-            - One line per certification
-            - No extra descriptions
-            
-            ADDITIONAL INFORMATION RULES:
-            - Optional (but use this section when page is incomplete)
-            - Keep extremely compact 
-            - Optimized for ATS keywords
-            
-            ALIGNMENT RULES:
-            - All bullet points must align vertically under section content
-            - No bullets may appear outside the section boundary
-            - Consistent left margin across the entire document
-            - No excessive indentation anywhere
-            
-            CONTENT INTEGRITY RULES:
-            - Preserve ALL factual information exactly as provided
-            - Do NOT change names, dates, locations, or links
-            - Do NOT hallucinate skills, experience, education, or certifications
-            - If content is insufficient:
-              - Improve wording ONLY
-              - NEVER fabricate data
-            
-            INCOMPLETE RESUME COMPLETION RULE (STRICT – MANDATORY):
-            IF the provided resume content results in LESS THAN ONE FULL PAGE after applying all formatting rules:
-            - You MUST intelligently ADD content to complete EXACTLY ONE FULL PAGE
-            - You are ALLOWED to add ONLY the following sections (in this priority order):
-              1. Additional Information
-              2. Relevant Coursework
-              3. Academic Projects (ONLY if Projects section has fewer than 2 strong projects)
-              4. Key Achievements or Responsibilities (derived strictly from existing data)
-            
-            STRICT CONSTRAINTS (NON-NEGOTIABLE):
-            - NEVER fabricate new companies, jobs, degrees, certifications, or links
-            - NEVER invent technologies the candidate has not already mentioned
-            - You MAY rephrase, expand, or deepen EXISTING skills, coursework, tools, or responsibilities
-            - Added content MUST be logically inferred from the given resume only
-            - ALL added bullets must remain concise and NOT exceed two lines
-            - Maintain ATS-optimized wording using existing keywords only
-            
-            SECTION CONTROL:
-            - Add ONLY the MINIMUM amount of content required to fill one page
-            - DO NOT exceed one page under any circumstance
-            - DO NOT repeat information already stated elsewhere
-            - If resume is already one full page, DO NOT add anything
-            
-            FINAL WARNING:
-            - If you fail to fill the page when content is insufficient, the output is INVALID
-            - If you hallucinate or invent data, the output is INVALID
-            - One-page completeness is MANDATORY
-            
-            FINAL OUTPUT RULE:
-            - Output ONLY valid LaTeX code
-            - Must compile successfully using pdflatex
-            - No plain English text outside LaTeX
-            
-            DATA ISOLATION & PRIVACY RULE (STRICT):
-            - Treat EVERY resume generation as a NEW, ISOLATED task
-            - Do NOT reuse, remember, cache, or infer from:
-              - Previous PDFs
-              - Earlier resume content
-              - Prior outputs or layouts
-            - Even if the SAME PDF is uploaded again:
-              - Reprocess from scratch
-              - Do NOT rely on earlier results
-            
-            USER DATA PROTECTION (MANDATORY):
-            - User data is CONFIDENTIAL
-            - Use data ONLY for the current resume
-            - Do NOT transfer, reuse, or leak data anywhere else
-            - After generation, treat all data as forgotten
-            
-            KANNADA DIRECTIVE:
-            - "maretu bidu"
-              - Forget previous resumes
-              - Forget previous PDFs
-              - Generate ONLY from current input
-            
-            ENFORCEMENT:
-            - Any violation makes the output INVALID
-            
-            INPUT TEXT:
-            <<<
-            ${text}
-            >>>
-            `
+GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
+
+STRICT RULES:
+1.  **NO OMISSIONS**: You MUST include ALL projects, ALL work experiences, and ALL certifications provided in the USER INFORMATION. Never skip any data to save space.
+2.  **ONE-PAGE FULLNESS**: If the page is not full after including all user data, you MUST:
+    - Expand project descriptions with more detailed technical bullets (3-4 bullets per project).
+    - Add/Expand the "Leadership \\& Volunteering" and "Honors \\& Awards" sections.
+    - Elaborate on "Relevant Coursework" to include 12-15 specific technical subjects.
+3.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
+
+INSTRUCTIONS:
+1.  **Identify Data**: Extract everything: name, contact, summary, skills, experience, projects, education, certifications, and extra info.
+2.  **Escape Special Characters**: Escape &, %, $, #, _, {, }, ^, ~, \\.
+3.  **Strict Layout**: Maintain the EXACT LaTeX structure below. Output ONLY valid LaTeX code.
+4.  **Clean Output**: No markdown fences, no explanations.
+
+USER INFORMATION:
+<<<
+${text}
+>>>
+
+LATEX TEMPLATE (SKELETON):
+<<<
+\\documentclass[11pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{geometry}
+\\usepackage{enumitem}
+\\usepackage{hyperref}
+\\usepackage{xcolor}
+\\usepackage{titlesec}
+
+\\geometry{left=0.7in, top=0.5in, right=0.7in, bottom=0.5in}
+\\definecolor{primaryblue}{RGB}{0,0,255}
+\\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=primaryblue}
+
+% Section formatting
+\\titleformat{\\section}{\\large\\bfseries\\uppercase}{}{0em}{}[\\titlerule]
+\\titlespacing{\\section}{0pt}{15pt}{10pt}
+
+\\begin{document}
+\\pagenumbering{gobble}
+
+% Header
+\\begin{center}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
+    \\small PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
+\\end{center}
+
+\\vspace{5pt}
+
+% Summary
+\\section*{Professional Summary}
+SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
+
+% Technical Skills
+\\section*{Technical Skills}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Programming Languages}: List all provided.
+    \\item \\textbf{Tools \\& Technologies}: List all provided.
+    \\item \\textbf{Core Competencies}: List 5-6 professional strengths.
+\\end{itemize}
+
+% Experience (Include ALL provided roles)
+\\section*{Experience}
+% For each role:
+\\textbf{JOB_TITLE} $|$ COMPANY_NAME \\hfill DATES
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Bullet point describing responsibility or achievement.
+\\end{itemize}
+
+% Education
+\\section*{Education}
+\\textbf{DEGREE_NAME} $|$ INSTITUTION_NAME \\hfill DATES \\\\
+\\textit{Relevant Coursework}: Detailed list of 12-15 technical subjects to fill space.
+
+% Projects (Include ALL provided projects)
+\\section*{Projects}
+% For each project:
+\\textbf{PROJECT_NAME} $|$ \\textit{TECH_STACK} \\hfill \\href{PROJECT_LINK}{Link}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
+    \\item Detailed action-verb bullet point.
+    \\item Detailed action-verb bullet point.
+    \\item Detailed action-verb bullet point.
+\\end{itemize}
+
+% Extra Professional Sections (To ensure full page)
+\\section*{Leadership \\& Volunteering}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
+    \\item High-impact contribution or leadership role (e.g. Open Source, Clubs).
+\\end{itemize}
+
+\\section*{Honors \\& Awards}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
+    \\item Award name from user data or inferred professional distinction.
+\\end{itemize}
+
+\\section*{Certifications \\& Languages}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Certifications}: List ALL provided certifications.
+    \\item \\textbf{Languages}: English (Professional), Local Languages.
+\\end{itemize}
+
+\\end{document}
+>>>
+`
           }
         ],
         temperature: 0.2
@@ -440,238 +313,115 @@ async function generateViaGemini(text) {
     const resp = await axios.post(url, {
       contents: [{
         role: "user", parts: [{
-          text: ` 
-          You are generating a highly professional, ATS-optimized LaTeX resume to be compiled using pdflatex (TeX Live).
-STRICT OUTPUT RULES (NON-NEGOTIABLE):
-- Output ONLY valid LaTeX source code
-- Do NOT include explanations, comments, markdown, or plain text
-- Do NOT include fences inside the output
-- The output MUST start with \documentclass and end with \end{document}
-- If you violate any rule, the output is INVALID
+          text: `
+You are a professional LaTeX resume expert. Your task is to extract user information and fill it into the high-quality LaTeX resume template provided below.
 
-COMPILATION RULES:
-- pdflatex ONLY (TeX Live)
-- Do NOT use XeLaTeX or LuaLaTeX
-- Do NOT use \input, \include, shell-escape, \write18, or system commands
+GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
 
-PACKAGE RULES:
-- Use \documentclass[11pt,a4paper]{article}
-- Allowed packages ONLY:
-  geometry, enumitem, hyperref, titlesec, fancyhdr, xcolor
-- Do NOT use tables, multicolumn layouts, icons, images, TikZ, graphics, or custom .sty files
+STRICT RULES:
+1.  **NO OMISSIONS**: You MUST include ALL projects, ALL work experiences, and ALL certifications provided in the USER INFORMATION. Never skip any data to save space.
+2.  **ONE-PAGE FULLNESS**: If the page is not full after including all user data, you MUST:
+    - Expand project descriptions with more detailed technical bullets (3-4 bullets per project).
+    - Add/Expand the "Leadership \\& Volunteering" and "Honors \\& Awards" sections.
+    - Elaborate on "Relevant Coursework" to include 12-15 specific technical subjects.
+3.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
 
-ENCODING RULES:
-- ASCII characters ONLY
-- Replace smart quotes with normal quotes
-- Replace Unicode bullets with hyphens
-- Avoid special Unicode symbols
-- Ensure pdflatex compiles with ZERO errors
+INSTRUCTIONS:
+1.  **Identify Data**: Extract EVERYTHING provided: name, contact, summary, skills, experience, projects, education, certifications, and extra info.
+2.  **Escape Special Characters**: Escape &, %, $, #, _, {, }, ^, ~, \\.
+3.  **Strict Layout**: Maintain the EXACT LaTeX structure below. Output ONLY valid LaTeX code.
+4.  **Clean Output**: No markdown fences, no explanations.
+5.  **Package Rule**: Use ONLY packages defined in the template.
 
-PAGE & SPACING RULES (VERY IMPORTANT):
-- STRICT ONE-PAGE ONLY (MANDATORY) 
-- No unnecessary blank lines 
-- Bullets must NOT exceed two lines
-- No content should overflow to a second page
-
-HEADER RULES (CRITICAL):
-- Place at VERY TOP (NO horizontal line here)
-- Center FULL NAME in VERY LARGE, BOLD font
-- Name must be the most visually dominant element
-- Below the name, add a small space (about 0.5 line-height)
-
-- Below the name, ONE centered single-line row:
-  Mobile Number | Email | LinkedIn | GitHub | Portfolio
-- Display links ONLY as labels IF the link exists
-- Do NOT display labels without valid links
-- NEVER allow wrapping to a second line
-- Slightly reduce font size if required to keep one line
-
-CONTACT DISPLAY RULES:
-- Do NOT use dashes, bullets, vertical bars, or separators
-- Use spacing only between items
-- Header must stay on ONE line
-- Slightly reduce font size ONLY if required to avoid wrapping
-- If header content risks overflow, reduce font size by at most one step; NEVER wrap
-
-LINK RULES (STRICT):
-- Display a link ONLY if a valid URL exists
-- Do NOT show labels without links
-- Links must be clickable using hyperref
-- Display links as LABELS only (LinkedIn, GitHub, Portfolio)
-- All links must appear in BLUE color
-- Do NOT invent or infer missing links
-
-SECTION TITLE & HORIZONTAL LINE RULES:
-- Do NOT use numbers in section titles
-- Section titles must be LEFT aligned
-- Place ONE horizontal rule DIRECTLY BELOW each section title
-- USE horizontal rule at the bottom of sections to separate them each section
-- NO extra vertical space above or below the rule
-- Summary section MUST also have a horizontal rule
-- Horizontal rules MUST be placed immediately after section titles and NEVER inside itemize, enumerate, or paragraph blocks. Using \rule inside lists is strictly forbidden.
-- Horizontal rules MUST NOT be inside itemize or any list environment
-- Reset indentation before drawing the rule
-
-MANDATORY LaTeX COMMAND:
-\par\noindent\rule{\linewidth}{1pt}
-
-USAGE ORDER (STRICT):
-- Section title
-- Section content (paragraphs or itemize)
-- Horizontal rule using the command above
-
-FORBIDDEN:
-- \hrule
-- \textwidth
-- Rules inside lists
-- Extra spacing or indentation before the rule
-
-
-SECTION ORDER (STRICT):
-- Summary
-- Technical Skills
-- Experience(use this section only if the applicant has work experience)
-- Projects
-- Education
-- Certifications
-- Additional Information (use this when page in complete)
-
-SUMMARY RULES:
-- Exactly 2–3 lines
-- No bullets
-- Compact paragraph
-- Optimized for ATS keywords
-- Role + core skills + career focus
-- No fluff or storytelling
-
-Technical SKILLS RULES (VERY IMPORTANT):
-- Merge Technical Skills and Professional Skills into ONE section
-- Use itemize environment ONLY
-- Group related skills logically into ONE bullet per group
-- Example grouping:
-  - Technical Skills:
-  - Programming Languages: Java, Python, JavaScript
-  - Web Technologies: HTML, CSS
-  - Tools and Concepts: Git, Data Structures, Problem Solving
-  - Core Competencies: Problem Solving, Team Collaboration, Time Management
-  - bold the text of grouping names only not entire bullet points
-- Do NOT split related skills into separate bullets
-- Bullets must be compact and aligned vertically under the section
-- No bullets should overflow outside the section margin
-- The section name MUST be exactly "Technical Skills"
-- Do NOT create a separate "Professional Skills" section
-
-EXPERIENCE RULES(use this section only if the applicant has work experience):
-- If no work experience is explicitly present, OMIT the Experience section entirely
-- Use concise, impact-focused bullets
-- Mention tools and technologies already provided
-- Avoid repetition and filler phrases
-
-PROJECT RULES (CRITICAL):
-- Include ONLY the 3 most important projects
-- Automatically ignore minor projects
-- Project name MUST appear directly ABOVE its bullets
-- Project name should be concise and clean
-- Use itemize environment
-- EXACTLY 2–3 bullets per project
-- Each bullet must:
-  - Start with an action verb
-  - Mention the technology used
-  - State the outcome or purpose
-- Bullets must NOT exceed two lines
-
-EDUCATION RULES:
-- Single compact entry
-- Degree, Institution, Dates in one or two lines max
-
-CERTIFICATIONS RULES:
-- Use itemize
-- One line per certification
-- No extra descriptions
-
-ADDITIONAL INFORMATION RULES:
-- Optional (but use this section when page is incomplete)
-- Keep extremely compact 
-- Optimized for ATS keywords
-
-ALIGNMENT RULES:
-- All bullet points must align vertically under section content
-- No bullets may appear outside the section boundary
-- Consistent left margin across the entire document
-- No excessive indentation anywhere
-
-CONTENT INTEGRITY RULES:
-- Preserve ALL factual information exactly as provided
-- Do NOT change names, dates, locations, or links
-- Do NOT hallucinate skills, experience, education, or certifications
-- If content is insufficient:
-  - Improve wording ONLY
-  - NEVER fabricate data
-
-INCOMPLETE RESUME COMPLETION RULE (STRICT – MANDATORY):
-IF the provided resume content results in LESS THAN ONE FULL PAGE after applying all formatting rules:
-- You MUST intelligently ADD content to complete EXACTLY ONE FULL PAGE
-- You are ALLOWED to add ONLY the following sections (in this priority order):
-  1. Additional Information
-  2. Relevant Coursework
-  3. Academic Projects (ONLY if Projects section has fewer than 2 strong projects)
-  4. Key Achievements or Responsibilities (derived strictly from existing data)
-
-STRICT CONSTRAINTS (NON-NEGOTIABLE):
-- NEVER fabricate new companies, jobs, degrees, certifications, or links
-- NEVER invent technologies the candidate has not already mentioned
-- You MAY rephrase, expand, or deepen EXISTING skills, coursework, tools, or responsibilities
-- Added content MUST be logically inferred from the given resume only
-- ALL added bullets must remain concise and NOT exceed two lines
-- Maintain ATS-optimized wording using existing keywords only
-
-SECTION CONTROL:
-- Add ONLY the MINIMUM amount of content required to fill one page
-- DO NOT exceed one page under any circumstance
-- DO NOT repeat information already stated elsewhere
-- If resume is already one full page, DO NOT add anything
-
-FINAL WARNING:
-- If you fail to fill the page when content is insufficient, the output is INVALID
-- If you hallucinate or invent data, the output is INVALID
-- One-page completeness is MANDATORY
-
-FINAL OUTPUT RULE:
-- Output ONLY valid LaTeX code
-- Must compile successfully using pdflatex
-- No plain English text outside LaTeX
-
-DATA ISOLATION & PRIVACY RULE (STRICT):
-- Treat EVERY resume generation as a NEW, ISOLATED task
-- Do NOT reuse, remember, cache, or infer from:
-  - Previous PDFs
-  - Earlier resume content
-  - Prior outputs or layouts
-- Even if the SAME PDF is uploaded again:
-  - Reprocess from scratch
-  - Do NOT rely on earlier results
-
-USER DATA PROTECTION (MANDATORY):
-- User data is CONFIDENTIAL
-- Use data ONLY for the current resume
-- Do NOT transfer, reuse, or leak data anywhere else
-- After generation, treat all data as forgotten
-
-KANNADA DIRECTIVE:
-- "maretu bidu"
-  - Forget previous resumes
-  - Forget previous PDFs
-  - Generate ONLY from current input
-
-ENFORCEMENT:
-- Any violation makes the output INVALID
-
-INPUT TEXT:
+USER INFORMATION:
 <<<
 ${text}
 >>>
-    
-          
+
+LATEX TEMPLATE (SKELETON):
+<<<
+\\documentclass[11pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{geometry}
+\\usepackage{enumitem}
+\\usepackage{hyperref}
+\\usepackage{xcolor}
+\\usepackage{titlesec}
+
+\\geometry{left=0.7in, top=0.5in, right=0.7in, bottom=0.5in}
+\\definecolor{primaryblue}{RGB}{0,0,255}
+\\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=primaryblue}
+
+% Section formatting
+\\titleformat{\\section}{\\large\\bfseries\\uppercase}{}{0em}{}[\\titlerule]
+\\titlespacing{\\section}{0pt}{15pt}{10pt}
+
+\\begin{document}
+\\pagenumbering{gobble}
+
+% Header
+\\begin{center}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
+    \\small PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
+\\end{center}
+
+\\vspace{5pt}
+
+% Summary
+\\section*{Professional Summary}
+SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
+
+% Technical Skills
+\\section*{Technical Skills}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Programming Languages}: List all provided.
+    \\item \\textbf{Tools \\& Technologies}: List all provided.
+    \\item \\textbf{Core Competencies}: List 5-6 professional strengths.
+\\end{itemize}
+
+% Experience (Include ALL provided roles)
+\\section*{Experience}
+% For each role:
+\\textbf{JOB_TITLE} $|$ COMPANY_NAME \\hfill DATES
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Bullet point describing responsibility or achievement.
+\\end{itemize}
+
+% Education
+\\section*{Education}
+\\textbf{DEGREE_NAME} $|$ INSTITUTION_NAME \\hfill DATES \\\\
+\\textit{Relevant Coursework}: Detailed list of 12-15 technical subjects to fill space.
+
+% Projects (Include ALL provided projects)
+\\section*{Projects}
+% For each project:
+\\textbf{PROJECT_NAME} $|$ \\textit{TECH_STACK} \\hfill \\href{PROJECT_LINK}{Link}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
+    \\item Detailed action-verb bullet point.
+    \\item Detailed action-verb bullet point.
+    \\item Detailed action-verb bullet point.
+\\end{itemize}
+
+% Extra Professional Sections (To ensure full page)
+\\section*{Leadership \\& Volunteering}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
+    \\item High-impact contribution or leadership role.
+\\end{itemize}
+
+\\section*{Honors \\& Awards}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
+    \\item Award name from user data or inferred professional distinction.
+\\end{itemize}
+
+\\section*{Certifications \\& Languages}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Certifications}: List ALL provided certifications.
+    \\item \\textbf{Languages}: English (Professional), Local Languages.
+\\end{itemize}
+
+\\end{document}
+>>>
 ` }]
       }],
       generationConfig: { temperature: 0.2 }
@@ -692,112 +442,3 @@ ${text}
     return null;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ================= AGENTROUTER – CLAUDE ================= */
-// async function generateViaClaude(text) {
-//   const apiKey = process.env.AGENTROUTER_API_KEY;
-//   if (!apiKey) {
-//     console.warn("⚠️ AGENTROUTER_API_KEY not set");
-//     return null;
-//   }
-
-//   const prompt = `
-// You are generating a professional LaTeX resume to be compiled using pdflatex (TeX Live).
-
-// STRICT RULES (VERY IMPORTANT):
-// - Return ONLY valid LaTeX source code
-// - Do NOT wrap the output in markdown, code fences, or explanations
-// - The output MUST start with \\documentclass and end with \\end{document}
-
-// COMPILATION RULES:
-// - pdflatex ONLY (TeX Live)
-// - Do NOT use XeLaTeX or LuaLaTeX
-// - Do NOT use \\input, \\include, or external files
-// - Do NOT use shell-escape, \\write18, or system commands
-
-// PACKAGE RULES:
-// - Use \\documentclass[11pt,a4paper]{article}
-// - Use ONLY these packages if needed:
-//   geometry, enumitem, hyperref, titlesec, fancyhdr, xcolor
-// - Do NOT use tables, multicolumn layouts, icons, images, TikZ, or custom .sty files
-
-// ENCODING RULES:
-// - Use ASCII characters only
-// - Replace smart quotes with normal quotes
-// - Replace Unicode bullets with hyphens
-// - Avoid special Unicode symbols
-
-// LAYOUT RULES:
-// - Clean, ATS-friendly resume layout
-// - 1 page preferred, maximum 2 pages
-
-// CONTENT RULES:
-// - Preserve all factual information exactly as provided
-// - Do NOT hallucinate education, experience, skills, or dates
-
-// OUTPUT RULES:
-// - Output ONLY valid LaTeX code
-
-// INPUT TEXT:
-// <<<
-// ${text}
-// >>>
-// `;
-
-//   try {
-//     const res = await axios.post(
-//       "https://agentrouter.org/v1/chat/completions",
-//       {
-//         model: "anthropic/claude-3.5-sonnet",
-//         messages: [
-//           {
-//             role: "user",
-//             content: prompt
-//           }
-//         ],
-//         temperature: 0.2,
-//         max_tokens: 4096
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${apiKey}`,
-//           "Content-Type": "application/json"
-//         }
-//       }
-//     );
-
-//     const latex = res?.data?.choices?.[0]?.message?.content;
-//     if (!latex) return null;
-
-//     // 🔒 VERY IMPORTANT: validation (DO NOT REMOVE)
-//     if (
-//       !latex.trim().startsWith("\\documentclass") ||
-//       !latex.includes("\\begin{document}") ||
-//       !latex.includes("\\end{document}")
-//     ) {
-//       console.error("❌ Claude returned NON-LaTeX");
-//       console.error(latex.slice(0, 200));
-//       return null;
-//     }
-
-//     console.log("✅ Claude (AgentRouter) used");
-//     return latex.trim();
-//   } catch (err) {
-//     console.error("❌ Claude AgentRouter failed:", err.response?.data || err.message);
-//     return null;
-//   }
-// }
