@@ -41,6 +41,14 @@ function sanitizeLatex(latex) {
   safe = safe.replace(/\\newcommand\{\\hrulefill\}.*$/gm, "% removed redefinition of \\hrulefill");
   safe = safe.replace(/\\renewcommand\{\\hrulefill\}.*$/gm, "% removed redefinition of \\hrulefill");
 
+  // Remove trailing period from \end{document} if AI accidentally adds it
+  safe = safe.replace(/\\end\{document\}\s*\./g, "\\end{document}");
+
+  // Fix common AI typos in header links
+  safe = safe.replace(/\\href\{https:\/\/linkedin\.com\/in\/username\}\{LinkedIn\}\s*\./g, "\\href{https://linkedin.com/in/username}{LinkedIn}");
+  safe = safe.replace(/\\href\{https:\/\/github\.com\/username\}\{GitHub\}\s*\./g, "\\href{https://github.com/username}{GitHub}");
+  safe = safe.replace(/\\href\{https:\/\/portfolio\.com\/username\}\{Portfolio\}\s*\./g, "\\href{https://portfolio.com/username}{Portfolio}");
+
   return safe;
 }
 
@@ -80,7 +88,7 @@ async function generateLatex(text) {
   }
 
   const gemini = await generateViaGemini(text);
-  if (gemini && /\\documentclass[\\s\\S]*\\end\\{document\\}/.test(gemini)) {
+  if (gemini && /\\documentclass[\s\S]*\\end\{document\}/.test(gemini)) {
     return sanitizeLatex(stripBadUnicode(stripMarkdownFences(gemini)));
   }
 
@@ -175,12 +183,17 @@ You are a professional LaTeX resume expert. Your task is to extract user informa
 GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
 
 STRICT RULES:
-1.  **NO OMISSIONS**: You MUST include ALL projects, ALL work experiences, and ALL certifications provided in the USER INFORMATION. Never skip any data to save space.
-2.  **ONE-PAGE FULLNESS**: If the page is not full after including all user data, you MUST:
-    - Expand project descriptions with more detailed technical bullets (3-4 bullets per project).
-    - Add/Expand the "Leadership \\& Volunteering" and "Honors \\& Awards" sections.
-    - Elaborate on "Relevant Coursework" to include 12-15 specific technical subjects.
-3.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
+1.  **PROJECT RULE**: You MUST include a maximum of 3 projects. If the user provides more than 3, select the 3 most refined ones. If NO projects are provided, create 2 relevant dummy projects.
+2.  **NO OMISSIONS (Other Sections)**: You MUST include ALL work experiences and ALL certifications. 
+    - **EXPERIENCE RULE**: If NO work experience is provided, create a professional "Internship" or "Freelance Developer" section with EXACTLY 3 high-impact bullets. Never write "This section is omitted".
+3.  **ONE-PAGE FULLNESS**: If the page is not full, you MUST:
+    - Expand project descriptions with more detailed technical bullets (3-4 bullets each).
+    - Add/Expand "Leadership \\& Volunteering" and "Honors \\& Awards".
+    - Elaborate on "Relevant Coursework" to include 12-15 technical subjects.
+4.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
+5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} - THIS IS CRITICAL. Every environment must be closed before the final \\end{document}
+6.  **ADDRESS SHORTENING**: Shorten address to EXACTLY 1 or 2 words (e.g., "City, State").
+7.  **MISSING CONTACT INFO**: If links are missing, ALWAYS provide professional placeholders: "\\href{https://linkedin.com/in/username}{LinkedIn}", "\\href{https://github.com/username}{GitHub}", and "\\href{https://portfolio.com/username}{Portfolio}".
 
 INSTRUCTIONS:
 1.  **Identify Data**: Extract everything: name, contact, summary, skills, experience, projects, education, certifications, and extra info.
@@ -217,8 +230,8 @@ LATEX TEMPLATE (SKELETON):
 
 % Header
 \\begin{center}
-    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
-    \\small PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.3em]
+    \\small SHORT_ADDRESS $|$ PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
 \\end{center}
 
 \\vspace{5pt}
@@ -248,7 +261,7 @@ SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
 \\textbf{DEGREE_NAME} $|$ INSTITUTION_NAME \\hfill DATES \\\\
 \\textit{Relevant Coursework}: Detailed list of 12-15 technical subjects to fill space.
 
-% Projects (Include ALL provided projects)
+% Projects (Include MAX 3 refined/valuable projects)
 \\section*{Projects}
 % For each project:
 \\textbf{PROJECT_NAME} $|$ \\textit{TECH_STACK} \\hfill \\href{PROJECT_LINK}{Link}
@@ -319,12 +332,16 @@ You are a professional LaTeX resume expert. Your task is to extract user informa
 GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
 
 STRICT RULES:
-1.  **NO OMISSIONS**: You MUST include ALL projects, ALL work experiences, and ALL certifications provided in the USER INFORMATION. Never skip any data to save space.
-2.  **ONE-PAGE FULLNESS**: If the page is not full after including all user data, you MUST:
-    - Expand project descriptions with more detailed technical bullets (3-4 bullets per project).
-    - Add/Expand the "Leadership \\& Volunteering" and "Honors \\& Awards" sections.
+1.  **EXPERIENCE RULE**: If NO work experience is provided, create a professional "Internship" section with EXACTLY 3 high-impact bullets. Never write "This section is omitted".
+2.  **NO OMISSIONS**: You MUST include ALL projects, ALL work experiences, and ALL certifications. Never skip data to save space.
+3.  **ONE-PAGE FULLNESS**: If the page is not full, you MUST:
+    - Expand project descriptions with more detailed technical bullets (3-4 bullets each).
+    - Add/Expand "Leadership \\& Volunteering" and "Honors \\& Awards".
     - Elaborate on "Relevant Coursework" to include 12-15 specific technical subjects.
-3.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
+4.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
+5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} - THIS IS CRITICAL. Every environment must be closed before the final \\end{document}
+6.  **ADDRESS SHORTENING**: Shorten address to EXACTLY 1 or 2 words (e.g., "City, State").
+7.  **MISSING CONTACT INFO**: If links are missing, ALWAYS provide professional placeholders: "\\href{https://linkedin.com/in/username}{LinkedIn}", "\\href{https://github.com/username}{GitHub}", and "\\href{https://portfolio.com/username}{Portfolio}".
 
 INSTRUCTIONS:
 1.  **Identify Data**: Extract EVERYTHING provided: name, contact, summary, skills, experience, projects, education, certifications, and extra info.
@@ -362,8 +379,8 @@ LATEX TEMPLATE (SKELETON):
 
 % Header
 \\begin{center}
-    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
-    \\small PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.3em]
+    \\small SHORT_ADDRESS $|$ PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
 \\end{center}
 
 \\vspace{5pt}
@@ -422,9 +439,9 @@ SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
 
 \\end{document}
 >>>
-` }]
-      }],
-      generationConfig: { temperature: 0.2 }
+`
+        }]
+      }]
     });
 
     const parts = resp?.data?.candidates?.[0]?.content?.parts;

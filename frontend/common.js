@@ -94,7 +94,14 @@
     window.hideLoader = function () {
         if (!appLoader) return;
         appLoader.classList.remove('active');
-        document.body.style.overflow = '';
+
+        // Only restore scrolling if preview skeleton is also hidden
+        const skeletonLoader = $('pdfPreviewLoader');
+        const isSkeletonVisible = skeletonLoader && skeletonLoader.style.display === 'flex';
+
+        if (!isSkeletonVisible) {
+            document.body.style.overflow = '';
+        }
     };
 
     window.updateLoaderMessage = function (message) {

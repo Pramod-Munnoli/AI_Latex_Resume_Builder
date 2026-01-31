@@ -172,8 +172,7 @@
             showLoader('Fetching template code...');
 
             // Show skeleton instead
-            const skeletonLoader = document.getElementById('pdfPreviewLoader');
-            if (skeletonLoader) skeletonLoader.style.display = 'flex';
+            toggleSkeleton(true);
 
             setStatus('Loading template...', 'info');
 
@@ -195,8 +194,7 @@
 
                 setStatus('Please select a template from the templates page', 'info');
                 if (cm) cm.setValue('% Please select a template from the templates page to start editing.');
-                const loader = document.getElementById('pdfPreviewLoader');
-                if (loader) loader.style.display = 'none';
+                toggleSkeleton(false);
                 hideLoader();
                 return;
             } else {
@@ -360,7 +358,36 @@
         if (!appLoader) return;
 
         appLoader.classList.remove('active');
-        document.body.style.overflow = ''; // Restore scrolling
+
+        // Restore scrolling only if skeleton loader is also hidden
+        const skeletonLoader = document.getElementById('pdfPreviewLoader');
+        const isSkeletonVisible = skeletonLoader && skeletonLoader.style.display === 'flex';
+
+        if (!isSkeletonVisible) {
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    /**
+     * Show/Hide PDF Preview Skeleton and manage body overflow
+     * @param {boolean} show - Whether to show the skeleton
+     */
+    function toggleSkeleton(show) {
+        const skeletonLoader = document.getElementById('pdfPreviewLoader');
+        if (!skeletonLoader) return;
+
+        if (show) {
+            skeletonLoader.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        } else {
+            skeletonLoader.style.display = 'none';
+
+            // Only restore scrolling if app loader is also hidden
+            const appLoaderActive = appLoader && appLoader.classList.contains('active');
+            if (!appLoaderActive) {
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+        }
     }
 
     // Compile LaTeX code
@@ -368,10 +395,9 @@
         if (isCompiling) return;
         isCompiling = true;
 
-        const loader = document.getElementById('pdfPreviewLoader');
         const status = document.getElementById('pdfLoaderStatus');
 
-        if (loader) loader.style.display = 'flex';
+        toggleSkeleton(true);
         if (status) status.textContent = 'Compiling LaTeX...';
 
         try {
@@ -424,7 +450,7 @@
             throw err;
         } finally {
             // loader hidden in setPdfSrc -> loadPDF or here if failed
-            if (loader) loader.style.display = 'none';
+            toggleSkeleton(false);
             isCompiling = false;
         }
     }
@@ -567,9 +593,7 @@
             setStatus('Loading your saved version...', 'info');
 
             // Show skeleton instead
-            const skeletonLoader = document.getElementById('pdfPreviewLoader');
-            if (skeletonLoader) skeletonLoader.style.display = 'flex';
-
+            toggleSkeleton(true);
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
@@ -605,8 +629,7 @@
 
             if (cleanPrev !== cleanNew || !pdfDoc) {
                 // Show skeleton loader immediately before compilation starts
-                const skeletonLoader = document.getElementById('pdfPreviewLoader');
-                if (skeletonLoader) skeletonLoader.style.display = 'flex';
+                toggleSkeleton(true);
 
                 await compileLatex(userTemplate[columnName]);
                 setStatus('Your saved version loaded', 'success');
@@ -660,8 +683,7 @@
             setStatus('Loading original template...', 'info');
 
             // Show skeleton instead
-            const skeletonLoader = document.getElementById('pdfPreviewLoader');
-            if (skeletonLoader) skeletonLoader.style.display = 'flex';
+            toggleSkeleton(true);
 
             const { data: defaultTemplate, error } = await supabase
                 .from('latex_templates')
@@ -693,8 +715,7 @@
 
             if (cleanPrev !== cleanNew || !pdfDoc) {
                 // Show skeleton loader immediately before compilation starts
-                const skeletonLoader = document.getElementById('pdfPreviewLoader');
-                if (skeletonLoader) skeletonLoader.style.display = 'flex';
+                toggleSkeleton(true);
 
                 await compileLatex(defaultTemplate.latex_code);
                 setStatus('Original template loaded', 'success');
@@ -736,8 +757,7 @@
     }
 
     async function loadPDF(url) {
-        const loader = document.getElementById('pdfPreviewLoader');
-        if (loader) loader.style.display = 'flex';
+        toggleSkeleton(true);
 
         try {
             const loadingTask = pdfjsLib.getDocument(url);
@@ -766,7 +786,7 @@
             console.error('Error loading PDF:', err);
             // Fallback: if PDF.js fails, we could try iframe, but per requirement we don't
         } finally {
-            if (loader) loader.style.display = 'none';
+            toggleSkeleton(false);
         }
     }
 

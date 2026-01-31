@@ -195,8 +195,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     function setLoading(loading) {
         const loader = document.getElementById('appLoader');
         if (loader) {
-            if (loading) loader.classList.add('active');
-            else loader.classList.remove('active');
+            if (loading) {
+                loader.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                loader.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         }
     }
 

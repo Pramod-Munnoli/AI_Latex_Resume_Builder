@@ -72,6 +72,24 @@
         return cm ? cm.getValue() : "";
     };
 
+    function toggleSkeleton(show) {
+        const loader = $('pdfPreviewLoader');
+        if (!loader) return;
+
+        if (show) {
+            loader.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            loader.style.display = 'none';
+            // Only restore if global loader is hidden
+            const appLoader = $('appLoader');
+            const isAppLoaderActive = appLoader && appLoader.classList.contains('active');
+            if (!isAppLoaderActive) {
+                document.body.style.overflow = '';
+            }
+        }
+    }
+
     // --- PDF RENDERING ---
     window.loadPDF = async function (url) {
         if (!url) return;
@@ -86,8 +104,7 @@
         const buster = finalUrl.includes('?') ? `&t_v=${Date.now()}` : `?t_v=${Date.now()}`;
         finalUrl += buster;
 
-        const loader = $('pdfPreviewLoader');
-        if (loader) loader.style.display = 'flex';
+        toggleSkeleton(true);
 
         try {
             const loadingTask = pdfjsLib.getDocument(finalUrl);
@@ -112,7 +129,7 @@
             console.error('Error loading PDF:', err);
             return false;
         } finally {
-            if (loader) loader.style.display = 'none';
+            toggleSkeleton(false);
         }
     };
 

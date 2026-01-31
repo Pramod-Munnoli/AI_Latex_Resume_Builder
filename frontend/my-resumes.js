@@ -405,9 +405,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (show) {
             if (loaderMessage) loaderMessage.textContent = msg;
-            if (loader) loader.classList.add('active');
+            if (loader) {
+                loader.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         } else {
-            if (loader) loader.classList.remove('active');
+            if (loader) {
+                loader.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         }
     }
 
