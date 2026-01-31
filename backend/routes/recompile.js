@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs").promises;
 const { sanitizeLatex } = require("../utils/ai");
 const { writeLatexToTemp, compileLatex } = require("../utils/latex");
-const { uploadToStorage } = require("../utils/storage");
+const { uploadToStorage, deleteOldResumes } = require("../utils/storage"); // Updated import
 const { getAuthenticatedUser } = require("../utils/auth");
 
 const router = express.Router();
@@ -45,13 +45,23 @@ router.post("/recompile", async (req, res) => {
     const { stdout, stderr } = await compileLatex(workDir);
     const log = `${stdout || ""}\n${stderr || ""}`.trim();
 
-    // Upload to Supabase Storage
+    // Clean up old resumes first (to prevent cluttering storage with timestamped files)
+    if (userId !== 'guest') {
+      await deleteOldResumes(userId, 'resumes');
+    }
+
+    // Upload to Supabase Storage with unique filename
     const pdfPath = path.join(workDir, "resume.pdf");
     const resumeTitle = req.body.title || 'AI Generated Resume';
-    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', resumeTitle);
+
+    // Unique filename logic
+    const timestamp = Date.now();
+    const uniqueFileName = `${resumeTitle.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.pdf`;
+
+    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', uniqueFileName);
 
     // Append cache buster
-    const cacheBuster = `?t=${Date.now()}`;
+    const cacheBuster = `?t=${timestamp}&r=${Math.random().toString(36).substring(7)}`;
     return res.json({ pdfUrl: publicUrl + cacheBuster, log });
   } catch (err) {
     console.error("Recompile error:", err);

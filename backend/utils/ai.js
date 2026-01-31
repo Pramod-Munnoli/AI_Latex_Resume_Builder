@@ -84,12 +84,25 @@ function sanitizeLatex(latex) {
     }
 
     // Count begins and ends - regex to handle multiple on one line if they exist
-    const begins = (trimmed.match(/\\begin\{itemize\}/g) || []).length;
-    const ends = (trimmed.match(/\\end\{itemize\}/g) || []).length;
+    // Improved regex to handle optional spaces and better matching
+    const beginMatches = trimmed.match(/\\begin\s*\{itemize\}/g) || [];
+    const endMatches = trimmed.match(/\\end\s*\{itemize\}/g) || [];
+
+    const begins = beginMatches.length;
+    const ends = endMatches.length;
+
+    // PROTECTION: If this line is JUST an \end{itemize} and we have no open itemize, skip it
+    if (trimmed === '\\end{itemize}' && ends === 1 && begins === 0 && openItemizeCount === 0) {
+      continue;
+    }
 
     openItemizeCount += begins;
     openItemizeCount -= ends;
-    if (openItemizeCount < 0) openItemizeCount = 0;
+    if (openItemizeCount < 0) {
+      // If we over-closed, reset count and we could potentially skip pushing this line 
+      // but only if it's purely an end command. Already handled above for simple cases.
+      openItemizeCount = 0;
+    }
 
     processedLines.push(line);
   }

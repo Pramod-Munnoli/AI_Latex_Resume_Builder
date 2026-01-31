@@ -5,7 +5,7 @@ const fs = require("fs").promises;
 const { extractTextFromPdf } = require("../utils/pdf");
 const ai = require("../utils/ai");
 const { writeLatexToTemp, compileLatex } = require("../utils/latex");
-const { uploadToStorage } = require("../utils/storage");
+const { uploadToStorage, deleteOldResumes } = require("../utils/storage");
 const { getAuthenticatedUser } = require("../utils/auth");
 
 const router = express.Router();
@@ -57,12 +57,26 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     await writeLatexToTemp(workDir, latex);
     await compileLatex(workDir);
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage with unique filename to prevent caching issues
     const pdfPath = path.join(workDir, "resume.pdf");
-    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', resumeTitle);
 
-    // Append cache buster
-    const cacheBuster = `?t=${Date.now()}`;
+    // Clean up old resumes first (to prevent cluttering storage with timestamped files)
+    if (userId !== 'guest') {
+      await deleteOldResumes(userId, 'resumes');
+    }
+
+    // Using a timestamp in the filename ensures Supabase sees it as a new file
+    const timestamp = Date.now();
+    const uniqueFileName = `${resumeTitle.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.pdf`;
+
+    // We still pass the resumeTitle to uploadToStorage if we want it to handle the base name logic,
+    // but here we are overriding it to ensure uniqueness at the storage level.
+    // However, looking at uploadToStorage, it sanitizes the input name.
+    // Let's pass the unique name directly.
+    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', uniqueFileName);
+
+    // Append cache buster to the URL for the frontend as well
+    const cacheBuster = `?t=${timestamp}&r=${Math.random().toString(36).substring(7)}`;
     return res.json({ latex, pdfUrl: publicUrl + cacheBuster, source });
   } catch (err) {
     console.error("Upload error:", err);
