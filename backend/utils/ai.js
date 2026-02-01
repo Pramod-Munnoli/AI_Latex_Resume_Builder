@@ -138,7 +138,7 @@ function sanitizeLatex(latex) {
 function stripBadUnicode(str) {
   if (!str) return "";
   return String(str)
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "")
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .replace(/[–—]/g, "-");
@@ -279,7 +279,7 @@ async function generateViaGroq(text) {
           content: `
 You are a professional LaTeX resume expert specializing in ATS (Applicant Tracking System) optimization. Your task is to create a resume that BOTH looks professional AND passes ATS screening algorithms.
 
-GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from top to bottom.
+GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on user data: if data is minimal, MUST fill exactly one full page; if data is extensive, extend naturally to 1.5 or 2 pages.
 
 ═══════════════════════════════════════════════════════════════
                     ATS OPTIMIZATION RULES (CRITICAL)
@@ -345,36 +345,34 @@ GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from t
     - Include a quantifiable achievement if available.
     - End with career objective or value proposition.
 
-12. **STRICT ONE-PAGE COMPULSORY RULE**: 
-    - If the user provides very little data (e.g., only name and skills), you **MUST creatively expand** the resume to fill a full page.
-    - Create 3-4 highly detailed "Personal Projects" that showcase the user's listed skills.
-    - Add a comprehensive "Relevant Coursework" section with 12+ subjects.
-    - Expand the "Professional Summary" to 5 impactful lines.
-    - A half-empty resume is **UNACCEPTABLE**. The PDF must be visually full from top to bottom.
+12. **DYNAMIC PAGE LENGTH RULE**: 
+    - **Minimal User Data**: If the user provides very little data, you MUST creatively expand the resume to fill exactly ONE FULL PAGE. Create 3-4 detailed "Personal Projects", add a comprehensive "Relevant Coursework" section (12+ subjects), and expand the "Professional Summary" to ensure the PDF is visually full from top to bottom.
+    - **Extensive User Data**: If the user provides a lot of data, DO NOT force it into one page. Allow it to extend naturally to 1.5 or 2 pages. Ensure important sections (Professional Summary, Skills, Experience) start on the first page.
+    - **NO GAPS**: Regardless of length, the content must feel dense and professional without large awkward blank spaces.
 
 13. **ONE-PAGE FULLNESS** - Use these ADDITIONAL SECTIONS to fill the page (choose based on user data):
-    - **Languages**: List spoken languages with proficiency (Native, Fluent, Intermediate, Basic).
-    - **Volunteer Experience**: Community service, mentoring, open source contributions.
-    - **Achievements/Honors**: Academic awards, hackathon wins, scholarships, dean's list.
-    - **Publications**: Research papers, blog posts, technical articles.
-    - **Open Source Contributions**: GitHub contributions, popular repositories maintained.
-    - **Relevant Coursework**: 8-12 technical subjects (Data Structures, Algorithms, Database Systems, Operating Systems, Software Engineering, Computer Networks, Machine Learning, Web Development, Cloud Computing, DevOps, Cybersecurity).
+    - **Core Competencies**: List 4-6 key professional strengths or domain expertise areas (e.g., Agile, Cloud Architecture).
+    - **Professional Development**: Recent trainings, seminars, or continuing education courses.
+    - **Relevant Coursework**: EXACTLY 4 most relevant technical subjects based on the user's field.
     - **Technical Interests**: Areas of focus (AI/ML, Cloud Computing, Full-Stack, Mobile Dev, etc.).
-    - **Professional Affiliations**: IEEE, ACM, Google Developer Groups, etc.
     
-13. **SECTION PRIORITY ORDER** (Top to Bottom):
     1. Professional Summary (ALWAYS)
-    2. Skills (ALWAYS)
-    3. Experience (ALWAYS, use Personal Projects if no work experience)
-    4. Education (ALWAYS)
-    5. Projects (Include 2-3 if provided)
-    6. Certifications (if provided)
-    7. Languages (if multilingual)
-    8. Achievements/Awards (if provided)
-    9. Open Source/Publications (if provided)
-    10. Volunteer Experience (if provided)
-    11. Relevant Coursework (expand Education section if page not full)
-    12. Technical Interests (only if page still not full)
+    2. Core Competencies (if page not full)
+    3. Skills (ALWAYS)
+    4. Experience (ALWAYS, use Personal Projects if no work experience)
+    5. Education (ALWAYS)
+    6. Projects (Include 2-3 if provided)
+    7. Certifications (if provided)
+    8. Languages (if multilingual)
+    9. Achievements/Awards (if provided)
+    10. Publications & Open Source (if provided)
+    11. Leadership & Extracurricular (if provided)
+    12. Professional Affiliations (if provided)
+    13. Professional Development (if provided)
+    14. Conferences & Workshops (if provided)
+    15. Volunteer Experience (if provided)
+    16. Relevant Coursework (part of Education section)
+    17. Technical Interests (only if page still not full)
 
 ═══════════════════════════════════════════════════════════════
                     LATEX RULES
@@ -395,6 +393,8 @@ GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from t
 18. **PACKAGES**: Use ONLY packages defined in the template. Do NOT add new packages.
 
 19. **NO COMMENTS**: Do NOT include any LaTeX comments (lines starting with %). Comments break compilation when content is on a single line.
+
+20. **FORMATTING**: Use newlines and indentation to make the LaTeX code readable. Each section, environment (itemize), and command (\section, \item, \geometry, etc.) should start on a new line.
 
 ═══════════════════════════════════════════════════════════════
 
@@ -491,12 +491,46 @@ Seeking to leverage [Key Strengths] to [Value Proposition].
     \\item \\textbf{Project/Paper Name} $|$ \\href{LINK}{Link} -- Brief description of impact or stack.
 \\end{itemize}
 
+\\section*{Leadership \\& Extracurricular}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Role} $|$ Organization \\hfill Month Year -- Month Year
+    \\item Led team of [X] members to organize [Event Name], attended by [Y] participants.
+\\end{itemize}
+
+\\section*{Professional Affiliations}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Member, Association for Computing Machinery (ACM) \\hfill 2023 -- Present
+    \\item Member, IEEE Computer Society \\hfill 2022 -- Present
+\\end{itemize}
+
+\\section*{Core Competencies}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Soft Skills}: Team Leadership, Critical Thinking, Project Management, Agile Methodologies.
+    \\item \\textbf{Domain Expertise}: Cloud Architecture, Distributed Systems, Software Design Patterns.
+\\end{itemize}
+
+\\section*{Professional Development}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Training/Course Name -- Institution or Platform (Year)
+\\end{itemize}
+
+\\section*{Conferences \\& Workshops}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Conference Name} $|$ Role (Attendee/Speaker) \\hfill Location, Year
+\\end{itemize}
+
+\\section*{Technical Interests}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item AI/ML, Cloud Computing, Open Source Contribution, Web3, Distributed Systems.
+\\end{itemize}
+
 \\end{document}
 >>>
 `
         }
       ],
-      temperature: 0.2
+      temperature: 0,
+      max_tokens: 2000
     };
 
     const resp = await callGroq(payload);
@@ -526,7 +560,7 @@ async function generateViaGemini(text) {
           text: `
 You are a professional LaTeX resume expert specializing in ATS (Applicant Tracking System) optimization. Your task is to create a resume that BOTH looks professional AND passes ATS screening algorithms.
 
-GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from top to bottom.
+GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on user data: if data is minimal, MUST fill exactly one full page; if data is extensive, extend naturally to 1.5 or 2 pages.
 
 ═══════════════════════════════════════════════════════════════
                     ATS OPTIMIZATION RULES (CRITICAL)
@@ -592,36 +626,34 @@ GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from t
     - Include a quantifiable achievement if available.
     - End with career objective or value proposition.
 
-12. **STRICT ONE-PAGE COMPULSORY RULE**: 
-    - If the user provides very little data (e.g., only name and skills), you **MUST creatively expand** the resume to fill a full page.
-    - Create 3-4 highly detailed "Personal Projects" that showcase the user's listed skills.
-    - Add a comprehensive "Relevant Coursework" section with 12+ subjects.
-    - Expand the "Professional Summary" to 5 impactful lines.
-    - A half-empty resume is **UNACCEPTABLE**. The PDF must be visually full from top to bottom.
+12. **DYNAMIC PAGE LENGTH RULE**: 
+    - **Minimal User Data**: If the user provides very little data, you MUST creatively expand the resume to fill exactly ONE FULL PAGE. Create 3-4 detailed "Personal Projects", add a comprehensive "Relevant Coursework" section (12+ subjects), and expand the "Professional Summary" to ensure the PDF is visually full from top to bottom.
+    - **Extensive User Data**: If the user provides a lot of data, DO NOT force it into one page. Allow it to extend naturally to 1.5 or 2 pages. Ensure important sections (Professional Summary, Skills, Experience) start on the first page.
+    - **NO GAPS**: Regardless of length, the content must feel dense and professional without large awkward blank spaces.
 
 13. **ONE-PAGE FULLNESS** - Use these ADDITIONAL SECTIONS to fill the page (choose based on user data):
-    - **Languages**: List spoken languages with proficiency (Native, Fluent, Intermediate, Basic).
-    - **Volunteer Experience**: Community service, mentoring, open source contributions.
-    - **Achievements/Honors**: Academic awards, hackathon wins, scholarships, dean's list.
-    - **Publications**: Research papers, blog posts, technical articles.
-    - **Open Source Contributions**: GitHub contributions, popular repositories maintained.
-    - **Relevant Coursework**: 8-12 technical subjects (Data Structures, Algorithms, Database Systems, Operating Systems, Software Engineering, Computer Networks, Machine Learning, Web Development, Cloud Computing, DevOps, Cybersecurity).
+    - **Core Competencies**: List 4-6 key professional strengths or domain expertise areas (e.g., Agile, Cloud Architecture).
+    - **Professional Development**: Recent trainings, seminars, or continuing education courses.
+    - **Relevant Coursework**: EXACTLY 4 most relevant technical subjects based on the user's field.
     - **Technical Interests**: Areas of focus (AI/ML, Cloud Computing, Full-Stack, Mobile Dev, etc.).
-    - **Professional Affiliations**: IEEE, ACM, Google Developer Groups, etc.
     
-13. **SECTION PRIORITY ORDER** (Top to Bottom):
     1. Professional Summary (ALWAYS)
-    2. Skills (ALWAYS)
-    3. Experience (ALWAYS, use Personal Projects if no work experience)
-    4. Education (ALWAYS)
-    5. Projects (Include 2-3 if provided)
-    6. Certifications (if provided)
-    7. Languages (if multilingual)
-    8. Achievements/Awards (if provided)
-    9. Open Source/Publications (if provided)
-    10. Volunteer Experience (if provided)
-    11. Relevant Coursework (expand Education section if page not full)
-    12. Technical Interests (only if page still not full)
+    2. Core Competencies (if page not full)
+    3. Skills (ALWAYS)
+    4. Experience (ALWAYS, use Personal Projects if no work experience)
+    5. Education (ALWAYS)
+    6. Projects (Include 2-3 if provided)
+    7. Certifications (if provided)
+    8. Languages (if multilingual)
+    9. Achievements/Awards (if provided)
+    10. Publications & Open Source (if provided)
+    11. Leadership & Extracurricular (if provided)
+    12. Professional Affiliations (if provided)
+    13. Professional Development (if provided)
+    14. Conferences & Workshops (if provided)
+    15. Volunteer Experience (if provided)
+    16. Relevant Coursework (part of Education section)
+    17. Technical Interests (only if page still not full)
 
 ═══════════════════════════════════════════════════════════════
                     LATEX RULES
@@ -737,11 +769,48 @@ Seeking to leverage [Key Strengths] to [Value Proposition].
     \\item \\textbf{Project/Paper Name} $|$ \\href{LINK}{Link} -- Brief description of impact or stack.
 \\end{itemize}
 
+\\section*{Leadership \\& Extracurricular}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Role} $|$ Organization \\hfill Month Year -- Month Year
+    \\item Led team of [X] members to organize [Event Name], attended by [Y] participants.
+\\end{itemize}
+
+\\section*{Professional Affiliations}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Member, Association for Computing Machinery (ACM) \\hfill 2023 -- Present
+    \\item Member, IEEE Computer Society \\hfill 2022 -- Present
+\\end{itemize}
+
+\\section*{Core Competencies}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Soft Skills}: Team Leadership, Critical Thinking, Project Management, Agile Methodologies.
+    \\item \\textbf{Domain Expertise}: Cloud Architecture, Distributed Systems, Software Design Patterns.
+\\end{itemize}
+
+\\section*{Professional Development}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Training/Course Name -- Institution or Platform (Year)
+\\end{itemize}
+
+\\section*{Conferences \\& Workshops}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Conference Name} $|$ Role (Attendee/Speaker) \\hfill Location, Year
+\\end{itemize}
+
+\\section*{Technical Interests}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item AI/ML, Cloud Computing, Open Source Contribution, Web3, Distributed Systems.
+\\end{itemize}
+
 \\end{document}
 >>>
 `
         }]
-      }]
+      }],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 2000
+      }
     });
 
     const parts = resp?.data?.candidates?.[0]?.content?.parts;
