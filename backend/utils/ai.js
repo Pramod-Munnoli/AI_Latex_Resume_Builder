@@ -2,8 +2,8 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const GROQ_KEYS = [
-  process.env.GROQ_API_KEY,
-  process.env.GROQ_API_KEY_2
+  process.env.GROQ_API_KEY_2,
+  process.env.GROQ_API_KEY
 ].filter(Boolean);
 
 async function callGroq(payload) {
