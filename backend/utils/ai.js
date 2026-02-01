@@ -342,7 +342,8 @@ GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on u
 11. **PROFESSIONAL SUMMARY**: Write 3-4 lines that:
     - Mention years of experience (or "Recent graduate" / "Aspiring professional").
     - Highlight 2-3 key technical skills matching common job requirements.
-    - Include a quantifiable achievement if available.
+    - Include a quantifiable achievement using metrics (e.g., "Increased efficiency by 25%+", "Handled 100+ daily tickets").
+    - Use symbols like % and + to highlight growth and scale.
     - End with career objective or value proposition.
 
 12. **DYNAMIC PAGE LENGTH RULE**: 
@@ -623,7 +624,8 @@ GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on u
 11. **PROFESSIONAL SUMMARY**: Write 3-4 lines that:
     - Mention years of experience (or "Recent graduate" / "Aspiring professional").
     - Highlight 2-3 key technical skills matching common job requirements.
-    - Include a quantifiable achievement if available.
+    - Include a quantifiable achievement using metrics (e.g., "Increased efficiency by 25%+", "Handled 100+ daily tickets").
+    - Use symbols like % and + to highlight growth and scale.
     - End with career objective or value proposition.
 
 12. **DYNAMIC PAGE LENGTH RULE**: 
