@@ -388,6 +388,7 @@ GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on u
 16. **MISSING LINKS**: Use professional placeholders if not provided:
     - "\\href{https://linkedin.com/in/username}{LinkedIn}"
     - "\\href{https://github.com/username}{GitHub}"
+    - "\\href{https://portfolio.com/username}{Portfolio}"
 
 17. **OUTPUT**: Return ONLY valid LaTeX code. No markdown fences, no explanations.
 
@@ -427,7 +428,7 @@ LATEX TEMPLATE (ATS-OPTIMIZED - DO NOT ADD ANY PERCENT SIGN COMMENTS):
 
 \\begin{center}
     {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
-    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub}
+    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
 \\end{center}
 
 \\vspace{4pt}
@@ -670,6 +671,7 @@ GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on u
 16. **MISSING LINKS**: Use professional placeholders if not provided:
     - "\\href{https://linkedin.com/in/username}{LinkedIn}"
     - "\\href{https://github.com/username}{GitHub}"
+    - "\\href{https://portfolio.com/username}{Portfolio}"
 
 17. **OUTPUT**: Return ONLY valid LaTeX code. No markdown fences, no explanations.
 
@@ -706,7 +708,7 @@ LATEX TEMPLATE (ATS-OPTIMIZED - DO NOT ADD ANY PERCENT SIGN COMMENTS):
 
 \\begin{center}
     {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
-    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub}
+    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
 \\end{center}
 
 \\vspace{4pt}
