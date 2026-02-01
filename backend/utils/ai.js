@@ -62,6 +62,18 @@ function sanitizeLatex(latex) {
     safe = safe.replace(re, "% blocked");
   });
 
+  // CRITICAL: Remove LaTeX comments that break when content is on one line
+  // When AI outputs everything on a single line, % comments break the entire document
+  // Match % followed by any non-backslash characters until we hit a backslash (next command)
+  safe = safe.replace(/%[^%\\\\]*(?=\\\\)/g, ""); // Remove % comments followed by backslash
+  // Also handle % comments that might appear before specific patterns
+  safe = safe.replace(/%\s*[A-Za-z][^\\\\]*(?=\\\\)/g, "");
+
+  // CRITICAL FIX: Replace quadruple backslashes with double backslashes
+  // The AI sometimes outputs \\\\ as line breaks but LaTeX only needs \\
+  // This causes "There's no line here to end" errors
+  safe = safe.replace(/\\\\\\\\/g, "\\\\");
+
   // Fix common AI typos
   safe = safe.replace(/\\ule\{/g, "\\rule{"); // Fix \ule -> \rule
   safe = safe.replace(/\\rule\{linewidth\}/g, "\\rule{\\linewidth}"); // Fix missing backslash
@@ -134,10 +146,29 @@ function stripBadUnicode(str) {
 
 function stripMarkdownFences(str) {
   if (!str) return "";
-  return String(str)
-    .replace(/```latex/gi, "")
-    .replace(/```/g, "")
-    .trim();
+  let clean = String(str);
+
+  // Remove opening code fences with any language tag (```latex, ```tex, ``` latex, etc.)
+  clean = clean.replace(/^\s*```\s*(latex|tex)?\s*\n?/gim, "");
+
+  // Remove closing code fences
+  clean = clean.replace(/\n?\s*```\s*$/gim, "");
+
+  // Also handle delimiters used in the prompt
+  clean = clean.replace(/<<<\s*/g, "");
+  clean = clean.replace(/\s*>>>/g, "");
+
+  // Also handle inline triple backticks anywhere
+  clean = clean.replace(/```(latex|tex)?/gi, "");
+  clean = clean.replace(/```/g, "");
+
+  return clean.trim();
+}
+
+function extractLatex(str) {
+  if (!str) return "";
+  const match = str.match(/\\documentclass[\s\S]*\\end\{document\}/);
+  return match ? match[0] : str;
 }
 
 /* ================= FINAL GENERATOR ================= */
@@ -155,12 +186,12 @@ ${escapeLatex(text)}
 async function generateLatex(text) {
   const groq = await generateViaGroq(text);
   if (groq && /\\documentclass[\s\S]*\\end\{document\}/.test(groq)) {
-    return sanitizeLatex(stripBadUnicode(stripMarkdownFences(groq)));
+    return sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(groq))));
   }
 
   const gemini = await generateViaGemini(text);
   if (gemini && /\\documentclass[\s\S]*\\end\{document\}/.test(gemini)) {
-    return sanitizeLatex(stripBadUnicode(stripMarkdownFences(gemini)));
+    return sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(gemini))));
   }
 
   console.warn("⚠️ Using local fallback");
@@ -169,10 +200,21 @@ async function generateLatex(text) {
 
 async function generateLatexWithSource(text) {
   const groq = await generateViaGroq(text);
-  if (groq) return { latex: sanitizeLatex(groq), source: "groq" };
+  if (groq) {
+    const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(groq))));
+    // Verify it's valid LaTeX before returning
+    if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
+      return { latex: cleaned, source: "groq" };
+    }
+  }
 
   const gemini = await generateViaGemini(text);
-  if (gemini) return { latex: sanitizeLatex(gemini), source: "gemini" };
+  if (gemini) {
+    const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(gemini))));
+    if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
+      return { latex: cleaned, source: "gemini" };
+    }
+  }
 
   return { latex: sanitizeLatex(basicTemplateFromText(text)), source: "fallback" };
 }
@@ -224,7 +266,7 @@ module.exports = {
 };
 
 
-/* ================= groq FALLBACK (UNCHANGED) ================= */
+/* ================= GROQ ATS-OPTIMIZED GENERATOR ================= */
 async function generateViaGroq(text) {
   if (GROQ_KEYS.length === 0) return null;
 
@@ -235,35 +277,133 @@ async function generateViaGroq(text) {
         {
           role: "user",
           content: `
-You are a professional LaTeX resume expert. Your task is to extract user information and fill it into the high-quality LaTeX resume template provided below.
+You are a professional LaTeX resume expert specializing in ATS (Applicant Tracking System) optimization. Your task is to create a resume that BOTH looks professional AND passes ATS screening algorithms.
 
-GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
+GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from top to bottom.
 
-STRICT RULES:
-1.  **PROJECT RULE**: You MUST include a maximum of 3 projects IF PROVIDED BY USER. Select only the 3 most refined ones major projects if provided. If NO projects are provided, you MUST create EXACTLY 2 relevant dummy projects based on user skills. UNDER NO CIRCUMSTANCES should you create more than 2 projects if none are provided. DO NOT EXCEED 2 DUMMY PROJECTS.
-2.  **NO OMISSIONS (Other Sections)**: You MUST include ALL work experiences and ALL certifications. 
-    - **EXPERIENCE RULE**: If NO work experience is provided, create a professional "Self-Driven Internship" section based on the user's skills and knowledge with EXACTLY 3 high-impact bullets. Never write "This section is omitted".
-3.  **ONE-PAGE FULLNESS**: If the page is not full, you MUST:
-    - Expand project descriptions with more detailed technical bullets (3-4 bullets each).
-    - Add/Expand "Leadership \\& Volunteering" and "Honors \\& Awards".
-    - Elaborate on "Relevant Coursework" to include 12-15 technical subjects.
-4.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
-5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} IMMEDIATELY before starting a new section or the end of the document. THIS IS CRITICAL. Failure to close environments will break the build.
-6.  **ADDRESS SHORTENING**: Shorten address to EXACTLY 1 or 2 words (e.g., "City, State").
-7.  **MISSING CONTACT INFO**: If links are missing, ALWAYS provide professional placeholders: "\\href{https://linkedin.com/in/username}{LinkedIn}", "\\href{https://github.com/username}{GitHub}", and "\\href{https://portfolio.com/username}{Portfolio}".
+═══════════════════════════════════════════════════════════════
+                    ATS OPTIMIZATION RULES (CRITICAL)
+═══════════════════════════════════════════════════════════════
 
-INSTRUCTIONS:
-1.  **Identify Data**: Extract everything: name, contact, summary, skills, experience, projects, education, certifications, and extra info.
-2.  **Escape Special Characters**: Escape &, %, $, #, _, {, }, ^, ~, \\.
-3.  **Strict Layout**: Maintain the EXACT LaTeX structure below. Output ONLY valid LaTeX code.
-4.  **Clean Output**: No markdown fences, no explanations.
+1.  **KEYWORD INTEGRATION**: 
+    - Naturally incorporate industry-standard keywords from the user's skills throughout the resume.
+    - Mirror exact terminology from common job descriptions (e.g., "Python" not "Py", "JavaScript" not "JS").
+    - Include both spelled-out terms AND acronyms: "Application Programming Interface (API)".
+
+2.  **STANDARD SECTION HEADINGS** (Use ONLY these exact names):
+    - "Professional Summary" (NOT "About Me", "Profile", or "Objective")
+    - "Skills" or "Technical Skills" (NOT "Core Competencies" alone)
+    - "Experience" or "Work Experience" (NOT "Career History" or "Employment")
+    - "Education"
+    - "Projects"
+    - "Certifications"
+    - "Awards" or "Honors"
+
+3.  **QUANTIFIABLE ACHIEVEMENTS** (STAR Method):
+    - EVERY bullet point MUST include measurable metrics where possible.
+    - Use numbers, percentages, dollar amounts, team sizes, timeframes.
+    - GOOD: "Reduced API response time by 40%, handling 10,000+ daily requests"
+    - GOOD: "Led team of 5 developers to deliver project 2 weeks ahead of schedule"
+    - BAD: "Improved system performance" (no metrics)
+    - BAD: "Worked on API development" (no impact shown)
+
+4.  **ACTION VERBS**: Start EVERY bullet with strong action verbs:
+    - Technical: Developed, Engineered, Implemented, Architected, Optimized, Automated, Debugged, Deployed, Integrated, Migrated
+    - Leadership: Led, Managed, Coordinated, Mentored, Directed, Supervised, Spearheaded
+    - Achievement: Achieved, Exceeded, Improved, Increased, Reduced, Streamlined, Accelerated
+
+5.  **REVERSE CHRONOLOGICAL ORDER**: 
+    - List ALL experiences with most recent FIRST.
+    - Use consistent date format: "MMM YYYY - MMM YYYY" or "MMM YYYY - Present".
+
+6.  **SIMPLE ATS-PARSEABLE FORMAT**:
+    - Single-column layout ONLY (no tables, no multi-column, no text boxes).
+    - Linear top-to-bottom reading order.
+    - No decorative graphics or icons.
+    - Use standard bullet points (\\item in LaTeX).
+
+7.  **JOB TITLE CLARITY**: 
+    - Use industry-standard job titles (e.g., "Software Engineer" NOT "Code Ninja").
+    - Match titles to what ATS systems search for.
+
+8.  **SKILLS SECTION OPTIMIZATION**:
+    - Group skills by category: Languages, Frameworks, Databases, Tools, Cloud, etc.
+    - List skills from most relevant/proficient to least.
+    - Include skill proficiency levels if provided.
+
+═══════════════════════════════════════════════════════════════
+                    CONTENT RULES
+═══════════════════════════════════════════════════════════════
+
+9.  **PROJECT RULE**: Include maximum 3 projects IF PROVIDED. If NO projects provided, create EXACTLY 2 relevant projects based on user skills. DO NOT EXCEED 2 DUMMY PROJECTS.
+
+10. **EXPERIENCE RULE**: Include ALL work experiences. If NO experience provided, create a "Personal Projects" or "Freelance Experience" section with 3 high-impact bullets. Never write "This section is omitted".
+
+11. **PROFESSIONAL SUMMARY**: Write 3-4 lines that:
+    - Mention years of experience (or "Recent graduate" / "Aspiring professional").
+    - Highlight 2-3 key technical skills matching common job requirements.
+    - Include a quantifiable achievement if available.
+    - End with career objective or value proposition.
+
+12. **STRICT ONE-PAGE COMPULSORY RULE**: 
+    - If the user provides very little data (e.g., only name and skills), you **MUST creatively expand** the resume to fill a full page.
+    - Create 3-4 highly detailed "Personal Projects" that showcase the user's listed skills.
+    - Add a comprehensive "Relevant Coursework" section with 12+ subjects.
+    - Expand the "Professional Summary" to 5 impactful lines.
+    - A half-empty resume is **UNACCEPTABLE**. The PDF must be visually full from top to bottom.
+
+13. **ONE-PAGE FULLNESS** - Use these ADDITIONAL SECTIONS to fill the page (choose based on user data):
+    - **Languages**: List spoken languages with proficiency (Native, Fluent, Intermediate, Basic).
+    - **Volunteer Experience**: Community service, mentoring, open source contributions.
+    - **Achievements/Honors**: Academic awards, hackathon wins, scholarships, dean's list.
+    - **Publications**: Research papers, blog posts, technical articles.
+    - **Open Source Contributions**: GitHub contributions, popular repositories maintained.
+    - **Relevant Coursework**: 8-12 technical subjects (Data Structures, Algorithms, Database Systems, Operating Systems, Software Engineering, Computer Networks, Machine Learning, Web Development, Cloud Computing, DevOps, Cybersecurity).
+    - **Technical Interests**: Areas of focus (AI/ML, Cloud Computing, Full-Stack, Mobile Dev, etc.).
+    - **Professional Affiliations**: IEEE, ACM, Google Developer Groups, etc.
+    
+13. **SECTION PRIORITY ORDER** (Top to Bottom):
+    1. Professional Summary (ALWAYS)
+    2. Skills (ALWAYS)
+    3. Experience (ALWAYS, use Personal Projects if no work experience)
+    4. Education (ALWAYS)
+    5. Projects (Include 2-3 if provided)
+    6. Certifications (if provided)
+    7. Languages (if multilingual)
+    8. Achievements/Awards (if provided)
+    9. Open Source/Publications (if provided)
+    10. Volunteer Experience (if provided)
+    11. Relevant Coursework (expand Education section if page not full)
+    12. Technical Interests (only if page still not full)
+
+═══════════════════════════════════════════════════════════════
+                    LATEX RULES
+═══════════════════════════════════════════════════════════════
+
+13. **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with \\end{itemize} before starting a new section. CRITICAL for compilation.
+
+14. **ESCAPE CHARACTERS**: Properly escape: &, %, $, #, _, {, }, ^, ~, \\.
+
+15. **ADDRESS FORMAT**: Shorten to "City, State" or "City, Country" only.
+
+16. **MISSING LINKS**: Use professional placeholders if not provided:
+    - "\\href{https://linkedin.com/in/username}{LinkedIn}"
+    - "\\href{https://github.com/username}{GitHub}"
+
+17. **OUTPUT**: Return ONLY valid LaTeX code. No markdown fences, no explanations.
+
+18. **PACKAGES**: Use ONLY packages defined in the template. Do NOT add new packages.
+
+19. **NO COMMENTS**: Do NOT include any LaTeX comments (lines starting with %). Comments break compilation when content is on a single line.
+
+═══════════════════════════════════════════════════════════════
 
 USER INFORMATION:
 <<<
 ${text}
 >>>
 
-LATEX TEMPLATE (SKELETON):
+LATEX TEMPLATE (ATS-OPTIMIZED - DO NOT ADD ANY PERCENT SIGN COMMENTS):
 <<<
 \\documentclass[11pt,a4paper]{article}
 \\usepackage[utf8]{inputenc}
@@ -275,74 +415,80 @@ LATEX TEMPLATE (SKELETON):
 \\usepackage{titlesec}
 
 \\geometry{left=0.6in, top=0.5in, right=0.6in, bottom=0.5in}
-\\definecolor{primaryblue}{RGB}{0,0,255}
-\\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=primaryblue}
+\\definecolor{linkblue}{RGB}{0,51,102}
+\\hypersetup{colorlinks=true, linkcolor=linkblue, urlcolor=linkblue}
 
-% Section formatting
-\\titleformat{\\section}{\\large\\bfseries\\uppercase}{}{0em}{}[\\titlerule]
-\\titlespacing{\\section}{0pt}{15pt}{10pt}
+\\titleformat{\\section}{\\large\\bfseries}{}{0em}{}[\\titlerule]
+\\titlespacing{\\section}{0pt}{12pt}{8pt}
 
 \\begin{document}
 \\pagenumbering{gobble}
 
-% Header
 \\begin{center}
-    {\\huge \\textbf{FULL NAME}} \\\\[0.3em]
-    \\small SHORT_ADDRESS $|$ PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
+    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub}
 \\end{center}
 
-\\vspace{5pt}
+\\vspace{4pt}
 
-% Summary
 \\section*{Professional Summary}
-SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
+[Years of experience] [Primary Role] with expertise in [Key Skills]. 
+Proven track record of [Quantifiable Achievement]. 
+Skilled in [Technologies matching job requirements]. 
+Seeking to leverage [Key Strengths] to [Value Proposition].
 
-% Technical Skills
-\\section*{Technical Skills}
+\\section*{Skills}
 \\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Programming Languages}: List all provided.
-    \\item \\textbf{Tools \\& Technologies}: List all provided.
-    \\item \\textbf{Core Competencies}: List 5-6 professional strengths.
+    \\item \\textbf{Programming Languages}: Python, JavaScript, Java, C++, etc.
+    \\item \\textbf{Frameworks \\& Libraries}: React, Node.js, Django, Spring Boot, etc.
+    \\item \\textbf{Databases}: MySQL, PostgreSQL, MongoDB, Redis, etc.
+    \\item \\textbf{Tools \\& Platforms}: Git, Docker, AWS, Linux, CI/CD, etc.
 \\end{itemize}
 
-% Experience (Include ALL provided roles)
 \\section*{Experience}
-% For each role:
-\\textbf{JOB_TITLE} $|$ COMPANY_NAME \\hfill DATES
+\\textbf{Job Title} $|$ Company Name \\hfill Month Year -- Present
 \\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item Bullet point describing responsibility or achievement.
+    \\item Developed [feature] using [technology], resulting in [X% improvement/metric].
+    \\item Led [initiative] that reduced [metric] by [X%], saving [time/cost].
+    \\item Collaborated with [team size] engineers to deliver [project] on schedule.
 \\end{itemize}
 
-% Education
 \\section*{Education}
-\\textbf{DEGREE_NAME} $|$ INSTITUTION_NAME \\hfill DATES \\\\
-\\textit{Relevant Coursework}: Detailed list of 12-15 technical subjects to fill space.
+\\textbf{Degree Name} $|$ Institution Name \\hfill Graduation Date \\\\
+\\textit{Relevant Coursework}: Data Structures, Algorithms, Database Systems, Operating Systems, Software Engineering, Computer Networks, Machine Learning, Web Development
 
-% Projects (Include MAX 3 if user provided, but EXACTLY 2 if dummy/generated)
 \\section*{Projects}
-% For each project:
-\\textbf{PROJECT_NAME} $|$ \\textit{TECH_STACK} \\hfill \\href{PROJECT_LINK}{Link}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
-    \\item Detailed action-verb bullet point.
-    \\item Detailed action-verb bullet point.
-    \\item Detailed action-verb bullet point.
-\\end{itemize}
-
-% Extra Professional Sections (To ensure full page)
-\\section*{Leadership \\& Volunteering}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
-    \\item High-impact contribution or leadership role (e.g. Open Source, Clubs).
-\\end{itemize}
-
-\\section*{Honors \\& Awards}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
-    \\item Award name from user data or inferred professional distinction.
-\\end{itemize}
-
-\\section*{Certifications \\& Languages}
+\\textbf{Project Name} $|$ \\textit{Tech Stack} \\hfill \\href{PROJECT_URL}{GitHub}
 \\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Certifications}: List ALL provided certifications.
-    \\item \\textbf{Languages}: English (Professional), Local Languages.
+    \\item Built [description] using [technologies] to solve [problem].
+    \\item Implemented [feature] that improved [metric] by [X%].
+    \\item Deployed on [platform] handling [X users/requests].
+\\end{itemize}
+
+\\section*{Certifications}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Certification Name -- Issuing Organization (Year)
+\\end{itemize}
+
+\\section*{Languages}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item English (Native), Spanish (Fluent), French (Intermediate)
+\\end{itemize}
+
+\\section*{Volunteer Experience}
+\\textbf{Role Name} $|$ Organization Name \\hfill Month Year -- Month Year
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Description of contribution or impact.
+\\end{itemize}
+
+\\section*{Awards}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Award Name -- Organization (Year)
+\\end{itemize}
+
+\\section*{Publications \\& Open Source}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Project/Paper Name} $|$ \\href{LINK}{Link} -- Brief description of impact or stack.
 \\end{itemize}
 
 \\end{document}
@@ -365,7 +511,7 @@ SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
   }
 }
 
-/* ================= GEMINI FALLBACK (UNCHANGED) ================= */
+/* ================= GEMINI ATS-OPTIMIZED FALLBACK ================= */
 async function generateViaGemini(text) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
@@ -378,37 +524,133 @@ async function generateViaGemini(text) {
       contents: [{
         role: "user", parts: [{
           text: `
-You are a professional LaTeX resume expert. Your task is to extract user information and fill it into the high-quality LaTeX resume template provided below.
+You are a professional LaTeX resume expert specializing in ATS (Applicant Tracking System) optimization. Your task is to create a resume that BOTH looks professional AND passes ATS screening algorithms.
 
-GOAL: Generate a professional, STUNNING ONE-PAGE resume that is FULL from top to bottom.
+GOAL: Generate a professional, ATS-OPTIMIZED ONE-PAGE resume that is FULL from top to bottom.
 
-STRICT RULES:
-1.  **PROJECT RULE**: You MUST include a maximum of 3 projects IF PROVIDED BY USER. Select only the 3 most refined ones major projects if provided. If NO projects are provided, you MUST create EXACTLY 2 relevant dummy projects based on user skills. UNDER NO CIRCUMSTANCES should you create more than 2 projects if none are provided. DO NOT EXCEED 2 DUMMY PROJECTS.
-2.  **NO OMISSIONS (Other Sections)**: You MUST include ALL work experiences and ALL certifications. 
-    - **EXPERIENCE RULE**: If NO work experience is provided, create a professional "Self-Driven Internship" section based on the user's skills and knowledge with EXACTLY 3 high-impact bullets. Never write "This section is omitted".
-3.  **ONE-PAGE FULLNESS**: If the page is not full, you MUST:
-    - Expand project descriptions with more detailed technical bullets (3-4 bullets each).
-    - Add/Expand "Leadership \\& Volunteering" and "Honors \\& Awards".
-    - Elaborate on "Relevant Coursework" to include 12-15 specific technical subjects.
-4.  **Professional Summary**: Ensure the summary is exactly 3-4 lines of high-impact text.
-5.  **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with an \\end{itemize} IMMEDIATELY before starting a new section or the end of the document. THIS IS CRITICAL. Failure to close environments will break the build.
-6.  **ADDRESS SHORTENING**: Shorten address to EXACTLY 1 or 2 words (e.g., "City, State").
-7.  **MISSING CONTACT INFO**: If links are missing, ALWAYS provide professional placeholders: "\\href{https://linkedin.com/in/username}{LinkedIn}", "\\href{https://github.com/username}{GitHub}", and "\\href{https://portfolio.com/username}{Portfolio}".
+═══════════════════════════════════════════════════════════════
+                    ATS OPTIMIZATION RULES (CRITICAL)
+═══════════════════════════════════════════════════════════════
 
-INSTRUCTIONS:
-1.  **Identify Data**: Extract EVERYTHING provided: name, contact, summary, skills, experience, projects, education, certifications, and extra info.
-2.  **Escape Special Characters**: Escape &, %, $, #, _, {, }, ^, ~, \\.
-3.  **Strict Layout**: Maintain the EXACT LaTeX structure below. Output ONLY valid LaTeX code.
-4.  **Clean Output**: No markdown fences, no explanations.
-5.  **Package Rule**: Use ONLY packages defined in the template.
+1.  **KEYWORD INTEGRATION**: 
+    - Naturally incorporate industry-standard keywords from the user's skills throughout the resume.
+    - Mirror exact terminology from common job descriptions (e.g., "Python" not "Py", "JavaScript" not "JS").
+    - Include both spelled-out terms AND acronyms: "Application Programming Interface (API)".
+
+2.  **STANDARD SECTION HEADINGS** (Use ONLY these exact names):
+    - "Professional Summary" (NOT "About Me", "Profile", or "Objective")
+    - "Skills" or "Technical Skills" (NOT "Core Competencies" alone)
+    - "Experience" or "Work Experience" (NOT "Career History" or "Employment")
+    - "Education"
+    - "Projects"
+    - "Certifications"
+    - "Awards" or "Honors"
+
+3.  **QUANTIFIABLE ACHIEVEMENTS** (STAR Method):
+    - EVERY bullet point MUST include measurable metrics where possible.
+    - Use numbers, percentages, dollar amounts, team sizes, timeframes.
+    - GOOD: "Reduced API response time by 40\\%, handling 10,000+ daily requests"
+    - GOOD: "Led team of 5 developers to deliver project 2 weeks ahead of schedule"
+    - BAD: "Improved system performance" (no metrics)
+    - BAD: "Worked on API development" (no impact shown)
+
+4.  **ACTION VERBS**: Start EVERY bullet with strong action verbs:
+    - Technical: Developed, Engineered, Implemented, Architected, Optimized, Automated, Debugged, Deployed, Integrated, Migrated
+    - Leadership: Led, Managed, Coordinated, Mentored, Directed, Supervised, Spearheaded
+    - Achievement: Achieved, Exceeded, Improved, Increased, Reduced, Streamlined, Accelerated
+
+5.  **REVERSE CHRONOLOGICAL ORDER**: 
+    - List ALL experiences with most recent FIRST.
+    - Use consistent date format: "MMM YYYY - MMM YYYY" or "MMM YYYY - Present".
+
+6.  **SIMPLE ATS-PARSEABLE FORMAT**:
+    - Single-column layout ONLY (no tables, no multi-column, no text boxes).
+    - Linear top-to-bottom reading order.
+    - No decorative graphics or icons.
+    - Use standard bullet points (\\item in LaTeX).
+
+7.  **JOB TITLE CLARITY**: 
+    - Use industry-standard job titles (e.g., "Software Engineer" NOT "Code Ninja").
+    - Match titles to what ATS systems search for.
+
+8.  **SKILLS SECTION OPTIMIZATION**:
+    - Group skills by category: Languages, Frameworks, Databases, Tools, Cloud, etc.
+    - List skills from most relevant/proficient to least.
+    - Include skill proficiency levels if provided.
+
+═══════════════════════════════════════════════════════════════
+                    CONTENT RULES
+═══════════════════════════════════════════════════════════════
+
+9.  **PROJECT RULE**: Include maximum 3 projects IF PROVIDED. If NO projects provided, create EXACTLY 2 relevant projects based on user skills. DO NOT EXCEED 2 DUMMY PROJECTS.
+
+10. **EXPERIENCE RULE**: Include ALL work experiences. If NO experience provided, create a "Personal Projects" or "Freelance Experience" section with 3 high-impact bullets. Never write "This section is omitted".
+
+11. **PROFESSIONAL SUMMARY**: Write 3-4 lines that:
+    - Mention years of experience (or "Recent graduate" / "Aspiring professional").
+    - Highlight 2-3 key technical skills matching common job requirements.
+    - Include a quantifiable achievement if available.
+    - End with career objective or value proposition.
+
+12. **STRICT ONE-PAGE COMPULSORY RULE**: 
+    - If the user provides very little data (e.g., only name and skills), you **MUST creatively expand** the resume to fill a full page.
+    - Create 3-4 highly detailed "Personal Projects" that showcase the user's listed skills.
+    - Add a comprehensive "Relevant Coursework" section with 12+ subjects.
+    - Expand the "Professional Summary" to 5 impactful lines.
+    - A half-empty resume is **UNACCEPTABLE**. The PDF must be visually full from top to bottom.
+
+13. **ONE-PAGE FULLNESS** - Use these ADDITIONAL SECTIONS to fill the page (choose based on user data):
+    - **Languages**: List spoken languages with proficiency (Native, Fluent, Intermediate, Basic).
+    - **Volunteer Experience**: Community service, mentoring, open source contributions.
+    - **Achievements/Honors**: Academic awards, hackathon wins, scholarships, dean's list.
+    - **Publications**: Research papers, blog posts, technical articles.
+    - **Open Source Contributions**: GitHub contributions, popular repositories maintained.
+    - **Relevant Coursework**: 8-12 technical subjects (Data Structures, Algorithms, Database Systems, Operating Systems, Software Engineering, Computer Networks, Machine Learning, Web Development, Cloud Computing, DevOps, Cybersecurity).
+    - **Technical Interests**: Areas of focus (AI/ML, Cloud Computing, Full-Stack, Mobile Dev, etc.).
+    - **Professional Affiliations**: IEEE, ACM, Google Developer Groups, etc.
+    
+13. **SECTION PRIORITY ORDER** (Top to Bottom):
+    1. Professional Summary (ALWAYS)
+    2. Skills (ALWAYS)
+    3. Experience (ALWAYS, use Personal Projects if no work experience)
+    4. Education (ALWAYS)
+    5. Projects (Include 2-3 if provided)
+    6. Certifications (if provided)
+    7. Languages (if multilingual)
+    8. Achievements/Awards (if provided)
+    9. Open Source/Publications (if provided)
+    10. Volunteer Experience (if provided)
+    11. Relevant Coursework (expand Education section if page not full)
+    12. Technical Interests (only if page still not full)
+
+═══════════════════════════════════════════════════════════════
+                    LATEX RULES
+═══════════════════════════════════════════════════════════════
+
+13. **LATEX SYNTAX**: Every \\begin{itemize} MUST be closed with \\end{itemize} before starting a new section. CRITICAL for compilation.
+
+14. **ESCAPE CHARACTERS**: Properly escape: &, %, $, #, _, {, }, ^, ~, \\.
+
+15. **ADDRESS FORMAT**: Shorten to "City, State" or "City, Country" only.
+
+16. **MISSING LINKS**: Use professional placeholders if not provided:
+    - "\\href{https://linkedin.com/in/username}{LinkedIn}"
+    - "\\href{https://github.com/username}{GitHub}"
+
+17. **OUTPUT**: Return ONLY valid LaTeX code. No markdown fences, no explanations.
+
+18. **PACKAGES**: Use ONLY packages defined in the template. Do NOT add new packages.
+
+19. **NO COMMENTS**: Do NOT include any LaTeX comments (lines starting with %). Comments break compilation when content is on a single line.
+
+═══════════════════════════════════════════════════════════════
 
 USER INFORMATION:
 <<<
 ${text}
 >>>
 
-LATEX TEMPLATE (SKELETON):
-<<<
+LATEX TEMPLATE (ATS-OPTIMIZED - DO NOT ADD ANY PERCENT SIGN COMMENTS):
 \\documentclass[11pt,a4paper]{article}
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
@@ -419,74 +661,80 @@ LATEX TEMPLATE (SKELETON):
 \\usepackage{titlesec}
 
 \\geometry{left=0.6in, top=0.5in, right=0.6in, bottom=0.5in}
-\\definecolor{primaryblue}{RGB}{0,0,255}
-\\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=primaryblue}
+\\definecolor{linkblue}{RGB}{0,51,102}
+\\hypersetup{colorlinks=true, linkcolor=linkblue, urlcolor=linkblue}
 
-% Section formatting
-\\titleformat{\\section}{\\large\\bfseries\\uppercase}{}{0em}{}[\\titlerule]
-\\titlespacing{\\section}{0pt}{15pt}{10pt}
+\\titleformat{\\section}{\\large\\bfseries}{}{0em}{}[\\titlerule]
+\\titlespacing{\\section}{0pt}{12pt}{8pt}
 
 \\begin{document}
 \\pagenumbering{gobble}
 
-% Header
 \\begin{center}
-    {\\huge \\textbf{FULL NAME}} \\\\[0.3em]
-    \\small SHORT_ADDRESS $|$ PHONE $|$ EMAIL $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub} $|$ \\href{PORTFOLIO_URL}{Portfolio}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
+    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub}
 \\end{center}
 
-\\vspace{5pt}
+\\vspace{4pt}
 
-% Summary
 \\section*{Professional Summary}
-SUMMARY_CONTENT (Ensure 3-4 high-impact lines)
+[Years of experience] [Primary Role] with expertise in [Key Skills]. 
+Proven track record of [Quantifiable Achievement]. 
+Skilled in [Technologies matching job requirements]. 
+Seeking to leverage [Key Strengths] to [Value Proposition].
 
-% Technical Skills
-\\section*{Technical Skills}
+\\section*{Skills}
 \\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Programming Languages}: List all provided.
-    \\item \\textbf{Tools \\& Technologies}: List all provided.
-    \\item \\textbf{Core Competencies}: List 5-6 professional strengths.
+    \\item \\textbf{Programming Languages}: Python, JavaScript, Java, C++, etc.
+    \\item \\textbf{Frameworks \\& Libraries}: React, Node.js, Django, Spring Boot, etc.
+    \\item \\textbf{Databases}: MySQL, PostgreSQL, MongoDB, Redis, etc.
+    \\item \\textbf{Tools \\& Platforms}: Git, Docker, AWS, Linux, CI/CD, etc.
 \\end{itemize}
 
-% Experience (Include ALL provided roles)
 \\section*{Experience}
-% For each role:
-\\textbf{JOB_TITLE} $|$ COMPANY_NAME \\hfill DATES
+\\textbf{Job Title} $|$ Company Name \\hfill Month Year -- Present
 \\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item Bullet point describing responsibility or achievement.
+    \\item Developed [feature] using [technology], resulting in [X\\% improvement/metric].
+    \\item Led [initiative] that reduced [metric] by [X\\%], saving [time/cost].
+    \\item Collaborated with [team size] engineers to deliver [project] on schedule.
 \\end{itemize}
 
-% Education
 \\section*{Education}
-\\textbf{DEGREE_NAME} $|$ INSTITUTION_NAME \\hfill DATES \\\\
-\\textit{Relevant Coursework}: Detailed list of 12-15 technical subjects to fill space.
+\\textbf{Degree Name} $|$ Institution Name \\hfill Graduation Date \\\\
+\\textit{Relevant Coursework}: Data Structures, Algorithms, Database Systems, Operating Systems, Software Engineering, Computer Networks, Machine Learning, Web Development
 
-% Projects (Include MAX 3 if user provided, but EXACTLY 2 if dummy/generated)
 \\section*{Projects}
-% For each project:
-\\textbf{PROJECT_NAME} $|$ \\textit{TECH_STACK} \\hfill \\href{PROJECT_LINK}{Link}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
-    \\item Detailed action-verb bullet point.
-    \\item Detailed action-verb bullet point.
-    \\item Detailed action-verb bullet point.
-\\end{itemize}
-
-% Extra Professional Sections (To ensure full page)
-\\section*{Leadership \\& Volunteering}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
-    \\item High-impact contribution or leadership role.
-\\end{itemize}
-
-\\section*{Honors \\& Awards}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=3pt]
-    \\item Award name from user data or inferred professional distinction.
-\\end{itemize}
-
-\\section*{Certifications \\& Languages}
+\\textbf{Project Name} $|$ \\textit{Tech Stack} \\hfill \\href{PROJECT_URL}{GitHub}
 \\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Certifications}: List ALL provided certifications.
-    \\item \\textbf{Languages}: English (Professional), Local Languages.
+    \\item Built [description] using [technologies] to solve [problem].
+    \\item Implemented [feature] that improved [metric] by [X\\%].
+    \\item Deployed on [platform] handling [X users/requests].
+\\end{itemize}
+
+\\section*{Certifications}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Certification Name -- Issuing Organization (Year)
+\\end{itemize}
+
+\\section*{Languages}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item English (Native), Spanish (Fluent), French (Intermediate)
+\\end{itemize}
+
+\\section*{Volunteer Experience}
+\\textbf{Role Name} $|$ Organization Name \\hfill Month Year -- Month Year
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Description of contribution or impact.
+\\end{itemize}
+
+\\section*{Awards}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item Award Name -- Organization (Year)
+\\end{itemize}
+
+\\section*{Publications \\& Open Source}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Project/Paper Name} $|$ \\href{LINK}{Link} -- Brief description of impact or stack.
 \\end{itemize}
 
 \\end{document}

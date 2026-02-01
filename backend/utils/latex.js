@@ -6,6 +6,10 @@ const { exec } = require("child_process");
 async function writeLatexToTemp(tempDir, latex) {
   await fs.mkdir(tempDir, { recursive: true });
   const texPath = path.join(tempDir, "resume.tex");
+  // DEBUG: Log first 500 chars of LaTeX to diagnose issues
+  console.log("--- LaTeX Content (first 500 chars) ---");
+  console.log(latex ? latex.substring(0, 500) : "[EMPTY LATEX]");
+  console.log("--- End LaTeX Preview ---");
   await fs.writeFile(texPath, latex, "utf8");
   return texPath;
 }
