@@ -360,18 +360,43 @@
         if (!appLoader) return;
 
         appLoader.classList.remove('active');
-
-        // Restore scrolling only if skeleton loader is also hidden
-        const skeletonLoader = document.getElementById('pdfPreviewLoader');
-        const isSkeletonVisible = skeletonLoader && skeletonLoader.style.display === 'flex';
-
-        if (!isSkeletonVisible) {
-            document.body.classList.remove('lock-scroll');
-            document.body.style.overflow = '';
-            document.body.style.removeProperty('overflow');
-            document.body.style.removeProperty('overflow-y');
-        }
+        document.body.classList.remove('lock-scroll');
+        document.body.style.overflow = '';
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('overflow-y');
     }
+
+    const SKELETON_PAGE_HTML = `
+        <div class="skeleton-container">
+            <div class="skeleton-shimmer"></div>
+            <!-- Header Group -->
+            <div class="skeleton-top-group">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-subheader"></div>
+            </div>
+            <!-- Section 1 -->
+            <div class="skeleton-block">
+                <div class="skeleton-section-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line mid"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+            <!-- Section 2 -->
+            <div class="skeleton-block">
+                <div class="skeleton-section-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line mid"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+            <!-- Section 3 -->
+            <div class="skeleton-block">
+                <div class="skeleton-section-title"></div>
+                <div class="skeleton-line mid"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+        </div>
+    `;
 
     /**
      * Show/Hide PDF Preview Skeleton and manage body overflow
@@ -379,37 +404,34 @@
      */
     function toggleSkeleton(show) {
         const skeletonLoader = document.getElementById('pdfPreviewLoader');
+        const noPreviewPlaceholder = document.getElementById('no-preview-placeholder');
         if (!skeletonLoader) return;
 
         if (show) {
+            // Hide placeholder if showing skeleton
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
+
+            // Determine how many pages to show (default 1)
+            let numPages = 1;
+            if (pdfDoc && pdfDoc.numPages) {
+                numPages = pdfDoc.numPages;
+            }
+
+            // Populate skeleton pages
+            skeletonLoader.innerHTML = Array(numPages).fill(SKELETON_PAGE_HTML).join('');
+
             skeletonLoader.style.display = 'flex';
-            document.body.classList.add('lock-scroll');
-            document.body.style.setProperty('overflow', 'hidden', 'important');
-            document.body.style.setProperty('overflow-y', 'hidden', 'important');
+
+            // Re-calculate view height for skeletons
+            updateVisualScale();
         } else {
             skeletonLoader.style.display = 'none';
-
-            // Only restore scrolling if app loader is also hidden
-            const appLoaderActive = appLoader && appLoader.classList.contains('active');
-            if (!appLoaderActive) {
-                document.body.classList.remove('lock-scroll');
-                document.body.style.overflow = '';
-                document.body.style.removeProperty('overflow');
-                document.body.style.removeProperty('overflow-y');
-            }
         }
     }
 
-    // Reinforce scroll lock on focus/restore
+    // Focus/restore listener
     window.addEventListener('focus', () => {
-        const skeletonLoader = document.getElementById('pdfPreviewLoader');
-        const isActive = (skeletonLoader && skeletonLoader.style.display === 'flex') ||
-            (appLoader && appLoader.classList.contains('active'));
-        if (isActive) {
-            document.body.classList.add('lock-scroll');
-            document.body.style.setProperty('overflow', 'hidden', 'important');
-            document.body.style.setProperty('overflow-y', 'hidden', 'important');
-        }
+        // Scroll lock is now handled individually by global loaders only
     });
 
     // Compile LaTeX code
@@ -759,7 +781,7 @@
 
     // --- PDF.js VIEWER LOGIC ---
     let pdfDoc = null;
-    let currentScale = 1.0;
+    let currentScale = 1.8;
     let isRendering = false;
     let renderPending = false;
     let pendingUrl = null;
@@ -810,9 +832,11 @@
 
         } catch (err) {
             console.error('Error loading PDF:', err);
-            // Fallback: if PDF.js fails, we could try iframe, but per requirement we don't
         } finally {
+            // Robust cleanup: ensure both the skeleton and the placeholder are hidden
             toggleSkeleton(false);
+            const noPreviewPlaceholder = document.getElementById('no-preview-placeholder');
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
         }
     }
 
@@ -857,27 +881,44 @@
     }
 
     function updateVisualScale() {
+        const wrapper = document.getElementById('pdfViewportWrapper');
         const container = document.getElementById('pdfCanvasContainer');
         const inner = document.getElementById('pdfInnerContainer');
         const zoomValue = document.querySelector('.zoom-value');
-        if (!container || !inner) return;
+        if (!wrapper || !container || !inner) return;
 
         const visualScale = currentScale / 2.0;
-        container.style.transform = `scale(${visualScale})`;
+        wrapper.style.transform = `scale(${visualScale})`;
 
         // Re-calculate the actual visual height to prevent "phantom" space or clipping
         let totalH = 0;
         const canvases = container.querySelectorAll('canvas');
-        canvases.forEach(canvas => {
-            totalH += (canvas.height / 2.0); // Canvases are rendered at 2.0 scale
-        });
+
+        // If no canvases, use skeleton height
+        if (canvases.length === 0) {
+            const skeletons = wrapper.querySelectorAll('.skeleton-container');
+            if (skeletons.length > 0) {
+                let skeletonH = 0;
+                skeletons.forEach(sk => {
+                    skeletonH += (sk.offsetHeight || 848);
+                });
+                const skeletonGap = skeletons.length > 1 ? (skeletons.length - 1) * 30 : 0;
+                totalH = skeletonH + skeletonGap;
+            } else {
+                totalH = 848;
+            }
+        } else {
+            canvases.forEach(canvas => {
+                totalH += (canvas.height / 2.0); // Canvases are rendered at 2.0 scale
+            });
+        }
 
         // 30px is the gap between pages defined in CSS
         const totalGap = canvases.length > 1 ? (canvases.length - 1) * 30 : 0;
         const scaledHeight = (totalH + totalGap) * visualScale;
 
         // Apply the calculated height to the inner container to ensure correct scrolling
-        inner.style.height = `${scaledHeight + 20}px`; // 20px for bottom padding (reduced from 80px)
+        inner.style.height = `${scaledHeight + 120}px`; // Increased padding for better scroll feel
 
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     }

@@ -130,5 +130,5 @@ async function deleteOldResumes(userId, bucketName = 'resumes') {
     }
 }
 
-module.exports = { uploadToStorage, deleteOldResumes };
+module.exports = { uploadToStorage, deleteOldResumes, supabase };
 

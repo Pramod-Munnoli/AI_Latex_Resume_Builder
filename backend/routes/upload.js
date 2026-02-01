@@ -5,8 +5,9 @@ const fs = require("fs").promises;
 const { extractTextFromPdf } = require("../utils/pdf");
 const ai = require("../utils/ai");
 const { writeLatexToTemp, compileLatex } = require("../utils/latex");
-const { uploadToStorage, deleteOldResumes } = require("../utils/storage");
+const { uploadToStorage, deleteOldResumes, supabase } = require("../utils/storage");
 const { getAuthenticatedUser } = require("../utils/auth");
+const crypto = require("crypto");
 
 const router = express.Router();
 const upload = multer({
@@ -52,32 +53,59 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
       : async (t) => ({ latex: await ai.generateLatex(t), source: "fallback" });
     const { latex, source } = await gen(text);
 
+    // --- CACHE OPTIMIZATION ---
+    // Generate a unique hash for this LaTeX content
+    const latexHash = crypto.createHash("md5").update(latex).digest("hex");
+    const cacheFileName = `cache_${latexHash}.pdf`;
+    const storagePath = `users/${userId}/${cacheFileName}`;
+
+    if (userId !== 'guest') {
+      try {
+        const { data: existingFiles } = await supabase.storage
+          .from('resumes')
+          .list(`users/${userId}`, {
+            search: cacheFileName
+          });
+
+        if (existingFiles && existingFiles.some(f => f.name === cacheFileName)) {
+          console.log(`[Cache] Found identical LaTeX content for user ${userId} during upload. skipping compilation.`);
+          const { data: { publicUrl } } = supabase.storage
+            .from('resumes')
+            .getPublicUrl(storagePath);
+
+          return res.json({
+            latex,
+            pdfUrl: publicUrl + `?cache=hit&v=${latexHash}`,
+            source,
+            cached: true
+          });
+        }
+      } catch (cacheErr) {
+        console.warn("[Cache] Check failed during upload, proceeding with compile:", cacheErr.message);
+      }
+    }
+    // --- END CACHE OPTIMIZATION ---
+
     // Use single 'temp' directory (as requested)
     const workDir = tempDir;
     await writeLatexToTemp(workDir, latex);
+
+    console.log(`[Upload] Compiling generated LaTeX for user ${userId}...`);
     await compileLatex(workDir);
 
     // Upload to Supabase Storage with unique filename to prevent caching issues
     const pdfPath = path.join(workDir, "resume.pdf");
 
-    // Clean up old resumes first (to prevent cluttering storage with timestamped files)
+    // Clean up old resumes only if we are doing a fresh compile
     if (userId !== 'guest') {
       await deleteOldResumes(userId, 'resumes');
     }
 
-    // Using a timestamp in the filename ensures Supabase sees it as a new file
-    const timestamp = Date.now();
-    const uniqueFileName = `${resumeTitle.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.pdf`;
-
-    // We still pass the resumeTitle to uploadToStorage if we want it to handle the base name logic,
-    // but here we are overriding it to ensure uniqueness at the storage level.
-    // However, looking at uploadToStorage, it sanitizes the input name.
-    // Let's pass the unique name directly.
-    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', uniqueFileName);
+    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', cacheFileName);
 
     // Append cache buster to the URL for the frontend as well
-    const cacheBuster = `?t=${timestamp}&r=${Math.random().toString(36).substring(7)}`;
-    return res.json({ latex, pdfUrl: publicUrl + cacheBuster, source });
+    const cacheBuster = `?t=${Date.now()}&v=${latexHash}`;
+    return res.json({ latex, pdfUrl: publicUrl + cacheBuster, source, cached: false });
   } catch (err) {
     console.error("Upload error:", err);
     // ... error handling remains the same ...

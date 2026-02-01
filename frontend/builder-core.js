@@ -72,40 +72,67 @@
         return cm ? cm.getValue() : "";
     };
 
+    const SKELETON_PAGE_HTML = `
+        <div class="skeleton-container">
+            <div class="skeleton-shimmer"></div>
+            <!-- Header Group -->
+            <div class="skeleton-top-group">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-subheader"></div>
+            </div>
+            <!-- Section 1 -->
+            <div class="skeleton-block">
+                <div class="skeleton-section-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line mid"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+            <!-- Section 2 -->
+            <div class="skeleton-block">
+                <div class="skeleton-section-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line mid"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+            <!-- Section 3 -->
+            <div class="skeleton-block">
+                <div class="skeleton-section-title"></div>
+                <div class="skeleton-line mid"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+        </div>
+    `;
+
     function toggleSkeleton(show) {
         const loader = $('pdfPreviewLoader');
+        const noPreviewPlaceholder = $('no-preview-placeholder');
         if (!loader) return;
 
         if (show) {
+            // Hide placeholder if showing skeleton
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
+
+            // Determine how many pages to show (default 1)
+            let numPages = 1;
+            if (pdfDoc && pdfDoc.numPages) {
+                numPages = pdfDoc.numPages;
+            }
+
+            // Populate skeleton pages
+            loader.innerHTML = Array(numPages).fill(SKELETON_PAGE_HTML).join('');
             loader.style.display = 'flex';
-            document.body.classList.add('lock-scroll');
-            document.body.style.setProperty('overflow', 'hidden', 'important');
-            document.body.style.setProperty('overflow-y', 'hidden', 'important');
+
+            // Re-calculate view height for skeletons
+            window.updateVisualScale();
         } else {
             loader.style.display = 'none';
-            // Only restore if global loader is hidden
-            const appLoader = $('appLoader');
-            const isAppLoaderActive = appLoader && appLoader.classList.contains('active');
-            if (!isAppLoaderActive) {
-                document.body.classList.remove('lock-scroll');
-                document.body.style.overflow = '';
-                document.body.style.removeProperty('overflow');
-                document.body.style.removeProperty('overflow-y');
-            }
         }
     }
 
-    // Reinforce lock on focus
+    // Focus/restore listener
     window.addEventListener('focus', () => {
-        const loader = $('pdfPreviewLoader');
-        const appLoader = $('appLoader');
-        const isActive = (loader && loader.style.display === 'flex') ||
-            (appLoader && appLoader.classList.contains('active'));
-        if (isActive) {
-            document.body.classList.add('lock-scroll');
-            document.body.style.setProperty('overflow', 'hidden', 'important');
-            document.body.style.setProperty('overflow-y', 'hidden', 'important');
-        }
+        // Scroll lock is now handled individually by global loaders only
     });
 
     // --- PDF RENDERING ---
@@ -147,7 +174,10 @@
             console.error('Error loading PDF:', err);
             return false;
         } finally {
+            // Robust cleanup
             toggleSkeleton(false);
+            const noPreviewPlaceholder = $('no-preview-placeholder');
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
         }
     };
 
@@ -176,21 +206,39 @@
     }
 
     window.updateVisualScale = function () {
+        const wrapper = $('pdfViewportWrapper');
         const container = $('pdfCanvasContainer');
         const inner = $('pdfInnerContainer');
         const zoomValue = $('zoomValue');
-        if (!container || !inner) return;
+        if (!wrapper || !container || !inner) return;
 
         const visualScale = currentScale / 2.0;
-        container.style.transform = `scale(${visualScale})`;
+        wrapper.style.transform = `scale(${visualScale})`;
 
         let totalH = 0;
-        container.querySelectorAll('canvas').forEach(canvas => {
-            totalH += (canvas.height / 2.0);
-        });
+        const canvases = container.querySelectorAll('canvas');
 
-        const totalGap = (container.children.length > 1) ? (container.children.length - 1) * 30 : 0;
-        inner.style.height = `${(totalH + totalGap) * visualScale + 20}px`;
+        // If no canvases, use skeleton height
+        if (canvases.length === 0) {
+            const skeletons = wrapper.querySelectorAll('.skeleton-container');
+            if (skeletons.length > 0) {
+                let skeletonH = 0;
+                skeletons.forEach(sk => {
+                    skeletonH += (sk.offsetHeight || 848);
+                });
+                const skeletonGap = skeletons.length > 1 ? (skeletons.length - 1) * 30 : 0;
+                totalH = skeletonH + skeletonGap;
+            } else {
+                totalH = 848;
+            }
+        } else {
+            canvases.forEach(canvas => {
+                totalH += (canvas.height / 2.0); // Canvases are rendered at 2.0 scale
+            });
+        }
+
+        const totalGap = (canvases.length > 1) ? (canvases.length - 1) * 30 : 0;
+        inner.style.height = `${(totalH + totalGap) * visualScale + 120}px`;
 
         if (zoomValue) zoomValue.textContent = Math.round(currentScale * 100) + '%';
     };
@@ -610,7 +658,8 @@
 
         pdfDoc.getPage(1).then(page => {
             const viewport = page.getViewport({ scale: 1.0 });
-            const padding = getPdfPadding();
+            // Available width is the viewer's current width minus padding
+            const padding = 120; // Match CSS padding/gap
             const availableWidth = viewer.clientWidth - padding;
             currentScale = Math.min(availableWidth / viewport.width, 2.3);
             window.updateVisualScale();
@@ -624,7 +673,7 @@
 
         pdfDoc.getPage(1).then(page => {
             const viewport = page.getViewport({ scale: 1.0 });
-            const padding = getPdfPadding();
+            const padding = 60;
             const availableHeight = viewer.clientHeight - padding;
             currentScale = Math.min(availableHeight / viewport.height, 2.3);
             window.updateVisualScale();

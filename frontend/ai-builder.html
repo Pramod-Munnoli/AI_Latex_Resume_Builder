@@ -180,7 +180,40 @@
 
                 <div id="pdfViewer" class="pdf-viewer grab">
                     <div id="pdfInnerContainer" class="pdf-inner-container">
-                        <div id="pdfCanvasContainer" class="pdf-canvas-container"></div>
+                        <div id="pdfViewportWrapper" class="pdf-viewport-wrapper">
+                            <div id="pdfCanvasContainer" class="pdf-canvas-container"></div>
+
+                            <!-- Loading Skeleton - now managed by JS to support multi-page -->
+                            <div id="pdfPreviewLoader" class="pdf-preview-loader">
+                                <div class="skeleton-container">
+                                    <div class="skeleton-shimmer"></div>
+                                    <!-- Header -->
+                                    <div class="skeleton-header"></div>
+                                    <div class="skeleton-subheader"></div>
+                                    <!-- Section 1 -->
+                                    <div class="skeleton-block">
+                                        <div class="skeleton-section-title"></div>
+                                        <div class="skeleton-line"></div>
+                                        <div class="skeleton-line mid"></div>
+                                        <div class="skeleton-line short"></div>
+                                    </div>
+                                    <!-- Section 2 -->
+                                    <div class="skeleton-block">
+                                        <div class="skeleton-section-title"></div>
+                                        <div class="skeleton-line"></div>
+                                        <div class="skeleton-line mid"></div>
+                                        <div class="skeleton-line"></div>
+                                        <div class="skeleton-line short"></div>
+                                    </div>
+                                    <!-- Section 3 -->
+                                    <div class="skeleton-block">
+                                        <div class="skeleton-section-title"></div>
+                                        <div class="skeleton-line mid"></div>
+                                        <div class="skeleton-line short"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- No Preview Placeholder -->
                         <div id="no-preview-placeholder" class="no-template-overlay">
@@ -190,36 +223,6 @@
                                 </div>
                                 <h2 class="no-template-title">Ready for Generation</h2>
                                 <p>Generate your resume to see a real-time preview of your professional profile.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Loading Skeleton -->
-                    <div id="pdfPreviewLoader" class="pdf-preview-loader" style="display: none;">
-                        <div class="skeleton-container">
-                            <div class="skeleton-shimmer"></div>
-                            <!-- Header -->
-                            <div class="skeleton-header"></div>
-                            <div class="skeleton-subheader"></div>
-                            <!-- Section 1 -->
-                            <div class="skeleton-block">
-                                <div class="skeleton-section-title"></div>
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line mid"></div>
-                                <div class="skeleton-line short"></div>
-                            </div>
-                            <!-- Section 2 -->
-                            <div class="skeleton-block">
-                                <div class="skeleton-section-title"></div>
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line mid"></div>
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line short"></div>
-                            </div>
-                            <!-- Section 3 -->
-                            <div class="skeleton-block">
-                                <div class="skeleton-section-title"></div>
-                                <div class="skeleton-line mid"></div>
-                                <div class="skeleton-line short"></div>
                             </div>
                         </div>
                     </div>

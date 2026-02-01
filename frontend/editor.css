@@ -338,12 +338,10 @@
     display: flex;
     flex-direction: column;
     gap: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     background: transparent;
     transform-origin: top center;
     will-change: transform, filter;
     transition: filter 0.3s ease;
-    /* Hardware acceleration */
 }
 
 .pdf-canvas-container canvas {
@@ -352,20 +350,32 @@
     width: 100%;
     height: auto;
     border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.pdf-viewport-wrapper {
+    position: relative;
+    transform-origin: top center;
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Loading Overlay */
 .pdf-preview-loader {
     position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.2);
-    backdrop-filter: blur(8px);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 60px;
-    /* Match actual PDF padding */
-    z-index: 100;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 30px;
+    padding: 0;
+    z-index: 5;
+    pointer-events: none;
 }
 
 .loader-content {
@@ -404,16 +414,15 @@
 
 /* Skeleton Loader */
 .skeleton-container {
-    width: 600px;
-    max-width: 90%;
+    width: 595px;
+    /* Slightly less than standard container for better fit */
     aspect-ratio: 1 / 1.414;
     /* A4 Ratio */
     height: auto;
     background: white;
     padding: 60px;
-    /* More realistic margins */
     border-radius: 4px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     gap: 30px;
@@ -445,20 +454,26 @@
     }
 }
 
+.skeleton-top-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .skeleton-header {
-    height: 40px;
-    width: 60%;
+    height: 35px;
+    width: 65%;
     background: #f1f5f9;
     border-radius: 4px;
-    margin: 0 auto;
 }
 
 .skeleton-subheader {
     height: 12px;
-    width: 40%;
+    width: 45%;
     background: #f1f5f9;
     border-radius: 4px;
-    margin: 0 auto;
 }
 
 .skeleton-section-title {
