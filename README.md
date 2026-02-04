@@ -15,7 +15,7 @@
 
 AI LaTeX Resume Builder is a sophisticated full-stack application designed to solve the "static resume" problem. It intelligently reconstructs unstructured PDF data into high-quality, ATS-optimized LaTeX source code using a dual-LLM orchestration layer (**Groq Llama 3.3** & **Google Gemini 2.0 Flash**). 
 
-The platform features a premium design system, real-time cloud sync, and a professional-grade LaTeX compilation engine.
+The platform features a premium design system, real-time cloud sync, and a professional-grade LaTeX compilation engine with advanced caching.
 
 ---
 
@@ -30,23 +30,24 @@ flowchart TD
     
     %% AI Processing Layer
     FE -->|Reconstruction Request| BE[Dockerized Backend - Render]
-    BE -->|Primary Query| Groq[Groq Llama 3.3 Engine]
-    BE -.->|Fallback Query| Gemini[Gemini 2.0 Flash]
+    BE -->|Multi-Key Rotation| Groq[Groq Llama 3.3 Engine]
+    BE -.->|Reliability Fallback| Gemini[Gemini 2.0 Flash]
     
     %% Compilation Layer
-    Groq -->|Raw LaTeX| San[LaTeX Sanitizer & Fixer]
+    Groq -->|Raw LaTeX| San[Intelligent Sanitizer]
     Gemini -->|Raw LaTeX| San
     San -->|Processed Code| TEX[TeX Live Compiler]
     TEX -->|Generated PDF| BE
+    
+    %% Cache & Storage
+    BE -->|MD5 Hash Check| Cache{Cache Hit?}
+    Cache -->|Yes| FE
+    Cache -->|No| TEX
     
     %% Cloud Ecosystem
     FE -->|Optimistic Auth| SB_A[Supabase Auth]
     FE -->|Real-time Sync| SB_D[(Supabase PostgreSQL)]
     FE -->|Binary Storage| SB_S[(Supabase Storage)]
-    
-    %% UI/UX Layer
-    FE -->|Smooth Reveal| IO[Intersection Observer FX]
-    FE -->|Safe Load| LS[(Local Storage Cache)]
     
     style User fill:#6366f1,color:#fff
     style FE fill:#1e293b,stroke:#6366f1,color:#fff
@@ -59,27 +60,22 @@ flowchart TD
 ## 🔥 Professional Features
 
 ### 🤖 Intelligent AI Orchestration
-*   **Dual-Engine Routing**: Primarily uses **Groq (Llama 3.3)** for extreme speed, with **Gemini 2.0 Flash** as a high-reliability fallback.
-*   **Context-Aware Reconstruction**: Intelligently maps PDF text to complex LaTeX structures (Education, Experience, Skills, Projects).
-*   **Auto-Sanitization**: Automatically detects and escapes special characters to prevent LaTeX compilation errors.
+*   **Multi-Key Failover Routing**: Dynamically rotates through multiple **Groq API keys** to bypass rate limits and ensure maximum uptime.
+*   **Dual-Engine Logic**: Primarily uses **Groq (Llama 3.3)** for extreme speed, with **Gemini 2.0 Flash** as a high-reliability fallback.
+*   **Auto-Sanitization**: A robust "LaTeX Sanitizer & Fixer" that automatically detects and closes environments (like itemize) and escapes special characters.
 
 ### 🎨 Premium Design System (Aesthetics First)
 *   **High-End Visuals**: Modern Glassmorphism UI with vibrant indigo/teal color palettes and fluid responsiveness.
-*   **Atomic Animations**: 
-    *   Word-by-word reveal for hero sections.
-    *   Staggered grid entrance transitions.
-    *   Premium slide-and-fade panel animations for the editor.
-*   **Performance Optimized**: All animations run via GPU-accelerated CSS transforms and Intersection Observers.
+*   **Performance Optimized**: All animations run via GPU-accelerated CSS transforms and Intersection Observers for sub-second visual reveals.
 
-### 🛠️ Professional LaTeX Editor
-*   **Live Side-by-Side Preview**: Type LaTeX on the left, see the professional PDF instantly on the right.
-*   **Template Ecosystem**: Access a curated gallery of ATS-friendly templates (Modern, Minimal, Student, Developer).
-*   **Visual Editor (Hybrid)**: Toggle between raw LaTeX code and a user-friendly field-based editor.
+### 🛠️ Professional LaTeX Editor & Preview
+*   **Compilation Cache (Ultra Fast)**: Uses MD5 hashing to detect identical LaTeX content. If the code hasn't changed, the PDF is served instantly from the cache, bypassing the compilation wait.
+*   **Visual Editor (Coming Soon)**: We are developing a hybrid system that will allow users to toggle between a professional Code Editor and a user-friendly field-based interface.
+*   **Intelligent Versioning**: Switch seamlessly between your **"Saved Version"** and the **"Original Template"** with built-in diffing logic.
 
 ### ☁️ Enterprise Cloud Infrastructure
-*   **Supabase Integration**: Secure Auth, real-time database syncing, and persistent object storage.
+*   **Supabase Integration**: Secure Auth via JWT, real-time database syncing, and persistent object storage for generated PDFs.
 *   **Optimistic UX**: Uses local caching to show user data (Initials/Profile) instantly on page load before the database response arrives.
-*   **Version History**: "My Version" vs. "Original Template" toggling with intelligent diffing to prevent unnecessary recompiles.
 
 ---
 
@@ -87,13 +83,13 @@ flowchart TD
 
 ### **Frontend (UI/UX)**
 - **Core**: Vanilla JavaScript (ES6+), HTML5, CSS3.
-- **FX**: Intersection Observer API, CSS Transitions/Animations.
-- **Tools**: Lucide Icons, CodeMirror (Editor), PDF.js (Viewer).
+- **FX**: Intersection Observer API, GPU-Accelerated CSS Transitions.
+- **Tools**: Lucide Icons, CodeMirror (Editor), PDF.js (Custom Renderer).
 
 ### **Backend (Logic & Processing)**
 - **Runtime**: Node.js & Express.
-- **AI**: Groq SDK & Google Generative AI (Gemini).
-- **Environment**: Docker + TeX Live (Professional LaTeX Distributions).
+- **AI**: Groq SDK (Multi-key) & Google Generative AI (Gemini).
+- **Environment**: Docker + TeX Live (Professional LaTeX Distribution).
 
 ### **Database & Cloud**
 - **Auth/DB**: Supabase (PostgreSQL).
@@ -116,6 +112,7 @@ flowchart TD
    Create a `.env` file in the root directory:
    ```env
    GROQ_API_KEY=your_key
+   GROQ_API_KEY_2=your_secondary_key
    GEMINI_API_KEY=your_key
    SUPABASE_URL=your_project_url
    SUPABASE_ANON_KEY=your_anon_key
@@ -128,9 +125,9 @@ flowchart TD
 ---
 
 ## 🤝 Roadmap & Future
-- [ ] **ATS Scoring**: Live analysis of resume quality.
+- [ ] **ATS Scoring**: Live analysis of resume quality base on JD.
 - [ ] **Tailor for Job**: Auto-rewrite bullet points based on a job description.
-- [ ] **Multi-Resume Dashboard**: Grid view of all saved versions.
+- [ ] **Multi-Resume Dashboard**: Grid view of all saved versions and variations.
 
 ---
 **Designed and Developed with ❤️ by [Pramod Munnoli](https://github.com/Pramod-Munnoli)**
