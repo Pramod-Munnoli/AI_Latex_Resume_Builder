@@ -7,6 +7,7 @@
     <title>Login | AI LaTeX Resume Builder</title>
     <link rel="stylesheet" href="global.css">
     <link rel="stylesheet" href="auth.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="common.js" defer></script>
@@ -14,72 +15,198 @@
 </head>
 
 <body class="auth-page" id="loginPage">
-    <a href="index.html" class="back-to-home">
-        <span>←</span> Back to Home
-    </a>
+    <!-- Star Background -->
+    <canvas id="authStars"></canvas>
 
-    <div class="auth-card">
-        <div class="auth-header">
-            <h1 id="modalTitle">Welcome Back</h1>
-            <p id="modalSubtitle">Login to sync your resumes to the cloud.</p>
-        </div>
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
 
-        <div id="authErrorMsg" class="auth-error"></div>
-        <div id="authMessage" class="auth-message"></div>
-
-        <form id="authForm">
-            <div class="auth-form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" class="auth-input" placeholder="you@example.com" required
-                    autocomplete="email">
+    <!-- Login Card - Centered Single Card Layout -->
+    <div class="auth-card-wrapper">
+        <div class="auth-card login-card">
+            <!-- Logo -->
+            <div class="auth-logo-circle">
+                <img src="images/logo-premium.svg" alt="Logo" width="40" height="40">
             </div>
 
-            <div id="passwordGroup" class="auth-form-group">
-                <label for="password">Password</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="password" class="auth-input" placeholder="••••••••" required
-                        autocomplete="current-password">
-                    <button type="button" id="toggleVisibility" class="password-toggle">
-                        <i data-lucide="eye"></i>
-                    </button>
+            <!-- Header -->
+            <div class="auth-card-header">
+                <h1>Welcome Back</h1>
+                <p>Best AI-powered resume builder integrated for your career journey</p>
+            </div>
+
+            <div id="authErrorMsg" class="auth-error"></div>
+            <div id="authMessage" class="auth-message"></div>
+
+            <form id="authForm">
+                <!-- Email -->
+                <div class="auth-form-group">
+                    <label for="email">Email</label>
+                    <div class="auth-input-wrapper">
+                        <div class="input-icon-box">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                            </svg>
+                        </div>
+                        <input type="email" id="email" class="auth-input" placeholder="you@example.com" required
+                            autocomplete="email">
+                    </div>
                 </div>
+
+                <!-- Password -->
+                <div id="passwordGroup" class="auth-form-group">
+                    <label for="password">Password</label>
+                    <div class="auth-input-wrapper">
+                        <div class="input-icon-box">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z" />
+                            </svg>
+                        </div>
+                        <input type="password" id="password" class="auth-input" placeholder="••••••••" required
+                            autocomplete="current-password">
+                        <button type="button" id="toggleVisibility" class="password-toggle">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="auth-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-auth-submit">Sign In</button>
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>New to platform?</span>
             </div>
 
-            <div class="auth-helper auth-helper-forgot" style="text-align: right; margin-bottom: 20px;">
-                <a href="forgot-password.html" class="auth-link" style="font-size: 0.85rem;">Forgot Password?</a>
-            </div>
-
-            <button type="submit" id="submitBtn" class="btn-auth-submit">Login</button>
-        </form>
-
-        <div id="toggleText" class="auth-footer">
-            Don't have an account? <a href="signup.html" class="auth-link">Sign Up</a>
+            <!-- Create Account Button -->
+            <a href="signup.html" class="btn-auth-secondary">Create an account</a>
         </div>
     </div>
 
 
+    <!-- Particle Background Script -->
+    <script>
+        const canvas = document.getElementById('authStars');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let autoScrollX = 0;
+        let autoScrollY = 0;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Star {
+            constructor() {
+                this.init();
+            }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.8 + 0.2;
+                this.baseOpacity = Math.random() * 0.6 + 0.2;
+                this.opacity = this.baseOpacity;
+                this.twinkleSpeed = Math.random() * 0.02 + 0.005;
+                this.twinkleFactor = 0;
+
+                // Automatic movement velocity
+                this.vx = (Math.random() - 0.5) * 0.15;
+                this.vy = (Math.random() - 0.5) * 0.15;
+
+                // Varied star colors
+                const colors = ['#ffffff', '#e0e7ff', '#fffbeb', '#f5f3ff'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+
+                // Parallax depth
+                this.depth = Math.random() * 15 + 5;
+            }
+            update() {
+                // Apply automatic movement
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Twinkling effect
+                this.twinkleFactor += this.twinkleSpeed;
+                this.opacity = this.baseOpacity + Math.sin(this.twinkleFactor) * 0.2;
+
+                // Boundary check (wrap around)
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                // Combine mouse parallax with automatic global drift
+                const offsetX = ((mouse.x - window.innerWidth / 2) / this.depth) + (autoScrollX / this.depth);
+                const offsetY = ((mouse.y - window.innerHeight / 2) / this.depth) + (autoScrollY / this.depth);
+
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+
+                // Wrap positions for infinite drift
+                let drawX = (this.x + offsetX) % canvas.width;
+                let drawY = (this.y + offsetY) % canvas.height;
+                if (drawX < 0) drawX += canvas.width;
+                if (drawY < 0) drawY += canvas.height;
+
+                ctx.arc(drawX, drawY, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (this.size > 1.2) {
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        function init() {
+            resize();
+            stars = Array.from({ length: 250 }, () => new Star());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Increment global drift (Faster)
+            autoScrollX += 1.2;
+            autoScrollY += 0.6;
+
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        init();
+        animate();
+    </script>
 
     <!-- Global App Loader -->
     <div id="appLoader" class="app-loader">
         <div class="app-loader-content">
-            <div class="skeleton-loader">
-                <div class="skeleton-loader-header">
-                    <div class="skeleton-avatar"></div>
-                    <div class="skeleton-header-lines">
-                        <div class="skeleton-line w-70"></div>
-                        <div class="skeleton-line w-50"></div>
-                    </div>
-                </div>
-                <div class="skeleton-cards">
-                    <div class="skeleton-card-item"></div>
-                    <div class="skeleton-card-item"></div>
-                    <div class="skeleton-card-item"></div>
-                </div>
-                <div class="skeleton-footer">
-                    <div class="skeleton-line w-85"></div>
-                    <div class="skeleton-line w-40"></div>
-                </div>
-            </div>
             <div id="appLoaderMessage" class="app-loader-message">Loading...</div>
             <div class="loader-dots">
                 <span class="loader-dot"></span>
@@ -91,7 +218,6 @@
 
     <script src="login.js"></script>
     <script>
-        // Initialize Lucide icons
         lucide.createIcons();
     </script>
 </body>

@@ -29,6 +29,7 @@
 
         setupLoginForm();
         setupPasswordToggle();
+        loadRememberedEmail();
     }
 
     // --- PASSWORD VISIBILITY TOGGLE ---
@@ -76,6 +77,7 @@
 
             const email = $('email').value.trim();
             const password = $('password').value;
+            const rememberMe = $('rememberMe').checked;
 
             try {
                 if (!window._supabase) {
@@ -89,6 +91,13 @@
                 });
 
                 if (error) throw error;
+
+                // Handle Remember Me
+                if (rememberMe) {
+                    localStorage.setItem('rememberedEmail', email);
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                }
 
                 // Success - redirect to dashboard
                 const successDiv = $('authMessage');
@@ -136,6 +145,17 @@
         }
 
         return message;
+    }
+
+    // --- REMEMBER ME HELPER ---
+    function loadRememberedEmail() {
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+            const emailInput = $('email');
+            const rememberCheck = $('rememberMe');
+            if (emailInput) emailInput.value = rememberedEmail;
+            if (rememberCheck) rememberCheck.checked = true;
+        }
     }
 
     // --- Start ---

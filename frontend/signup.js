@@ -30,6 +30,7 @@
         setupSignupForm();
         setupPasswordToggle();
         setupPasswordValidation();
+        setupTermsModal();
     }
 
     // --- PASSWORD VISIBILITY TOGGLE ---
@@ -52,22 +53,76 @@
         });
     }
 
-    // --- PASSWORD VALIDATION ---
+    // --- PASSWORD VALIDATION & STRENGTH ---
     function setupPasswordValidation() {
         const password = $('password');
         const confirmPassword = $('confirmPassword');
+        const strengthBar = $('strengthBar');
+        const strengthLabel = $('strengthLabel');
+
+        const requirements = {
+            length: (val) => val.length >= 8,
+            upper: (val) => /[A-Z]/.test(val),
+            lower: (val) => /[a-z]/.test(val),
+            number: (val) => /[0-9]/.test(val),
+            special: (val) => /[^A-Za-z0-9]/.test(val)
+        };
+
+        const pills = {
+            length: $('req-length'),
+            upper: $('req-upper'),
+            lower: $('req-lower'),
+            number: $('req-number'),
+            special: $('req-special')
+        };
+
+        const updateStrength = () => {
+            const val = password.value;
+            let score = 0;
+
+            // Update Pills & Calculate Score
+            Object.keys(requirements).forEach(key => {
+                const isValid = requirements[key](val);
+                if (isValid) score++;
+
+                if (pills[key]) {
+                    if (isValid) pills[key].classList.add('valid');
+                    else pills[key].classList.remove('valid');
+                }
+            });
+
+            // Update Strength Bar & Label
+            const strengthStyles = {
+                0: { color: '#ef4444', label: 'Very Weak', width: '10%' },
+                1: { color: '#ef4444', label: 'Very Weak', width: '20%' },
+                2: { color: '#f97316', label: 'Weak', width: '40%' },
+                3: { color: '#f59e0b', label: 'Fair', width: '60%' },
+                4: { color: '#10b981', label: 'Strong', width: '80%' },
+                5: { color: '#10b981', label: 'Very Strong', width: '100%' }
+            };
+
+            const style = strengthStyles[score] || strengthStyles[0];
+            strengthBar.style.width = style.width;
+            strengthBar.style.background = style.color; // Changed to .background to clear gradients
+            strengthLabel.textContent = style.label;
+            strengthLabel.style.color = style.color;
+
+            // Validation logic
+            if (confirmPassword.value && val !== confirmPassword.value) {
+                confirmPassword.setCustomValidity("Passwords do not match");
+            } else {
+                confirmPassword.setCustomValidity("");
+            }
+        };
+
+        password.addEventListener('input', updateStrength);
+
+        // Initialize state
+        updateStrength();
 
         if (confirmPassword) {
             confirmPassword.addEventListener('input', () => {
                 if (password.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity("Passwords do not match");
-                } else {
-                    confirmPassword.setCustomValidity("");
-                }
-            });
-
-            password.addEventListener('input', () => {
-                if (confirmPassword.value && password.value !== confirmPassword.value) {
                     confirmPassword.setCustomValidity("Passwords do not match");
                 } else {
                     confirmPassword.setCustomValidity("");
@@ -79,7 +134,20 @@
     // --- SIGNUP FORM SUBMISSION ---
     function setupSignupForm() {
         const form = $('authForm');
+        const termsCheck = $('termsCheck');
+        const submitBtn = $('submitBtn');
+
         if (!form) return;
+
+        // Toggle button states based on checkbox
+        termsCheck.addEventListener('change', () => {
+            submitBtn.style.opacity = termsCheck.checked ? '1' : '0.5';
+            submitBtn.style.cursor = termsCheck.checked ? 'pointer' : 'not-allowed';
+        });
+
+        // Initial state
+        submitBtn.style.opacity = termsCheck.checked ? '1' : '0.5';
+        submitBtn.style.cursor = termsCheck.checked ? 'pointer' : 'not-allowed';
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -99,6 +167,7 @@
             const email = $('email').value.trim();
             const password = $('password').value;
             const confirmPassword = $('confirmPassword').value;
+            const termsChecked = $('termsCheck').checked;
 
             // Client-side validation
             if (!username) {
@@ -106,13 +175,19 @@
                 return;
             }
 
-            if (password.length < 6) {
-                showError(errorDiv, "Password must be at least 6 characters.");
+
+            if (password.length < 8) {
+                showError(errorDiv, "Password must be at least 8 characters.");
                 return;
             }
 
             if (password !== confirmPassword) {
                 showError(errorDiv, "Passwords do not match.");
+                return;
+            }
+
+            if (!termsChecked) {
+                showError(errorDiv, "You must agree to the Terms and Conditions.");
                 return;
             }
 
@@ -131,13 +206,16 @@
                     email,
                     password,
                     options: {
-                        data: { username }
+                        data: {
+                            username,
+                            full_name: username
+                        }
                     }
                 });
 
                 if (error) throw error;
 
-                // Check if email confirmation is required
+                // Check if account already exists (Supabase might return no user if it already exists depending on config)
                 if (data?.user?.identities?.length === 0) {
                     throw new Error("An account with this email already exists.");
                 }
@@ -174,6 +252,7 @@
         if (errorDiv) {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
 
@@ -187,14 +266,44 @@
         if (message.includes("Invalid email")) {
             return "Please enter a valid email address.";
         }
-        if (message.includes("Password should be")) {
-            return "Password must be at least 6 characters long.";
+        if (message.includes("Password should be") || message.includes("weak_password")) {
+            return "Password is too weak. Please include uppercase, numbers, and special characters.";
         }
         if (message.includes("Too many requests")) {
             return "Too many signup attempts. Please wait a moment.";
         }
 
         return message;
+    }
+
+    // --- TERMS MODAL LOGIC ---
+    function setupTermsModal() {
+        const modal = $('termsModal');
+        const link = $('termsLink');
+        const closeBtn = $('closeTermsBtn');
+        const acceptBtn = $('acceptTermsBtn');
+        const termsCheck = $('termsCheck');
+        const submitBtn = $('submitBtn');
+
+        if (!modal || !link) return;
+
+        link.onclick = (e) => {
+            e.preventDefault();
+            modal.classList.add('active');
+        };
+
+        const closeModal = () => modal.classList.remove('active');
+        closeBtn.onclick = closeModal;
+        acceptBtn.onclick = () => {
+            termsCheck.checked = true;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            closeModal();
+        };
+
+        window.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
     }
 
     // --- Start ---

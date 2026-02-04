@@ -102,11 +102,11 @@ body {
     font-weight: 800;
     font-size: 1.35rem;
     letter-spacing: -1px;
-    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    background: linear-gradient(135deg, #fff 0%, #8B5CF6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2));
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3));
     white-space: nowrap;
     /* Prevent font-load shift */
     display: inline-block;
@@ -230,21 +230,24 @@ body {
 
 .btn-auth {
     text-decoration: none;
-    background: var(--primary-gradient);
+    background: linear-gradient(135deg, #4F86FF 0%, #8B5CF6 100%);
     border: none;
     color: var(--white);
-    padding: 6px 25px;
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 8px 24px;
+    border-radius: 10px;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s ease, filter 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
-    /* Default to visible on desktop */
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-auth:hover {
-    filter: brightness(0.8);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    filter: brightness(1.1);
 }
 
 .nav-logo-dynamic {

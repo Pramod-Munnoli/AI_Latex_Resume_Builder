@@ -819,7 +819,13 @@
                     <form id="changePasswordForm" class="premium-form-box">
                         <div class="auth-form-group">
                             <label>Current Password</label>
-                            <div class="password-input-wrapper">
+                            <div class="auth-input-wrapper">
+                                <div class="input-icon-box">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z" />
+                                    </svg>
+                                </div>
                                 <input type="password" id="currentPassword" class="auth-input" placeholder="••••••••"
                                     required>
                                 <button type="button" class="password-toggle">
@@ -829,7 +835,13 @@
                         </div>
                         <div class="auth-form-group" style="margin-top: 20px;">
                             <label>New Password</label>
-                            <div class="password-input-wrapper">
+                            <div class="auth-input-wrapper">
+                                <div class="input-icon-box">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z" />
+                                    </svg>
+                                </div>
                                 <input type="password" id="newPassword" class="auth-input"
                                     placeholder="Min. 6 characters" required minlength="6">
                                 <button type="button" class="password-toggle">
@@ -839,7 +851,13 @@
                         </div>
                         <div class="auth-form-group" style="margin-top: 20px;">
                             <label>Confirm New Password</label>
-                            <div class="password-input-wrapper">
+                            <div class="auth-input-wrapper">
+                                <div class="input-icon-box">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z" />
+                                    </svg>
+                                </div>
                                 <input type="password" id="confirmNewPassword" class="auth-input"
                                     placeholder="Confirm your new password" required>
                                 <button type="button" class="password-toggle">
@@ -1023,7 +1041,15 @@
             </ul>
             <div class="modal-input-group">
                 <label for="confirmEmailInput">Type your email to confirm</label>
-                <input type="email" id="confirmEmailInput" placeholder="your.email@example.com" autocomplete="off">
+                <div class="auth-input-wrapper">
+                    <div class="input-icon-box">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                        </svg>
+                    </div>
+                    <input type="email" id="confirmEmailInput" placeholder="your.email@example.com" autocomplete="off">
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-cancel" id="cancelDeleteBtn">Cancel</button>
