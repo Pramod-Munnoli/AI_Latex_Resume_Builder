@@ -70,8 +70,14 @@ flowchart TD
 
 ### 🛠️ Professional LaTeX Editor & Preview
 *   **Compilation Cache (Ultra Fast)**: Uses MD5 hashing to detect identical LaTeX content. If the code hasn't changed, the PDF is served instantly from the cache, bypassing the compilation wait.
+*   **Optimized Loading UX**: Integrated **PDF skeleton loaders** and button-level spinners replace global blocking overlays, ensuring the workspace remains interactive during compilation.
 *   **Visual Editor (Coming Soon)**: We are developing a hybrid system that will allow users to toggle between a professional Code Editor and a user-friendly field-based interface.
 *   **Intelligent Versioning**: Switch seamlessly between your **"Saved Version"** and the **"Original Template"** with built-in diffing logic.
+
+### 🐞 Premium Error Handling & Debugging
+*   **Gutter Integration**: Accurate line-number detection (`l.42`) from LaTeX logs with visual red gutter markers in the editor.
+*   **Full-Width Error Workspace**: A dedicated, smooth-scrolling compilation output panel at the bottom of the workspace for detailed troubleshooting.
+*   **Resilient AI Workflows**: If AI generation fails to compile, the system **preserves the generated code** and displays it in the editor. This allows users to manually fix minor issues and recompile, ensuring AI efforts are never lost.
 
 ### ☁️ Enterprise Cloud Infrastructure
 *   **Supabase Integration**: Secure Auth via JWT, real-time database syncing, and persistent object storage for generated PDFs.

@@ -94,20 +94,24 @@
                         </p>
                     </div>
                     <div class="explanation-item">
-                        <strong>Visual Editor (Coming Soon)</strong>
-                        <p>We are currently developing a user-friendly field-based editor that will allow you to edit
-                            your resume without writing any code. This feature is <strong>coming soon</strong>!</p>
+                        <strong>AI Builder (Hybrid)</strong>
+                        <p>Upload a PDF and let our AI reconstruct it into LaTeX. The AI Builder now features
+                            <strong>Resilient Generation</strong>: if the code fails to compile, we still show you the
+                            code so you can fix it manually!
+                        </p>
                     </div>
                 </div>
 
                 <h3>Version Control</h3>
                 <p>Logged-in users can effortlessly switch between their <strong>"Saved Version"</strong> and the
                     <strong>"Original Template"</strong>. This allows you to experiment with changes without losing your
-                    progress.</p>
+                    progress.
+                </p>
 
                 <h3>Editor Controls</h3>
                 <ul>
-                    <li><strong>⚡ Recompile:</strong> Processes your code changes and updates the preview.</li>
+                    <li><strong>⚡ Recompile:</strong> Processes your code changes and updates the preview. Features an
+                        integrated spinner to keep your workflow fluid.</li>
                     <li><strong>📥 Download PDF:</strong> Saves the final, high-quality version of your resume to your
                         device.</li>
                 </ul>
@@ -118,38 +122,52 @@
                 <p>In the world of LaTeX, "Compiling" is the process of turning your code into a visual document.</p>
 
                 <h3>When to recompile?</h3>
-                <p>Recompile whenever you want to see how your changes look. Thanks to our <strong>Compilation
-                        Cache</strong>, if you make a small change and then revert it, the PDF will be served instantly
+                <p>Recompile whenever you want to see how your changes look. We use **Skeleton Loaders** during
+                    compilation so you can stay in your flow without big overlays blocking your screen.</p>
+
+                <h3>Compilation Cache</h3>
+                <p>Thanks to our <strong>Compilation Cache</strong>, if you make a small change and then revert it, the
+                    PDF will be served instantly
                     (sub-second) without hitting the server!</p>
 
-                <div class="callout warning">
-                    <span class="callout-icon">⚠️</span>
+                <div class="callout tip">
+                    <span class="callout-icon">🚀</span>
                     <div class="callout-content">
-                        <strong>Note:</strong> If your code has an error, the compilation might fail. Don't worry, the
-                        Error Panel will show you exactly what went wrong.
+                        <strong>Live Logic:</strong> We've optimized recompilation to be as discrete as possible, using
+                        only button-level spinners and page skeletons.
                     </div>
                 </div>
             </section>
 
             <section id="common-errors" class="doc-section">
-                <h1>Common Errors</h1>
-                <p>LaTeX can be picky about syntax. Here are the most common issues and how to fix them:</p>
+                <h1>Error Handling & Debugging</h1>
+                <p>LaTeX can be picky about syntax. We've built a **Premium Error Panel** to help you solve issues
+                    instantly:</p>
 
                 <div class="error-guide">
                     <div class="error-fix">
-                        <strong>Missing Braces <code>{ }</code></strong>
-                        <p>Every opening brace must have a closing brace. If you delete one by accident, the compiler
-                            will get confused.</p>
+                        <strong>Visual Debugging</strong>
+                        <p>On failure, the editor automatically <strong>highlights error lines in red</strong> and adds
+                            red status dots in the gutter for instant identification.</p>
                     </div>
                     <div class="error-fix">
-                        <strong>Undefined Commands</strong>
-                        <p>If you mistype a command (e.g., <code>\sectoin</code> instead of <code>\section</code>),
-                            you'll see an error message. Check your spelling!</p>
+                        <strong>Line Detection</strong>
+                        <p>The compiler extracts exact line numbers (e.g., <code>l.42</code>) from the logs and
+                            smooth-scrolls you to the relevant code block.</p>
                     </div>
                     <div class="error-fix">
-                        <strong>Special Characters</strong>
-                        <p>Characters like <code>&</code> or <code>%</code> have special meanings. To use them as text,
-                            put a backslash before them (e.g., <code>\&</code>).</p>
+                        <strong>Detailed Logs</strong>
+                        <p>The Error Panel distinguishes between critical errors (Red) and warnings (Yellow), giving you
+                            the full picture of your document's health.</p>
+                    </div>
+                </div>
+
+                <div class="callout warning">
+                    <span class="callout-icon">💡</span>
+                    <div class="callout-content">
+                        <strong>AI Builder Fail-Safe:</strong> If the AI generates code that won't compile, we don't
+                        throw it away! We display it in the editor so you can fix the minor syntax issue and save your
+                        work.
                     </div>
                 </div>
             </section>

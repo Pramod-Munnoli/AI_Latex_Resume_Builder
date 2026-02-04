@@ -725,3 +725,33 @@
 .word:last-child {
     margin-right: 0;
 }
+
+/* Workspace Error Panel - Full Width at Bottom */
+.workspace-error-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 300px;
+    z-index: 100;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.ai-builder-workspace {
+    position: relative;
+}
+
+/* Ensure workspace has space for error panel when visible */
+.ai-builder-workspace.has-error {
+    padding-bottom: 250px;
+}
+
+@media (max-width: 1147px) {
+    .workspace-error-panel {
+        position: relative;
+        border-radius: 0;
+        max-height: 400px;
+    }
+}

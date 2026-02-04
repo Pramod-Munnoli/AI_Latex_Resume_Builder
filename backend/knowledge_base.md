@@ -24,6 +24,17 @@ AI LaTeX Resume Builder is a high-performance full-stack application that transf
     - **Multi-Key Failover**: Dynamically rotates through multiple Groq API keys to bypass rate limits and ensure 100% uptime.
     - **Intelligent Sanitizer**: Auto-corrects common AI LaTeX errors like unclosed itemize environments or unescaped characters (&, %).
     - **Visual Balance**: Limits "Relevant Coursework" to the top 4 items for better aesthetics.
+    - **Premium Error Handling**: 
+        - **Intelligent Parsing**: Automatically detects LaTeX errors, extracts line numbers (`l.42`), and displays a user-friendly summary.
+        - **Visual Debugging**: Highlights problematic lines in red background and adds a sync'ed red status dot in the CodeMirror gutter.
+        - **Workspace Integration**: In the AI Builder, the error panel occupies a full-width section at the bottom of the workspace for better visibility.
+        - **Auto-Focus**: The workspace automatically smooth-scrolls to the error panel upon compilation failure.
+        - **Resilient AI Generation**: If the AI generates LaTeX that fails to compile initially, the system **still shows the code** in the editor. This allows the user to fix the error manually instead of losing the AI's work.
+        - **Smart Logs**: Formatted logs distinguish between critical errors (Red) and warnings (Yellow) for easier troubleshooting.
+    - **Optimized Performance UX**:
+        - **Skeleton Loaders**: Uses a dedicated PDF page skeleton during compilation, keeping the workspace interactive.
+        - **Non-Blocking UI**: Removed global app loaders during recompilation to ensure a fluid, "live-coding" feel.
+        - **Button-Level Feedback**: The Recompile button features an integrated mini-spinner and "Compiling..." state for compact, intuitive feedback.
     - **Page Layout**: Automatically hides page numbers (\pagenumbering{gobble}) for professional 1-page resumes.
     - **Modern Typography**: Uses T1 font encoding and UTF-8 support for clean, modern text rendering.
 

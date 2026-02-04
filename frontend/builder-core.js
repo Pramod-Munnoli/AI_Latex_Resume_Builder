@@ -34,6 +34,7 @@
             theme: cmTheme,
             lineNumbers: true,
             lineWrapping: true,
+            gutters: ["CodeMirror-linenumbers", "errors-gutter"],
             tabSize: 4,
             indentUnit: 4,
             viewportMargin: Infinity
@@ -134,6 +135,121 @@
     window.addEventListener('focus', () => {
         // Scroll lock is now handled individually by global loaders only
     });
+
+    // --- ERROR HANDLING HELPERS ---
+    function formatCompileLog(log) {
+        if (!log) return "Compilation successful.";
+        const lines = log.split('\n');
+        return lines.map(line => {
+            const escapedLine = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            if (escapedLine.includes('Error:') || escapedLine.startsWith('! ')) {
+                return `<div class="error-item"><span class="error-line">Error</span><span class="error-msg">${escapedLine}</span></div>`;
+            } else if (escapedLine.includes('Warning:')) {
+                return `<div class="error-item"><span class="error-line" style="color: #fbbf24;">Warning</span><span class="error-msg">${escapedLine}</span></div>`;
+            }
+            return `<div style="opacity: 0.8; margin-bottom: 4px;">${escapedLine}</div>`;
+        }).join('');
+    }
+
+    function parseErrorLines(log) {
+        if (!log) return [];
+        const errors = [];
+        const lineRegex = /l\.(\d+)/g;
+        let match;
+        while ((match = lineRegex.exec(log)) !== null) {
+            const lineNum = parseInt(match[1], 10);
+            const textBefore = log.substring(Math.max(0, match.index - 200), match.index);
+            const errorMatch = textBefore.match(/(!.+?)$/s) || textBefore.match(/(Error:.+?)$/s);
+            const message = errorMatch ? errorMatch[1].trim() : "Syntax error";
+            if (!errors.some(e => e.line === lineNum)) {
+                errors.push({ line: lineNum, message });
+            }
+        }
+        return errors;
+    }
+
+    function highlightErrorLines(errors) {
+        if (!cm) return;
+        cm.clearGutter("errors-gutter");
+        cm.eachLine(lineHandle => {
+            cm.removeLineClass(lineHandle, "background", "error-line-highlight");
+        });
+        if (!errors || errors.length === 0) return;
+        errors.forEach(err => {
+            const lineIndex = err.line - 1;
+            if (lineIndex >= 0 && lineIndex < cm.lineCount()) {
+                const marker = document.createElement("span");
+                marker.className = "error-dot";
+                marker.title = err.message;
+                cm.setGutterMarker(lineIndex, "errors-gutter", marker);
+                cm.addLineClass(lineIndex, "background", "error-line-highlight");
+            }
+        });
+        if (errors.length > 0) {
+            cm.scrollIntoView({ line: errors[0].line - 1, ch: 0 }, 100);
+        }
+    }
+
+    function generateErrorSummary(errors) {
+        if (!errors || errors.length === 0) return "";
+        const firstError = errors[0];
+        return `<div class="error-summary">
+            <strong>Line ${firstError.line}:</strong> ${firstError.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+        </div>`;
+    }
+
+    function showErrorPanel(log) {
+        const compileLog = $('compileLog');
+        const errorPanel = $('errorPanel');
+        const errorStatusBadge = $('errorStatusBadge');
+
+        const parsedErrors = parseErrorLines(log);
+        highlightErrorLines(parsedErrors);
+
+        if (compileLog) {
+            const summaryHtml = generateErrorSummary(parsedErrors);
+            compileLog.innerHTML = summaryHtml + formatCompileLog(log);
+            compileLog.classList.add("has-error");
+        }
+
+        if (errorStatusBadge) {
+            errorStatusBadge.querySelector('.status-text').textContent = "Errors Found";
+            errorStatusBadge.style.background = "";
+            errorStatusBadge.style.borderColor = "";
+            errorStatusBadge.querySelector('.status-dot').style.background = "";
+            errorStatusBadge.querySelector('.status-dot').style.boxShadow = "";
+            errorStatusBadge.querySelector('.status-text').style.color = "";
+        }
+
+        if (errorPanel) {
+            errorPanel.style.display = 'flex';
+            errorPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function hideErrorPanel() {
+        const compileLog = $('compileLog');
+        const errorPanel = $('errorPanel');
+        const errorStatusBadge = $('errorStatusBadge');
+
+        highlightErrorLines([]);
+
+        if (compileLog) {
+            compileLog.innerHTML = "";
+            compileLog.classList.remove("has-error");
+        }
+
+        if (errorStatusBadge) {
+            errorStatusBadge.querySelector('.status-text').textContent = "Success";
+            errorStatusBadge.style.background = "rgba(16, 185, 129, 0.2)";
+            errorStatusBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+            errorStatusBadge.querySelector('.status-dot').style.background = "#10b981";
+            errorStatusBadge.querySelector('.status-dot').style.boxShadow = "0 0 10px #10b981";
+            errorStatusBadge.querySelector('.status-text').style.color = "#a7f3d0";
+        }
+
+        // Don't hide the panel on success, just update the status
+    }
 
     // --- PDF RENDERING ---
     window.loadPDF = async function (url) {
@@ -345,7 +461,40 @@
             });
             const data = await resp.json();
 
-            if (!resp.ok) throw new Error(data.error || "Upload failed");
+            // Hide global generation loader as data (latex) has arrived
+            window.hideLoader();
+
+            if (!resp.ok) {
+                // Show error panel with details
+                const errorLog = data.log || data.details || data.error || "LaTeX generation failed";
+                showErrorPanel(errorLog);
+
+                // If compilation failed but we got the LaTeX code, show it in the editor (but don't save)
+                if (data.latex && data.compilationFailed) {
+                    // Hide overlays since we have content
+                    const noResumeOverlay = $('no-resume-overlay');
+                    const noPreviewPlaceholder = $('no-preview-placeholder');
+                    if (noResumeOverlay) noResumeOverlay.style.display = 'none';
+                    // Keep preview placeholder visible since PDF failed
+
+                    // Show the generated LaTeX in editor so user can fix it
+                    window.setEditorValue(data.latex);
+
+                    // Parse and highlight error lines in the editor
+                    const parsedErrors = parseErrorLines(errorLog);
+                    highlightErrorLines(parsedErrors);
+                }
+
+                // Scroll to workspace to show error panel
+                const workspace = document.querySelector('.ai-builder-workspace');
+                if (workspace) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                window.setStatus("Compilation failed - fix errors and recompile", "error");
+                return; // Don't save to Supabase, handled gracefully
+            }
+
+            // Success - clear any previous errors
+            hideErrorPanel();
 
             // Hide overlays as we now have content
             const noResumeOverlay = $('no-resume-overlay');
@@ -382,10 +531,16 @@
             if (workspace) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         } catch (err) {
-            window.setStatus("Upload failed", "error");
-            console.error(err);
+            console.error('Upload error:', err);
+            showErrorPanel(err.message || "An unexpected error occurred during generation");
+
+            // Scroll to workspace to show error panel
+            const workspace = document.querySelector('.ai-builder-workspace');
+            if (workspace) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            window.setStatus("Generation failed", "error");
         } finally {
-            window.hideLoader();
+            // Already handled above
         }
     };
 
@@ -394,9 +549,17 @@
         const latex = window.getEditorValue();
         if (!latex.trim()) return;
 
+        const btn = $('recompileBtn');
+        const btnContent = btn?.querySelector('.btn-content');
+        const btnLoader = btn?.querySelector('.btn-loader');
+
         isCompiling = true;
-        window.showLoader('Compiling LaTeX...');
         window.setStatus("Compiling...", "loading");
+
+        if (btn) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        }
 
         try {
             const { data: { session } } = await window._supabase.auth.getSession();
@@ -412,7 +575,15 @@
             });
             const data = await resp.json();
 
-            if (!resp.ok) throw new Error(data.error || "Recompile failed");
+            if (!resp.ok) {
+                // Use the detailed log from the server
+                const errorLog = data.log || data.details || data.error || "Recompile failed";
+                showErrorPanel(errorLog);
+                return; // Don't throw, we handled it gracefully
+            }
+
+            // Success - clear any previous errors
+            hideErrorPanel();
 
             latestGeneratedPdfUrl = data.pdfUrl;
             await window.loadPDF(data.pdfUrl || "/files/resume.pdf");
@@ -432,10 +603,14 @@
 
             window.setStatus("Compiled successfully", "success");
         } catch (err) {
-            window.setStatus("Compilation failed", "error");
+            console.error('Compilation error:', err);
+            showErrorPanel(err.message || "An unexpected error occurred");
         } finally {
-            window.hideLoader();
             isCompiling = false;
+            if (btn) {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
         }
     };
 
@@ -880,5 +1055,16 @@
             });
         }
     };
+
+    // --- ERROR PANEL CLOSE BUTTON ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const closeErrorBtn = $('closeError');
+        if (closeErrorBtn) {
+            closeErrorBtn.addEventListener('click', () => {
+                const errorPanel = $('errorPanel');
+                if (errorPanel) errorPanel.style.display = 'none';
+            });
+        }
+    });
 
 })();

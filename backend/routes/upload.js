@@ -108,7 +108,29 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     return res.json({ latex, pdfUrl: publicUrl + cacheBuster, source, cached: false });
   } catch (err) {
     console.error("Upload error:", err);
-    // ... error handling remains the same ...
+
+    // Check if this is a LaTeX compilation error - if so, return the generated latex
+    if (err.message && err.message.includes("LaTeX compilation failed")) {
+      // Try to extract the generated latex from the temp file
+      let generatedLatex = null;
+      try {
+        const texPath = path.join(tempDir, "resume.tex");
+        generatedLatex = await fs.readFile(texPath, "utf8");
+      } catch (readErr) {
+        console.warn("Could not read generated LaTeX file:", readErr.message);
+      }
+
+      return res.status(500).json({
+        error: "LaTeX compilation failed",
+        code: "LATEX_COMPILATION_FAILED",
+        details: "The AI generated LaTeX code, but compilation failed. Check the code for errors.",
+        log: err.message,
+        latex: generatedLatex, // Return the generated code so user can fix it
+        compilationFailed: true
+      });
+    }
+
+    // Other error types
     if (err.message && err.message.includes("Only PDF files are allowed")) {
       return res.status(400).json({ error: "Invalid file type", code: "INVALID_FILE_TYPE", details: "Only PDF files are supported. Please upload a PDF file." });
     }

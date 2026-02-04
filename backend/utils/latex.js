@@ -30,13 +30,33 @@ function compileLatex(tempDir) {
         if (fsSync.existsSync(candidate)) exe = candidate;
       }
     } catch (_) { }
+
     const cmd = `"${exe}" -interaction=nonstopmode -halt-on-error resume.tex`;
-    exec(cmd, { cwd: tempDir, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+
+    exec(cmd, { cwd: tempDir, maxBuffer: 10 * 1024 * 1024 }, async (error, stdout, stderr) => {
+      let detailedLog = "";
+      try {
+        const logPath = path.join(tempDir, "resume.log");
+        if (fsSync.existsSync(logPath)) {
+          detailedLog = await fs.readFile(logPath, "utf8");
+        }
+      } catch (logErr) {
+        console.warn("[Latex] Could not read resume.log:", logErr.message);
+      }
+
+      // If we have a detailed log file, use it. Otherwise fallback to stdout/stderr.
+      const finalLog = detailedLog || `${stdout || ""}\n${stderr || ""}`.trim();
+
       if (error) {
-        const log = (stderr || stdout || error.message || "");
-        reject(new Error("LaTeX compilation failed: " + log));
+        const errorMessage = finalLog || error.message || "Unknown compilation error";
+        // Check if it's a "command not found" error
+        if (errorMessage.includes("not found") || errorMessage.includes("is not recognized")) {
+          reject(new Error("pdflatex is not installed or not in path. Please install TeX Live or MiKTeX."));
+        } else {
+          reject(new Error("LaTeX compilation failed: " + errorMessage));
+        }
       } else {
-        resolve({ stdout, stderr });
+        resolve({ stdout: finalLog, stderr });
       }
     });
   });

@@ -82,6 +82,7 @@
             theme: cmTheme,
             lineNumbers: true,
             lineWrapping: true,
+            gutters: ["CodeMirror-linenumbers", "errors-gutter"],
             tabSize: 4,
             indentUnit: 4,
             viewportMargin: Infinity
@@ -434,6 +435,92 @@
         // Scroll lock is now handled individually by global loaders only
     });
 
+    function formatCompileLog(log) {
+        if (!log) return "Compilation successful.";
+
+        // Simple heuristic to identify lines with errors in LaTeX logs
+        const lines = log.split('\n');
+        return lines.map(line => {
+            const escapedLine = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            if (escapedLine.includes('Error:') || escapedLine.startsWith('! ')) {
+                return `<div class="error-item"><span class="error-line">Error</span><span class="error-msg">${escapedLine}</span></div>`;
+            } else if (escapedLine.includes('Warning:')) {
+                return `<div class="error-item"><span class="error-line" style="color: #fbbf24;">Warning</span><span class="error-msg">${escapedLine}</span></div>`;
+            }
+            return `<div style="opacity: 0.8; margin-bottom: 4px;">${escapedLine}</div>`;
+        }).join('');
+    }
+
+    /**
+     * Parses a LaTeX log to extract error line numbers.
+     * Returns an array of { line: number, message: string }.
+     */
+    function parseErrorLines(log) {
+        if (!log) return [];
+        const errors = [];
+        // Matches "l.123 ..." which is how LaTeX reports line numbers
+        const lineRegex = /l\.(\d+)/g;
+        let match;
+        while ((match = lineRegex.exec(log)) !== null) {
+            const lineNum = parseInt(match[1], 10);
+            // Find the contextual error message (search back for "!" or "Error")
+            const textBefore = log.substring(Math.max(0, match.index - 200), match.index);
+            const errorMatch = textBefore.match(/(!.+?)$/s) || textBefore.match(/(Error:.+?)$/s);
+            const message = errorMatch ? errorMatch[1].trim() : "Syntax error";
+            if (!errors.some(e => e.line === lineNum)) {
+                errors.push({ line: lineNum, message });
+            }
+        }
+        return errors;
+    }
+
+    /**
+     * Highlights error lines in Code Mirror
+     * @param {Array} errors - Array of { line, message }
+     */
+    function highlightErrorLines(errors) {
+        if (!cm) return;
+
+        // Clear previous markers
+        cm.clearGutter("errors-gutter");
+        cm.eachLine(lineHandle => {
+            cm.removeLineClass(lineHandle, "background", "error-line-highlight");
+        });
+
+        if (!errors || errors.length === 0) return;
+
+        // Add new markers
+        errors.forEach(err => {
+            const lineIndex = err.line - 1; // CodeMirror is 0-indexed
+            if (lineIndex >= 0 && lineIndex < cm.lineCount()) {
+                // Create gutter marker (red dot)
+                const marker = document.createElement("span");
+                marker.className = "error-dot";
+                marker.title = err.message;
+                cm.setGutterMarker(lineIndex, "errors-gutter", marker);
+
+                // Highlight line background
+                cm.addLineClass(lineIndex, "background", "error-line-highlight");
+            }
+        });
+
+        // Jump to the first error
+        if (errors.length > 0) {
+            cm.scrollIntoView({ line: errors[0].line - 1, ch: 0 }, 100);
+        }
+    }
+
+    /**
+     * Generates a summary header for the error panel.
+     */
+    function generateErrorSummary(errors) {
+        if (!errors || errors.length === 0) return "";
+        const firstError = errors[0];
+        return `<div class="error-summary">
+            <strong>Line ${firstError.line}:</strong> ${firstError.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+        </div>`;
+    }
+
     // Compile LaTeX code
     async function compileLatex(latex) {
         if (isCompiling) return;
@@ -464,7 +551,10 @@
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.details || 'Compilation failed');
+                // Attach the full log to the error object so the catch block can use it
+                const err = new Error(data.details || 'Compilation failed');
+                err.fullLog = data.log;
+                throw err;
             }
 
             if (status) status.textContent = 'Rendering PDF...';
@@ -475,8 +565,21 @@
             await setPdfSrc(data.pdfUrl || "/files/resume.pdf");
 
             if (compileLog) {
-                compileLog.textContent = data.log || "Compilation successful.";
+                compileLog.innerHTML = formatCompileLog(data.log);
                 compileLog.classList.remove("has-error");
+            }
+
+            // Clear any previous error markers from the editor
+            highlightErrorLines([]);
+
+            const errorStatusBadge = document.getElementById('errorStatusBadge');
+            if (errorStatusBadge) {
+                errorStatusBadge.querySelector('.status-text').textContent = "Success";
+                errorStatusBadge.style.background = "rgba(16, 185, 129, 0.2)";
+                errorStatusBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+                errorStatusBadge.querySelector('.status-dot').style.background = "#10b981";
+                errorStatusBadge.querySelector('.status-dot').style.boxShadow = "0 0 10px #10b981";
+                errorStatusBadge.querySelector('.status-text').style.color = "#a7f3d0";
             }
 
             if (downloadBtn && data.pdfUrl) {
@@ -491,11 +594,39 @@
 
         } catch (err) {
             console.error('Compilation error:', err);
+            const logToDisplay = err.fullLog || err.message;
+
+            // Parse error lines from the log
+            const parsedErrors = parseErrorLines(logToDisplay);
+
+            // Highlight error lines in CodeMirror
+            highlightErrorLines(parsedErrors);
+
             if (compileLog) {
-                compileLog.textContent = err.message;
+                // Generate a summary at the top, followed by the full log
+                const summaryHtml = generateErrorSummary(parsedErrors);
+                compileLog.innerHTML = summaryHtml + formatCompileLog(logToDisplay);
                 compileLog.classList.add("has-error");
             }
-            throw err;
+
+            const errorStatusBadge = document.getElementById('errorStatusBadge');
+            if (errorStatusBadge) {
+                errorStatusBadge.querySelector('.status-text').textContent = "Errors Found";
+                errorStatusBadge.style.background = ""; // Fallback to CSS default (red)
+                errorStatusBadge.style.borderColor = "";
+                errorStatusBadge.querySelector('.status-dot').style.background = "";
+                errorStatusBadge.querySelector('.status-dot').style.boxShadow = "";
+                errorStatusBadge.querySelector('.status-text').style.color = "";
+            }
+
+            // Show panel automatically on error and scroll into view
+            const errorPanel = document.getElementById('errorPanel');
+            if (errorPanel) {
+                errorPanel.style.display = 'flex';
+                // Smooth scroll to the error panel
+                errorPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            // Don't throw - we've handled the error gracefully
         } finally {
             // loader hidden in setPdfSrc -> loadPDF or here if failed
             toggleSkeleton(false);
@@ -592,7 +723,7 @@
 
         } catch (error) {
             console.error('Error recompiling:', error);
-            setStatus('Error: ' + error.message, 'error');
+            // Error is already displayed in the error panel, no popup needed
         } finally {
             // Remove loading state from button
             if (recompileBtn) {
@@ -1512,6 +1643,15 @@
 
         if (recompileBtn) {
             recompileBtn.addEventListener('click', handleRecompile);
+        }
+
+        // Error Panel Close
+        const errorPanel = document.getElementById('errorPanel');
+        const closeErrorBtn = document.getElementById('closeError');
+        if (closeErrorBtn && errorPanel) {
+            closeErrorBtn.addEventListener('click', () => {
+                errorPanel.style.display = 'none';
+            });
         }
 
         if (downloadBtn) {
