@@ -23,6 +23,7 @@ const footerHTML = `
                 <a href="templates.html" class="footer-link">Templates</a>
                 <a href="ai-builder.html" class="footer-link">AI Builder</a>
                 <a href="docs.html" class="footer-link">Docs</a>
+                <a href="support.html" class="footer-link">Support</a>
                 <a href="https://github.com/Pramod-Munnoli/AI_Latex_Resume_Builder" target="_blank" class="footer-link">Project Repo</a>
             </div>
             <p class="footer-copyright">&copy; 2026 AI LaTeX Resume Builder | Developed by Pramod Munnoli</p>

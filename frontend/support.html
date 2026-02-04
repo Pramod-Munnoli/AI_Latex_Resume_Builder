@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - AI LaTeX Resume Builder</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="docs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="common.js" defer></script>
+    <script src="auth-core.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body class="docs-page">
+    <!-- Navigation Bar -->
+    <div id="app-header"></div>
+    <script src="components/header.js"></script>
+
+    <main class="docs-container">
+        <!-- Sidebar Navigation -->
+        <aside class="docs-sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#contact" class="sidebar-link active">Contact Us</a></li>
+                <li><a href="#issues" class="sidebar-link">Report Issues</a></li>
+                <li><a href="#requests" class="sidebar-link">Feature Requests</a></li>
+                <li><a href="#troubleshooting" class="sidebar-link">Troubleshooting</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <article class="docs-content">
+            <section id="contact" class="doc-section">
+                <h1>Contact Support</h1>
+                <p>Have a question or need direct assistance? Our developer is here to help you get the most out of the
+                    AI LaTeX Resume Builder.</p>
+
+                <div class="layout-explanation">
+                    <div class="explanation-item">
+                        <strong>Email Support</strong>
+                        <p>For account issues or private inquiries, email us at:</p>
+                        <code>pramodmunnoli99@gmail.com</code>
+                    </div>
+                    <div class="explanation-item">
+                        <strong>Social Media</strong>
+                        <p>Reach out on LinkedIn or Twitter for quick updates and community support.</p>
+                        <p>Links are available in the website footer.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="issues" class="doc-section">
+                <h1>Report an Issue</h1>
+                <p>Found a bug? Help us improve the platform by reporting it on our official GitHub repository.</p>
+
+                <div class="callout warning">
+                    <span class="callout-icon">🐛</span>
+                    <div class="callout-content">
+                        <strong>Reporting Template:</strong>
+                        <p>When reporting an issue, please include your browser version, the template you were using,
+                            and the specific error message from the compilation log.</p>
+                    </div>
+                </div>
+
+                <a href="https://github.com/Pramod-Munnoli/AI_Latex_Resume_Builder/issues" target="_blank"
+                    class="btn btn-primary">
+                    <i data-lucide="github"></i> Open GitHub Issues
+                </a>
+            </section>
+
+            <section id="requests" class="doc-section">
+                <h1>Feature Requests</h1>
+                <p>We are constantly evolving. If you have an idea for a new template, a specific AI feature, or a UI
+                    improvement, we want to hear it!</p>
+
+                <div class="faq-item">
+                    <strong>New LaTeX Templates</strong>
+                    <p>Suggest professional layouts you'd like to see. We prioritize high-demand ATS-friendly designs.
+                    </p>
+                </div>
+                <div class="faq-item">
+                    <strong>AI Capabilities</strong>
+                    <p>Want the AI to do more? We are working on ATS scoring and job tailoring features next.</p>
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="doc-section">
+                <h1>Quick Troubleshooting</h1>
+                <p>Before reaching out, check these common fixes for the most frequent issues.</p>
+
+                <div class="error-guide">
+                    <div class="error-fix">
+                        <strong>LaTeX Not Compiling</strong>
+                        <p>Check the Error Panel for red badges. Ensure all <code>\begin{itemize}</code> have a matching
+                            <code>\end{itemize}</code>.</p>
+                    </div>
+                    <div class="error-fix">
+                        <strong>PDF Not Loading</strong>
+                        <p>Refresh the page or clear your browser cache. Ensure you have a stable internet connection
+                            for the AI processing.</p>
+                    </div>
+                </div>
+
+                <div class="callout tip">
+                    <span class="callout-icon">💡</span>
+                    <div class="callout-content">
+                        <strong>Consult the Docs:</strong>
+                        <p>Most common questions about using the editor and templates are answered in our <a
+                                href="docs.html" style="color: inherit; text-decoration: underline;">Documentation
+                                page</a>.</p>
+                    </div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <div id="app-footer"></div>
+    <script src="components/footer.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.303.0/dist/umd/lucide.min.js"></script>
+    <script src="docs.js"></script>
+
+    <script>
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+
+</html>

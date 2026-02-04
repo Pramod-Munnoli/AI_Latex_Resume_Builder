@@ -10,19 +10,22 @@ AI LaTeX Resume Builder is a high-performance full-stack application that transf
     - **Standard Headings**: Uses recognized section names (Professional Summary, Experience, etc.) for better parsing.
     - **Single-Column Layout**: Guarantees parseability by 100% of modern Applicant Tracking Systems.
 - **Advanced Resume Sections**: Supports extended sections like Leadership & Extracurricular, Professional Affiliations, Conferences & Workshops, Certifications, and Core Competencies.
-- **Real-time LaTeX Editor**: Professional-grade editor with side-by-side instant PDF preview.
+- **Real-time LaTeX Editor**: Professional-grade editor with side-by-side instant PDF preview. Featuring CodeMirror with Dracula theme.
 - **Visual Editor (Hybrid)**: Currently in development and **coming soon**! It will allow for drag-and-drop editing via a field-based interface.
 - **Intelligent Versioning**: Switch between "My Saved Version" and the "Original Template" with built-in diffing to preserve your work.
-- **Compilation Cache**: MD5-based caching ensures sub-second PDF generation for identical content.
+- **Compilation Cache**: MD5-based cryptographic hashing ensures sub-second PDF generation—if you've compiled it before, it's instant.
+- **Dynamic PDF Upload**: Supporting drag-and-drop or file select for LinkedIn/Static PDF resumes for reconstruction.
 - **Vault-Grade Security**: Uses Supabase for encrypted authentication and isolated user data storage.
 
 ## Technical Details
 - **UI/UX**: Vanilla JS, HTML5, CSS3. Premium Glassmorphism design with GPU-accelerated animations and Intersection Observer reveals.
 - **Infrastructure**: Node.js & Express (Backend), Docker (TeX Live distribution), Vercel (Frontend), Render (Backend Hosting).
 - **Core Optimizations**: 
-    - **Multi-Key Failover**: Rotates through multiple Groq API keys to bypass rate limits.
-    - **Intelligent Sanitizer**: Auto-corrects common AI LaTeX errors (unclosed itemize, escaped chars).
-    - **Visual Balance**: Limits "Relevant Coursework" to the top 4 items for a cleaner look.
+    - **Multi-Key Failover**: Dynamically rotates through multiple Groq API keys to bypass rate limits and ensure 100% uptime.
+    - **Intelligent Sanitizer**: Auto-corrects common AI LaTeX errors like unclosed itemize environments or unescaped characters (&, %).
+    - **Visual Balance**: Limits "Relevant Coursework" to the top 4 items for better aesthetics.
+    - **Page Layout**: Automatically hides page numbers (\pagenumbering{gobble}) for professional 1-page resumes.
+    - **Modern Typography**: Uses T1 font encoding and UTF-8 support for clean, modern text rendering.
 
 ## Frequently Asked Questions (FAQ)
 - **Why should I use this over a Word doc?** LaTeX ensures pixel-perfect formatting that never "breaks" when you add a line. It is the gold standard for professional engineering and academic resumes.
@@ -33,3 +36,11 @@ AI LaTeX Resume Builder is a high-performance full-stack application that transf
 
 ## Support & Development
 Designed and developed by **Pramod Munnoli**. This project is open-source and continuously evolving to include new AI models and resume templates.
+
+### Contact the Developer:
+Detailed contact information, including Social Media (GitHub, LinkedIn, Instagram, Twitter) and Email, is available in the **footer** and on the **[Support Page](support.html)** of the website.
+
+## Roadmap
+- [ ] **ATS Scoring**: Live analysis of resume quality based on job descriptions.
+- [ ] **Job Tailoring**: AI-driven bullet point optimization for specific roles.
+- [ ] **Multi-Resume Management**: A dashboard to manage various saved versions.
