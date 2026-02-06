@@ -69,6 +69,17 @@ app.get("/api/download", (req, res) => {
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`AI LaTeX Resume Builder server running at http://localhost:${PORT}/`);
+
+  // Self-pinging mechanism for Render (Free Tier)
+  // Keeps the instance alive by pinging it every 14 minutes
+  const axios = require("axios");
+  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+
+  setInterval(() => {
+    axios.get(`${SELF_URL}/api/health`)
+      .then(() => console.log(`[Self-Ping] Successfully pinged health endpoint at ${new Date().toISOString()}`))
+      .catch((err) => console.warn(`[Self-Ping] Failed to ping health endpoint: ${err.message}`));
+  }, 14 * 60 * 1000); // 14 minutes
 });

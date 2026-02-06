@@ -135,4 +135,12 @@
         ? (window.location.port === "3000" ? "" : "http://localhost:3000")
         : "https://ai-latex-resume-builder.onrender.com";
 
+    // --- WAKE SERVER (NUDGE) ---
+    // Start waking up the Render server immediately on page load
+    (function wakeServer() {
+        if (window.API_BASE) {
+            fetch(`${window.API_BASE}/api/health`).catch(() => { /* ignore */ });
+        }
+    })();
+
 })();
