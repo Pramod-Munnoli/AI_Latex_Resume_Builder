@@ -228,6 +228,72 @@ body {
     z-index: 20;
 }
 
+/* Theme Toggle Nav Button */
+.theme-toggle-nav {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.theme-toggle-nav:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-nav i {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: calc(50% - 10px);
+    left: calc(50% - 10px);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .sun-icon {
+    transform: translateY(30px) rotate(180deg);
+    opacity: 0;
+}
+
+[data-theme="dark"] .moon-icon {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+}
+
+[data-theme="light"] .moon-icon {
+    transform: translateY(-30px) rotate(-180deg);
+    opacity: 0;
+}
+
+[data-theme="light"] .sun-icon {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+}
+
+[data-theme="light"] .theme-toggle-nav {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #1e293b;
+}
+
+[data-theme="light"] .theme-toggle-nav:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: #4f46e5;
+}
+
 .btn-auth {
     text-decoration: none;
     background: linear-gradient(135deg, #4F86FF 0%, #8B5CF6 100%);
@@ -331,6 +397,25 @@ body {
 
 .mobile-nav-overlay.active {
     transform: translateX(0);
+}
+
+.mobile-nav-utility-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.utility-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .mobile-nav-links {
@@ -752,6 +837,7 @@ body {
     /* Hide desktop-only triggers on mobile */
     .auth-container #authBtn,
     .auth-container #profileAvatar,
+    #themeToggleNav,
     #authBtn,
     #profileAvatar,
     .btn-auth {

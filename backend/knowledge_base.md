@@ -15,6 +15,7 @@ AI LaTeX Resume Builder is a high-performance full-stack application that transf
 - **Intelligent Versioning**: Switch between "My Saved Version" and the "Original Template" with built-in diffing to preserve your work.
 - **Compilation Cache**: MD5-based cryptographic hashing ensures sub-second PDF generation—if you've compiled it before, it's instant.
 - **Dynamic PDF Upload**: Supporting drag-and-drop or file select for LinkedIn/Static PDF resumes for reconstruction.
+- **Premium Theme System**: Native dark and light mode support with GPU-accelerated transitions and persistent user preferences.
 - **Vault-Grade Security**: Uses Supabase for encrypted authentication and isolated user data storage.
 
 ## Technical Details

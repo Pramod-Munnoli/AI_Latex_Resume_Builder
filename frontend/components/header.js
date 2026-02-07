@@ -4,7 +4,9 @@ const headerHTML = `
     <nav class="navbar">
         <div class="nav-container">
             <!-- Mobile Auth Slot (Left Side) - Only visible on Mobile -->
-            <div id="mobileAuthTrigger" class="mobile-auth-trigger"></div>
+            <div id="mobileAuthTrigger" class="mobile-auth-trigger">
+                 <!-- Will be populated by JS -->
+            </div>
 
             <div id="dynamicLogoArea" class="nav-logo-dynamic">
                 <a href="index.html" class="nav-logo">
@@ -22,6 +24,11 @@ const headerHTML = `
             
             <!-- Desktop Auth (Right Side) -->
             <div id="authContainer" class="auth-container">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleNav" class="theme-toggle-nav" aria-label="Toggle Theme">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                </button>
                 <a href="login.html" id="authBtn" class="btn-auth">Login</a>
                 <!-- Modern Profile Dropdown -->
                 <div id="profileDropdown" class="profile-dropdown" style="display: none;">
@@ -68,6 +75,14 @@ const headerHTML = `
     <!-- Mobile Navigation Overlay -->
     <div id="mobileNavOverlay" class="mobile-nav-overlay">
         <div class="mobile-nav-links">
+            <!-- Theme Toggle Row -->
+            <div class="mobile-nav-utility-row">
+                <span class="utility-label">Appearance</span>
+                <button class="theme-toggle-nav" aria-label="Toggle Theme">
+                   <i data-lucide="sun" class="sun-icon"></i>
+                   <i data-lucide="moon" class="moon-icon"></i>
+                </button>
+            </div>
             <a href="index.html" class="mobile-nav-link">Home</a>
             <a href="ai-builder.html" class="mobile-nav-link mobile-nav-link-featured">AI Builder</a>
             <a href="templates.html" class="mobile-nav-link mobile-nav-link-templates">Templates</a>
@@ -214,6 +229,22 @@ if (headerPlaceholder) {
     } catch (e) {
         console.warn("Header optimistic load failed:", e);
     }
+
+    // --- THEME TOGGLE LOGIC ---
+    const themeToggles = document.querySelectorAll('.theme-toggle-nav');
+    themeToggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const isDark = currentTheme === 'dark';
+            if (window.toggleGlobalTheme) {
+                window.toggleGlobalTheme(!isDark);
+            } else {
+                const newTheme = isDark ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem("ai_resume_theme", newTheme);
+            }
+        });
+    });
 
     // Initialize icons if lucide is available
     if (window.lucide) {

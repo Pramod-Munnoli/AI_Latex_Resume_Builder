@@ -1116,3 +1116,33 @@ svg.input-icon,
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     text-align: center;
 }
+
+/* ============================================
+   AUTOFILL FIXES - PREVENT WHITE BACKGROUND
+   ============================================ */
+/* Default Dark Mode Autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+    -webkit-text-fill-color: #fff !important;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: #fff;
+}
+
+/* Light Mode Autofill Override */
+[data-theme="light"] input:-webkit-autofill,
+[data-theme="light"] input:-webkit-autofill:hover,
+[data-theme="light"] input:-webkit-autofill:focus,
+[data-theme="light"] input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
+    -webkit-text-fill-color: #1e293b !important;
+    caret-color: #1e293b;
+}
+
+/* Ensure consistent text color for autofill */
+input:-webkit-autofill::first-line {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+}

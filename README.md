@@ -66,6 +66,7 @@ flowchart TD
 
 ### 🎨 Premium Design System (Aesthetics First)
 *   **High-End Visuals**: Modern Glassmorphism UI with vibrant indigo/teal color palettes and fluid responsiveness.
+*   **Dynamic Theme Toggle**: Seamless dark/light mode switching with smooth, animated transitions and persistent user settings.
 *   **Performance Optimized**: All animations run via GPU-accelerated CSS transforms and Intersection Observers for sub-second visual reveals.
 
 ### 🛠️ Professional LaTeX Editor & Preview
