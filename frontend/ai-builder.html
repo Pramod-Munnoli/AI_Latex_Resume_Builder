@@ -65,6 +65,29 @@
         </section>
 
         <section class="upload-container">
+            <!-- Template Selection -->
+            <div class="template-selection-box">
+                <div class="template-selection-header">
+                    <i data-lucide="layout" class="header-icon"></i>
+                    <span>Select Resume Style</span>
+                </div>
+                <div class="template-options-container">
+                    <div class="template-option active" data-template-name="default-ats">
+                        <div class="option-name">Standard ATS</div>
+                        <div class="option-desc">Optimized for machine reading</div>
+                    </div>
+                    <div class="template-option" data-template-name="ats-modern">
+                        <div class="option-name">Modern Professional</div>
+                        <div class="option-desc">Clean, elegant, and balanced</div>
+                    </div>
+                    <div class="template-option" data-template-name="clean-minimalist">
+                        <div class="option-name">Clean Minimalist</div>
+                        <div class="option-desc">Minimalistic and white-space focused</div>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedTemplate" value="default-ats">
+            </div>
+
             <div class="drop-zone is-empty" id="dropZone">
                 <span class="drop-zone-icon">☁️</span>
                 <span class="drop-zone-text">Drop your LinkedIn PDF here</span>

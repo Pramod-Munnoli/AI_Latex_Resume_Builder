@@ -266,6 +266,21 @@
         }
     };
 
+    window.setupTemplateSelection = function () {
+        const options = document.querySelectorAll('.template-option');
+        const hiddenInput = $('selectedTemplate');
+
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                options.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                if (hiddenInput) {
+                    hiddenInput.value = option.dataset.templateName;
+                }
+            });
+        });
+    };
+
     window.uploadPdf = async function (fileArg) {
         const pdfInput = $('pdfInput');
         // Prefer passed argument (if any), otherwise check input
@@ -280,10 +295,30 @@
         fd.append("pdf", file);
         fd.append("title", activeResumeTitle);
 
+        // Get selected template
+        const selectedTemplateName = $('selectedTemplate')?.value || 'default-ats';
+        let templateCode = null;
+
         window.showLoader('Generating LaTeX resume...');
         window.setStatus("Uploading and generating...", "loading");
 
         try {
+            // Fetch template code if it's not the default
+            if (selectedTemplateName !== 'default-ats') {
+                try {
+                    const tResp = await fetch(`${API_BASE}/api/templates/by-name/${selectedTemplateName}`);
+                    if (tResp.ok) {
+                        const tData = await tResp.json();
+                        templateCode = tData.template?.latex_code;
+                        if (templateCode) {
+                            fd.append("templateCode", templateCode);
+                        }
+                    }
+                } catch (tErr) {
+                    console.warn("Failed to fetch template code, using default:", tErr);
+                }
+            }
+
             const { data: { session } } = await window._supabase.auth.getSession();
             const headers = {};
             if (session?.access_token) {

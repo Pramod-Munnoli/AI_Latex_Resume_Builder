@@ -135,6 +135,7 @@
             if (window.setupToolbarFeatures) window.setupToolbarFeatures();
             if (window.setupResizer) window.setupResizer();
             if (window.setupDragAndDrop) window.setupDragAndDrop();
+            if (window.setupTemplateSelection) window.setupTemplateSelection();
             if (window.restorePanelSizes) window.restorePanelSizes();
 
             // Re-bind actions

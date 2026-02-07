@@ -46,11 +46,12 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
     const user = await getAuthenticatedUser(req);
     const userId = user ? user.id : 'guest';
     const resumeTitle = req.body.title || 'AI Generated Resume';
+    const templateCode = req.body.templateCode || null;
 
     const gen = ai.generateLatexWithSource
       ? ai.generateLatexWithSource
-      : async (t) => ({ latex: await ai.generateLatex(t), source: "fallback" });
-    const { latex, source } = await gen(text);
+      : async (t, tc) => ({ latex: await ai.generateLatex(t, tc), source: "fallback" });
+    const { latex, source } = await gen(text, templateCode);
 
     // Use single 'temp' directory (as requested)
     const workDir = tempDir;
