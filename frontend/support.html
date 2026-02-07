@@ -77,18 +77,44 @@
             </section>
 
             <section id="requests" class="doc-section">
-                <h1>Feature Requests</h1>
+                <h1>Feedback & Requests</h1>
                 <p>We are constantly evolving. If you have an idea for a new template, a specific AI feature, or a UI
                     improvement, we want to hear it!</p>
 
-                <div class="faq-item">
-                    <strong>New LaTeX Templates</strong>
-                    <p>Suggest professional layouts you'd like to see. We prioritize high-demand ATS-friendly designs.
-                    </p>
-                </div>
-                <div class="faq-item">
-                    <strong>AI Capabilities</strong>
-                    <p>Want the AI to do more? We are working on ATS scoring and job tailoring features next.</p>
+                <div class="feedback-form-container card-glass">
+                    <form id="feedbackForm" class="feedback-form">
+                        <div class="form-group">
+                            <label for="feedbackCategory">Feedback Category</label>
+                            <select id="feedbackCategory" required>
+                                <option value="General Feedback">General Feedback</option>
+                                <option value="Feature Request">Feature Request</option>
+                                <option value="Bug Report">Bug Report</option>
+                                <option value="Template Request">Template Request</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="feedbackRating">How would you rate your experience?</label>
+                            <div class="rating-stars" id="ratingStars">
+                                <input type="radio" name="rating" value="1" id="star1"><label for="star1"><i data-lucide="star"></i></label>
+                                <input type="radio" name="rating" value="2" id="star2"><label for="star2"><i data-lucide="star"></i></label>
+                                <input type="radio" name="rating" value="3" id="star3"><label for="star3"><i data-lucide="star"></i></label>
+                                <input type="radio" name="rating" value="4" id="star4"><label for="star4"><i data-lucide="star"></i></label>
+                                <input type="radio" name="rating" value="5" id="star5" checked><label for="star5"><i data-lucide="star"></i></label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="feedbackMessage">Your Message</label>
+                            <textarea id="feedbackMessage" rows="4" placeholder="Tell us what's on your mind..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submitFeedbackBtn">
+                            <i data-lucide="send"></i>
+                            <span>Submit Feedback</span>
+                        </button>
+                    </form>
+                    <div id="feedbackStatus" class="form-status"></div>
                 </div>
             </section>
 

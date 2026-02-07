@@ -125,6 +125,84 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Feedback Form Logic ---
+    const setupFeedbackForm = () => {
+        const feedbackForm = document.getElementById('feedbackForm');
+        const feedbackStatus = document.getElementById('feedbackStatus');
+        const submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
+
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const category = document.getElementById('feedbackCategory').value;
+                const message = document.getElementById('feedbackMessage').value;
+                const rating = feedbackForm.querySelector('input[name="rating"]:checked')?.value;
+
+                if (!message) return;
+
+                // Prepare button state
+                const originalBtnText = submitFeedbackBtn.innerHTML;
+                submitFeedbackBtn.disabled = true;
+                submitFeedbackBtn.innerHTML = '<i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i> <span>Sending...</span>';
+                if (window.lucide) window.lucide.createIcons();
+
+                try {
+                    const supabase = window._supabase;
+                    if (!supabase) throw new Error("Database connection not ready. Please refresh.");
+
+                    // Get current user if any
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    const { error } = await supabase
+                        .from('user_feedback')
+                        .insert([{
+                            user_id: user?.id || null,
+                            user_email: user?.email || null,
+                            category: category,
+                            message: message,
+                            rating: parseInt(rating) || 5,
+                            metadata: {
+                                browser: navigator.userAgent,
+                                page: window.location.href,
+                                timestamp: new Date().toISOString()
+                            }
+                        }]);
+
+                    if (error) throw error;
+
+                    // Success state
+                    feedbackStatus.textContent = "Thank you! Your feedback has been submitted successfully.";
+                    feedbackStatus.className = "form-status success";
+                    feedbackStatus.style.display = 'block';
+                    feedbackForm.reset();
+
+                    // Reset to 5 stars visually
+                    const star5 = document.getElementById('star5');
+                    if (star5) star5.checked = true;
+
+                } catch (err) {
+                    console.error("Feedback error:", err);
+                    feedbackStatus.textContent = "Error: " + (err.message || "Failed to submit feedback.");
+                    feedbackStatus.className = "form-status error";
+                    feedbackStatus.style.display = 'block';
+                } finally {
+                    submitFeedbackBtn.disabled = false;
+                    submitFeedbackBtn.innerHTML = originalBtnText;
+                    if (window.lucide) window.lucide.createIcons();
+
+                    // Hide status after 8 seconds
+                    setTimeout(() => {
+                        feedbackStatus.style.display = 'none';
+                        feedbackStatus.className = "form-status";
+                    }, 8000);
+                }
+            });
+        }
+    };
+
+    setupFeedbackForm();
+
     // Small delay to ensure browser layout is stable
     setTimeout(initAnimations, 150);
 });

@@ -342,6 +342,11 @@
     color: #2dd4bf;
 }
 
+.card-icon-box.amber {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
 .card-title {
     font-size: 1.35rem;
     font-weight: 700;

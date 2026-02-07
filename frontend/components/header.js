@@ -33,20 +33,24 @@ const headerHTML = `
                         </div>
                         <div class="profile-menu-items">
                           <a href="dashboard.html" class="profile-menu-item">
-                            <span>📊</span>
+                            <i data-lucide="layout-dashboard"></i>
                             <span>Dashboard</span>
                           </a>
                           <a href="my-resumes.html" class="profile-menu-item">
-                            <span>📄</span>
+                            <i data-lucide="file-text"></i>
                             <span>My Resumes</span>
                           </a>
                           <a href="settings.html" class="profile-menu-item">
-                            <span>⚙️</span>
+                            <i data-lucide="settings"></i>
                             <span>Settings</span>
+                          </a>
+                          <a href="support.html#requests" class="profile-menu-item">
+                            <i data-lucide="message-square-plus"></i>
+                            <span>Feedback</span>
                           </a>
                           <div class="profile-menu-divider"></div>
                           <button id="logoutBtn" class="profile-menu-item logout">
-                            <span>🚪</span>
+                            <i data-lucide="log-out"></i>
                             <span>Logout</span>
                           </button>
                         </div>
@@ -209,5 +213,10 @@ if (headerPlaceholder) {
         }
     } catch (e) {
         console.warn("Header optimistic load failed:", e);
+    }
+
+    // Initialize icons if lucide is available
+    if (window.lucide) {
+        window.lucide.createIcons();
     }
 })();
