@@ -863,6 +863,14 @@ svg.input-icon,
     font-weight: 600;
 }
 
+.mobile-auth-footer {
+    display: none;
+    margin-top: 25px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #7a8aa8;
+}
+
 .auth-link:hover {
     text-decoration: underline;
 }
@@ -965,6 +973,10 @@ svg.input-icon,
         display: none;
     }
 
+    .mobile-auth-footer {
+        display: block;
+    }
+
     .auth-content-panel {
         padding: 35px 30px;
     }
@@ -972,22 +984,26 @@ svg.input-icon,
 
 @media (max-width: 500px) {
     body.auth-page {
-        padding: 0;
+        padding: 80px 15px 40px 15px;
     }
 
     .auth-card-wrapper {
-        padding: 20px 15px;
+        padding: 0;
     }
 
     .auth-card {
-        padding: 30px 25px;
+        padding: 25px 20px;
         border-radius: 16px;
     }
 
     .auth-wrapper {
-        border-radius: 0;
-        min-height: 100vh;
-        border: none;
+        border-radius: 20px;
+        min-height: auto;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        overflow: visible;
+        margin: auto;
+        width: 100%;
+        max-width: 400px;
     }
 
     .auth-content-panel {
