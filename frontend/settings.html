@@ -1096,6 +1096,24 @@
             const saveBtn = document.getElementById('saveBtn');
             const appLoader = document.getElementById('appLoader');
 
+            // Password Visibility Toggle
+            document.querySelectorAll('.password-toggle').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const input = this.previousElementSibling;
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+
+                    // Update icon
+                    const iconName = type === 'password' ? 'eye' : 'eye-off';
+                    if (window.lucide) {
+                        this.innerHTML = `<i data-lucide="${iconName}"></i>`;
+                        window.lucide.createIcons();
+                    } else {
+                        this.textContent = type === 'password' ? '👁' : '🚫';
+                    }
+                });
+            });
+
             const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
                 ? (window.location.port === "3000" ? "" : "http://localhost:3000")
                 : "https://ai-latex-resume-builder.onrender.com";
