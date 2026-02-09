@@ -19,7 +19,7 @@ body {
     background-color: var(--darker-bg);
     color: var(--text-main);
     line-height: 1.6;
-    padding-top: 70px;
+    padding-top: 60px;
     /* Absolute stability: reserve space for scrollbar on both sides to keep layout perfectly centered */
     scrollbar-gutter: stable both-edges;
 }
@@ -71,7 +71,7 @@ body {
     backdrop-filter: blur(12px) saturate(150%);
     -webkit-backdrop-filter: blur(12px) saturate(150%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    height: 70px;
+    height: 60px;
     display: flex;
     align-items: center;
 }
@@ -140,9 +140,9 @@ body {
     align-items: center;
     padding: 0 4px;
     height: 32px;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     position: relative;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
 }
 
 .nav-link:hover,
@@ -230,12 +230,12 @@ body {
 
 /* Theme Toggle Nav Button */
 .theme-toggle-nav {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--text-main);
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,21 +245,39 @@ body {
     overflow: hidden;
     padding: 0;
     flex-shrink: 0;
+    backdrop-filter: blur(4px);
 }
 
 .theme-toggle-nav:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
-    border-color: rgba(99, 102, 241, 0.5);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 10px rgba(99, 102, 241, 0.2);
 }
 
-.theme-toggle-nav i {
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    top: calc(50% - 10px);
-    left: calc(50% - 10px);
+/* Light mode specific theme toggle */
+[data-theme="light"] .theme-toggle-nav {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+
+[data-theme="light"] .theme-toggle-nav:hover {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: #6366f1;
+}
+
+.theme-toggle-nav i,
+.theme-toggle-nav svg {
+    width: 18px !important;
+    height: 18px !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    margin-top: -9px !important;
+    margin-left: -9px !important;
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -283,6 +301,12 @@ body {
     opacity: 1;
 }
 
+/* Ensure icons are hidden correctly even before JS fully boots */
+.sun-icon,
+.moon-icon {
+    pointer-events: none;
+}
+
 [data-theme="light"] .theme-toggle-nav {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.08);
@@ -296,23 +320,30 @@ body {
 
 .btn-auth {
     text-decoration: none;
-    background: linear-gradient(135deg, #4F86FF 0%, #8B5CF6 100%);
-    border: none;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    background-size: 200% auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--white);
-    padding: 8px 24px;
-    border-radius: 10px;
-    font-weight: 700;
+    padding: 6px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+    box-shadow:
+        0 4px 15px rgba(99, 102, 241, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     align-items: center;
     justify-content: center;
+    letter-spacing: 0.5px;
 }
 
 .btn-auth:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow:
+        0 8px 25px rgba(99, 102, 241, 0.4),
+        0 0 15px rgba(139, 92, 246, 0.2);
+    background-position: right center;
     filter: brightness(1.1);
 }
 
