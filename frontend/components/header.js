@@ -5,7 +5,7 @@ const headerHTML = `
         <div class="nav-container">
             <!-- Mobile Auth Slot (Left Side) - Only visible on Mobile -->
             <div id="mobileAuthTrigger" class="mobile-auth-trigger">
-                 <!-- Will be populated by JS -->
+                 <a href="login.html" class="btn-tiny-auth">Login</a>
             </div>
 
             <div id="dynamicLogoArea" class="nav-logo-dynamic">

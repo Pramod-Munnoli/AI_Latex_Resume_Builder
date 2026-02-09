@@ -99,6 +99,10 @@
             localStorage.removeItem("ai_resume_user_cache");
             if (authBtn) authBtn.style.display = '';
             if (profileDropdown) profileDropdown.style.display = "none";
+
+            if (mobileAuthTrigger) {
+                mobileAuthTrigger.innerHTML = `<a href="login.html" class="btn-tiny-auth">Login</a>`;
+            }
         }
     }
 

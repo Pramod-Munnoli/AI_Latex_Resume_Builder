@@ -19,7 +19,7 @@ body {
     background-color: var(--darker-bg);
     color: var(--text-main);
     line-height: 1.6;
-    padding-top: 60px;
+    padding-top: 70px;
     /* Absolute stability: reserve space for scrollbar on both sides to keep layout perfectly centered */
     scrollbar-gutter: stable both-edges;
 }
@@ -71,7 +71,7 @@ body {
     backdrop-filter: blur(12px) saturate(150%);
     -webkit-backdrop-filter: blur(12px) saturate(150%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    height: 60px;
+    height: 70px;
     display: flex;
     align-items: center;
 }
@@ -361,18 +361,18 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
+    padding: 6px 14px;
     background: var(--primary-gradient);
-    border: none;
-    border-radius: 6px;
-    color: var(--white);
-    font-size: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     text-decoration: none;
     white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .btn-tiny-auth:hover {
@@ -382,9 +382,10 @@ body {
 
 .mobile-auth-trigger {
     display: none;
-    min-width: 44px;
-    /* Maintain space for avatar */
+    min-width: 60px;
+    /* Maintain space for avatar/btn */
     justify-content: center;
+    z-index: 100;
 }
 
 
@@ -952,9 +953,9 @@ body {
         justify-self: end;
     }
 
-    /* Hide the auth container inside the overlay since it is now in navbar */
+    /* Ensure the auth container inside the overlay is visible as a fallback */
     .mobile-auth-container {
-        display: none;
+        display: flex;
     }
 }
 

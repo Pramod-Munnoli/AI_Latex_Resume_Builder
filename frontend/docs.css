@@ -10,6 +10,34 @@
     height: calc(100vh - 70px);
     overflow: hidden;
     padding: 0 5%;
+    position: relative;
+    z-index: 2;
+}
+
+/* Background Decorations */
+.decoration-circle {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: 1;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.circle-1 {
+    width: 600px;
+    height: 600px;
+    background: #6366f1;
+    top: -200px;
+    right: -100px;
+}
+
+.circle-2 {
+    width: 500px;
+    height: 500px;
+    background: #14b8a6;
+    bottom: -100px;
+    left: -150px;
 }
 
 /* Sidebar */
