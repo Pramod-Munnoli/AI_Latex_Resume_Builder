@@ -28,8 +28,42 @@
         }
 
         setupLoginForm();
+        setupGoogleLogin();
         setupPasswordToggle();
         loadRememberedEmail();
+    }
+
+    // --- GOOGLE LOGIN ---
+    function setupGoogleLogin() {
+        const btn = $('googleLoginBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async () => {
+            try {
+                if (!window._supabase) {
+                    throw new Error("Authentication service unavailable. Please try again.");
+                }
+
+                window.showLoader("Connecting to Google...");
+
+                const { data, error } = await window._supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/my-resumes.html'
+                    }
+                });
+
+                if (error) throw error;
+            } catch (err) {
+                console.error("Google login error:", err);
+                const errorDiv = $('authErrorMsg');
+                if (errorDiv) {
+                    errorDiv.textContent = err.message || "Failed to connect with Google.";
+                    errorDiv.style.display = 'block';
+                }
+                window.hideLoader();
+            }
+        });
     }
 
     // --- PASSWORD VISIBILITY TOGGLE ---
