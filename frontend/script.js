@@ -69,9 +69,24 @@
             if (authBtn) authBtn.style.display = 'none';
             if (profileDropdown) profileDropdown.style.display = "block";
 
-            const initials = window.getInitials(user.user_metadata?.username || user.email);
+            let displayName = user.user_metadata?.username ||
+                user.user_metadata?.full_name ||
+                user.email || "User";
+
+            // Capitalization
+            if (displayName && !displayName.includes("@")) {
+                displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+            }
+
+            const initials = window.getInitials ? window.getInitials(displayName) : "U";
+
             const avatar = $('profileAvatar');
+            const nameEl = $('profileName');
+            const emailEl = $('profileEmail');
+
             if (avatar) avatar.textContent = initials;
+            if (nameEl) nameEl.textContent = displayName;
+            if (emailEl) emailEl.textContent = user.email || "";
 
             if (mobileAuthTrigger) {
                 mobileAuthTrigger.innerHTML = `<div class="profile-avatar" id="headerProfileAvatar">${initials}</div>`;

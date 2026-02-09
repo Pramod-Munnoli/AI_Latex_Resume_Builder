@@ -100,6 +100,49 @@ const headerHTML = `
 const headerPlaceholder = document.getElementById('app-header');
 if (headerPlaceholder) {
     headerPlaceholder.innerHTML = headerHTML;
+
+    // --- OPTIMISTIC AUTH UI LOAD ---
+    // This runs IMMEDIATELY after header injection to prevent flicker/placeholder visibility
+    try {
+        const USER_CACHE_KEY_HEADER = "ai_resume_user_cache";
+        const rawCache = localStorage.getItem(USER_CACHE_KEY_HEADER);
+
+        if (rawCache) {
+            const cachedUser = JSON.parse(rawCache);
+            if (cachedUser) {
+                const authBtn = document.getElementById('authBtn');
+                const profileDropdown = document.getElementById('profileDropdown');
+                const profileAvatar = document.getElementById('profileAvatar');
+                const profileName = document.getElementById('profileName');
+                const profileEmail = document.getElementById('profileEmail');
+                const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
+
+                if (authBtn) authBtn.style.display = 'none';
+                if (profileDropdown) profileDropdown.style.display = 'block';
+
+                let displayName = cachedUser.user_metadata?.username ||
+                    cachedUser.user_metadata?.full_name ||
+                    cachedUser.email || "User";
+
+                // Capitalization logic
+                if (displayName && !displayName.includes("@")) {
+                    displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+                }
+
+                const initials = window.getInitials ? window.getInitials(displayName) : "U";
+
+                if (profileAvatar) profileAvatar.textContent = initials;
+                if (profileName) profileName.textContent = displayName;
+                if (profileEmail) profileEmail.textContent = cachedUser.email || "";
+
+                if (mobileAuthTrigger) {
+                    mobileAuthTrigger.innerHTML = `<div class="profile-avatar" id="headerProfileAvatar">${initials}</div>`;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Optimistic load failed:", e);
+    }
 }
 
 // Logic to highlight active link
@@ -158,77 +201,7 @@ if (headerPlaceholder) {
         });
     }
 
-    // --- OPTIMISTIC AUTH UI LOAD ---
-    // This runs IMMEDIATELY after header injection to prevent flicker/delay
-    try {
-        const USER_CACHE_KEY_HEADER = "ai_resume_user_cache";
-        const rawCache = localStorage.getItem(USER_CACHE_KEY_HEADER);
-        const authBtn = document.getElementById('authBtn');
-        const profileDropdown = document.getElementById('profileDropdown');
 
-        if (rawCache) {
-            const cachedUser = JSON.parse(rawCache);
-            if (cachedUser) {
-                // Get elements we just injected
-                const profileAvatar = document.getElementById('profileAvatar');
-                const profileName = document.getElementById('profileName');
-                const profileEmail = document.getElementById('profileEmail');
-                const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
-
-                // 1. Hide Login Button (Properly)
-                if (authBtn) authBtn.style.display = 'none';
-
-                // 2. Show Profile Dropdown
-                if (profileDropdown) profileDropdown.style.display = 'block';
-
-                // 3. Populate Data
-                let displayName = cachedUser.user_metadata?.username ||
-                    cachedUser.user_metadata?.full_name ||
-                    cachedUser.email ||
-                    "User";
-
-                // Capitalization logic
-                if (displayName && !displayName.includes("@")) {
-                    displayName = displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-                }
-
-                // Initials logic
-                let initials = "U";
-                if (displayName) {
-                    const parts = displayName.trim().split(" ");
-                    if (parts.length === 1) {
-                        initials = parts[0].substring(0, 2).toUpperCase();
-                    } else {
-                        initials = (parts[0][0] + (parts[parts.length - 1][0] || "")).toUpperCase();
-                    }
-                }
-
-                if (profileAvatar) profileAvatar.textContent = initials;
-                if (profileName) profileName.textContent = displayName;
-                if (profileEmail) profileEmail.textContent = cachedUser.email || "";
-
-                // 4. Handle Mobile Auth Trigger
-                if (mobileAuthTrigger) {
-                    mobileAuthTrigger.innerHTML = `
-                        <div class="profile-avatar" id="headerProfileAvatar">${initials}</div>
-                    `;
-                }
-            }
-        } else {
-            // Logged out or no cache: Hide dropdown and clear mobile slot
-            if (profileDropdown) profileDropdown.style.display = 'none';
-
-            const mobileAuthTrigger = document.getElementById('mobileAuthTrigger');
-            if (mobileAuthTrigger) {
-                mobileAuthTrigger.innerHTML = `<a href="login.html" class="btn-tiny-auth">Login</a>`;
-            }
-
-            // Let CSS handle the #authBtn visibility via media queries
-            if (authBtn) authBtn.style.display = '';
-        }
-    } catch (e) {
-        console.warn("Header optimistic load failed:", e);
-    }
 
     // --- THEME TOGGLE LOGIC ---
     const themeToggles = document.querySelectorAll('.theme-toggle-nav');

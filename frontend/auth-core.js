@@ -21,6 +21,14 @@
 
                 supabase.auth.onAuthStateChange(async (event, session) => {
                     currentUser = session?.user || null;
+                    
+                    // Update global UI cache for optimistic loading
+                    if (currentUser && window.saveUserCache) {
+                        window.saveUserCache(currentUser);
+                    } else if (!currentUser && event === 'SIGNED_OUT') {
+                        localStorage.removeItem("ai_resume_user_cache");
+                    }
+
                     if (onAuthStateChange) onAuthStateChange(event, session);
                 });
                 return supabase;
