@@ -431,6 +431,25 @@
     };
 
     window.uploadPdf = async function (fileArg) {
+        // --- AUTH GUARD: Redirect to login if not authenticated ---
+        if (!window._currentUser) {
+            try {
+                if (window._supabase) {
+                    const { data } = await window._supabase.auth.getSession();
+                    if (!data?.session?.user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                } else {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+
         const pdfInput = $('pdfInput');
         // Prefer passed argument (if any), otherwise check input
         const file = fileArg instanceof File ? fileArg : (pdfInput.files && pdfInput.files[0]);
@@ -439,7 +458,6 @@
             window.setStatus("Please select a PDF first", "warning");
             return;
         }
-
         const fd = new FormData();
         fd.append("pdf", file);
         fd.append("title", activeResumeTitle);
@@ -546,6 +564,26 @@
 
     window.recompileLatex = async function () {
         if (isCompiling) return;
+
+        // --- AUTH GUARD: Redirect to login if not authenticated ---
+        if (!window._currentUser) {
+            try {
+                if (window._supabase) {
+                    const { data } = await window._supabase.auth.getSession();
+                    if (!data?.session?.user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                } else {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+
         const latex = window.getEditorValue();
         if (!latex.trim()) return;
 

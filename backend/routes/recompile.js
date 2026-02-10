@@ -31,7 +31,14 @@ router.post("/recompile", async (req, res) => {
 
     // Authenticate user to get ID for storage
     const user = await getAuthenticatedUser(req);
-    const userId = user ? user.id : 'guest';
+    if (!user) {
+      return res.status(401).json({
+        error: "Authentication required",
+        code: "AUTH_REQUIRED",
+        details: "Please log in to recompile a resume."
+      });
+    }
+    const userId = user.id;
 
     // --- CACHE OPTIMIZATION ---
     // Generate a unique hash for this LaTeX content
