@@ -59,6 +59,12 @@
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
 }
 
+[data-theme="light"] .theme-toggle-nav {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    color: #1e293b !important;
+}
+
 [data-theme="light"] .hamburger-icon {
     color: #1e293b !important;
 }
@@ -75,17 +81,31 @@
 
 [data-theme="light"] .nav-link {
     color: #4b5563;
+    padding: 6px 12px;
+    border-radius: 8px;
 }
 
 [data-theme="light"] .nav-link:hover,
 [data-theme="light"] .nav-link.active {
     color: #4f46e5;
-    background: none;
-    -webkit-text-fill-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.05) !important;
+    -webkit-text-fill-color: #4f46e5 !important;
 }
 
 [data-theme="light"] .nav-link::after {
     background: #4f46e5;
+}
+
+[data-theme="light"] .nav-link-featured {
+    background: linear-gradient(90deg, #4f46e5, #7c3aed, #4f46e5) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+}
+
+[data-theme="light"] .nav-link-templates {
+    background: linear-gradient(90deg, #0d9488, #0f766e, #0d9488) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
 }
 
 [data-theme="light"] .template-card,
@@ -978,6 +998,28 @@
 [data-theme="light"] .last-edited-icon {
     background: #f1f5f9 !important;
     color: #64748b !important;
+}
+
+/* Mobile Navigation Light Mode Fixes */
+[data-theme="light"] .mobile-nav-link {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .mobile-nav-link:hover,
+[data-theme="light"] .mobile-nav-link.active {
+    background: rgba(79, 70, 229, 0.08) !important;
+    border-color: rgba(79, 70, 229, 0.2) !important;
+    color: #4f46e5 !important;
+}
+
+[data-theme="light"] .mobile-nav-overlay {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+[data-theme="light"] .utility-label {
+    color: #64748b;
 }
 
 [data-theme="light"] .last-edited-details .value {
