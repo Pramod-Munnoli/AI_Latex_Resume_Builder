@@ -91,7 +91,7 @@ const headerHTML = `
         </div>
 
         <div class="mobile-auth-container">
-            <a href="login.html" class="btn btn-primary" style="justify-content: center;">Login / Sign Up</a>
+            <a href="login.html" class="btn-auth" style="justify-content: center; padding: 12px;">Login / Sign Up</a>
         </div>
     </div>
 `;
