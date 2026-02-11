@@ -40,6 +40,12 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -2px;
+    text-align: center;
+}
+
+.hero-title .highlight {
+    color: #818cf8;
+    -webkit-text-fill-color: #818cf8;
 }
 
 .hero-subtitle {
@@ -954,13 +960,15 @@
     opacity: 0;
     transform: translateY(12px);
     transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-    /* Reduced from 0.6s */
     will-change: opacity, transform;
-    /* Inherit the premium gradient/clip from the parent title if it has one */
+}
+
+/* Only apply these to the gradient heading */
+.hero-title .word {
     background: inherit;
-    -webkit-background-clip: inherit;
-    background-clip: inherit;
-    -webkit-text-fill-color: inherit;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .word.visible {

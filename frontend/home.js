@@ -152,39 +152,54 @@ function initWordReveal() {
     let maxDelay = 0;
 
     elements.forEach((el, elementIndex) => {
-        // Store original text
-        if (!el.hasAttribute('data-original-text')) {
-            el.setAttribute('data-original-text', el.textContent.trim());
-        }
+        // Only run once
+        if (el.hasAttribute('data-animated')) return;
+        el.setAttribute('data-animated', 'true');
 
-        const text = el.getAttribute('data-original-text');
-        if (!text) return;
-
-        const words = text.split(/\s+/);
+        // Capture all nodes including BRs and existing spans
+        const childNodes = Array.from(el.childNodes);
         el.innerHTML = '';
         el.style.visibility = 'visible';
         el.style.opacity = '1';
-        el.classList.remove('hero-scroll-init', 'hero-scroll-animate');
 
-        const spans = words.map(word => {
-            const span = document.createElement('span');
-            span.className = 'word';
-            span.textContent = word;
-            el.appendChild(span);
-            el.appendChild(document.createTextNode(' '));
-            return span;
-        });
+        const baseDelay = elementIndex * 150;
+        let wordCounter = 0;
 
-        const baseDelay = elementIndex * 100; // Reduced from 250 for snapier feel
+        childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const words = node.textContent.split(/(\s+)/);
+                words.forEach(word => {
+                    if (word.trim().length > 0) {
+                        const span = document.createElement('span');
+                        span.className = 'word';
+                        span.textContent = word;
+                        el.appendChild(span);
 
-        spans.forEach((span, wordIndex) => {
-            const delay = baseDelay + (wordIndex * 12); // Reduced from 20 for faster reveal
-            maxDelay = Math.max(maxDelay, delay);
-            setTimeout(() => {
-                requestAnimationFrame(() => {
-                    span.classList.add('visible');
+                        const delay = baseDelay + (wordCounter * 15);
+                        maxDelay = Math.max(maxDelay, delay);
+                        setTimeout(() => {
+                            requestAnimationFrame(() => span.classList.add('visible'));
+                        }, delay);
+                        wordCounter++;
+                    } else {
+                        el.appendChild(document.createTextNode(word));
+                    }
                 });
-            }, delay);
+            } else {
+                // Preserve BRs or other elements
+                const clone = node.cloneNode(true);
+                el.appendChild(clone);
+                if (clone.classList && (clone.classList.contains('highlight') || clone.tagName === 'SPAN')) {
+                    // Special handling for highlighted text - make it a word
+                    clone.classList.add('word');
+                    const delay = baseDelay + (wordCounter * 15);
+                    maxDelay = Math.max(maxDelay, delay);
+                    setTimeout(() => {
+                        requestAnimationFrame(() => clone.classList.add('visible'));
+                    }, delay);
+                    wordCounter++;
+                }
+            }
         });
     });
 
@@ -203,7 +218,7 @@ function initWordReveal() {
                 heroCta.style.opacity = '1';
                 heroCta.style.transform = 'translateY(0)';
             });
-        }, maxDelay + 50); // Reduced from 100 for instant follow-through
+        }, maxDelay + 100);
     }
 }
 
