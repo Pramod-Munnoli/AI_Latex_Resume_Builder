@@ -29,7 +29,7 @@ router.post("/recompile", async (req, res) => {
       });
     }
 
-    // Authenticate user to get ID for storage
+    // Authenticate user to get ID for logs/tracking
     const user = await getAuthenticatedUser(req);
     if (!user) {
       return res.status(401).json({
@@ -40,28 +40,28 @@ router.post("/recompile", async (req, res) => {
     }
     const userId = user.id;
 
-    // --- CACHE OPTIMIZATION ---
-    // Generate a unique hash for this LaTeX content
-    const latexHash = crypto.createHash("md5").update(latex).digest("hex");
-    const resumeTitle = req.body.title || 'AI Generated Resume';
-    const sanitizedTitle = resumeTitle.replace(/[^a-z0-9]/gi, '_');
+    // --- BUCKET CONFIGURATION ---
+    // User requested: "i dont need bucket for templates i only need the resume bucket = ai generated"
+    const isAI = req.body.type === 'ai' || (req.body.title && req.body.title.includes('AI Generated'));
+    const bucketName = 'resumes';
 
-    // We search for a file that matches this hash for this user
+    // --- CACHE OPTIMIZATION (ONLY FOR AI RESUMES) ---
+    const latexHash = crypto.createHash("md5").update(latex).digest("hex");
     const cacheFileName = `cache_${latexHash}.pdf`;
     const storagePath = `users/${userId}/${cacheFileName}`;
 
-    if (userId !== 'guest') {
+    if (isAI && userId !== 'guest') {
       try {
         const { data: existingFiles } = await require("../utils/storage").supabase.storage
-          .from('resumes')
+          .from(bucketName)
           .list(`users/${userId}`, {
             search: cacheFileName
           });
 
         if (existingFiles && existingFiles.some(f => f.name === cacheFileName)) {
-          console.log(`[Cache] Found identical LaTeX content for user ${userId}. Skipping compilation.`);
+          console.log(`[Cache] Found identical AI resume for user ${userId}. Skipping compilation.`);
           const { data: { publicUrl } } = require("../utils/storage").supabase.storage
-            .from('resumes')
+            .from(bucketName)
             .getPublicUrl(storagePath);
 
           return res.json({
@@ -76,32 +76,39 @@ router.post("/recompile", async (req, res) => {
     }
     // --- END CACHE OPTIMIZATION ---
 
-    // Use single 'temp' directory for both (as requested)
+    // Use single 'temp' directory for compilation
     const workDir = tempDir;
 
-    console.log(`[Recompile] Updating latest resume in temp for user ${userId}`);
+    console.log(`[Recompile] Updating latest resume in temp for user ${userId} (Type: ${isAI ? 'ai' : 'template'})`);
 
     const safeLatex = sanitizeLatex(latex);
-    // Write to the temp dir (overwrites existing resume.tex)
     await writeLatexToTemp(workDir, safeLatex);
 
     console.log(`[Recompile] Compiling LaTeX...`);
     const { stdout, stderr } = await compileLatex(workDir);
     const log = `${stdout || ""}\n${stderr || ""}`.trim();
 
-    // Clean up old resumes only if we are doing a fresh compile
-    if (userId !== 'guest') {
-      await deleteOldResumes(userId, 'resumes');
-    }
-
-    // Upload to Supabase Storage with the unique hash filename
     const pdfPath = path.join(workDir, "resume.pdf");
-
-    const publicUrl = await uploadToStorage(pdfPath, userId, 'resumes', cacheFileName);
-
-    // Append cache buster
     const cacheBuster = `?t=${Date.now()}&v=${latexHash}`;
-    return res.json({ pdfUrl: publicUrl + cacheBuster, log, cached: false });
+
+    // ONLY upload to storage if it's an AI resume
+    if (isAI && userId !== 'guest') {
+      console.log(`[Recompile] Uploading AI resume to storage bucket: ${bucketName}`);
+
+      // Clean up old AI resumes
+      await deleteOldResumes(userId, bucketName);
+
+      const publicUrl = await uploadToStorage(pdfPath, userId, bucketName, cacheFileName);
+      return res.json({ pdfUrl: publicUrl + cacheBuster, log, cached: false });
+    } else {
+      // For templates, just serve from the local temp directory (/files/resume.pdf)
+      console.log(`[Recompile] Template compiled. Serving locally (not saved to storage).`);
+      return res.json({
+        pdfUrl: `/files/resume.pdf` + cacheBuster,
+        log,
+        cached: false
+      });
+    }
   } catch (err) {
     console.error("Recompile error:", err);
     // ... error handling remains the same ...

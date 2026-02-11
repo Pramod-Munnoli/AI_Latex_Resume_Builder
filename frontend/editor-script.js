@@ -711,8 +711,10 @@
             }
 
             // Update state - user now has custom version
-            userHasCustomVersion = true;
-            currentTemplateSource = 'user';
+            if (currentTemplateName !== 'ai' && currentTemplateName !== 'ai-resume') {
+                userHasCustomVersion = true;
+                currentTemplateSource = 'user';
+            }
             updateVersionButtons();
             originalLatexCode = currentLatex;
             hasChanges = false;
@@ -742,6 +744,13 @@
         const loadOriginalBtn = document.getElementById('load-original-btn');
 
         if (!container || !loadUserBtn || !loadOriginalBtn) return;
+
+        // NEW: Do not show version controls for AI-generated resumes
+        const isAI = currentTemplateName === 'ai' || currentTemplateName === 'ai-resume';
+        if (isAI) {
+            container.style.display = 'none';
+            return;
+        }
 
         // Show container only if user is logged in and has custom version
         if (currentUser && userHasCustomVersion) {

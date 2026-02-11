@@ -62,14 +62,16 @@ router.delete('/delete-account', async (req, res) => {
 
             // 1d. Delete user's storage folder if it exists
             console.log('Cleaning up storage...');
-            const { data: storageFiles, error: listError } = await supabaseAdmin.storage.from('resumes').list(userId);
+            const bucketName = 'resumes';
+            const userFolderPath = `users/${userId}`;
+            const { data: storageFiles, error: listError } = await supabaseAdmin.storage.from(bucketName).list(userFolderPath);
 
             if (listError) {
-                console.warn('Warning: Could not list storage files:', listError);
+                console.warn(`Warning: Could not list storage files in ${bucketName}:`, listError);
             } else if (storageFiles && storageFiles.length > 0) {
-                const paths = storageFiles.map(f => `${userId}/${f.name}`);
-                const { error: removeError } = await supabaseAdmin.storage.from('resumes').remove(paths);
-                if (removeError) console.warn('Warning: Could not remove storage files:', removeError);
+                const paths = storageFiles.map(f => `${userFolderPath}/${f.name}`);
+                const { error: removeError } = await supabaseAdmin.storage.from(bucketName).remove(paths);
+                if (removeError) console.warn(`Warning: Could not remove storage files from ${bucketName}:`, removeError);
             }
         } catch (cleanupError) {
             console.error('Critical cleanup error:', cleanupError);
