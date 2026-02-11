@@ -532,7 +532,7 @@
         if (status) status.textContent = 'Compiling LaTeX...';
 
         try {
-            const { data: { session } } = window._supabase ? await window._supabase.auth.getSession() : { data: { session: null } };
+            const { data: { session } } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
             const headers = { 'Content-Type': 'application/json' };
             if (session?.access_token) {
                 headers['Authorization'] = `Bearer ${session.access_token}`;
