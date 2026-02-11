@@ -164,9 +164,22 @@
 
 /* Hero Section */
 [data-theme="light"] .hero-title {
-    background: linear-gradient(to right, #1e293b 30%, #4f46e5 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    background: none !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+}
+
+[data-theme="light"] .hero-title .word {
+    background: linear-gradient(135deg, #0f172a 30%, #4338ca 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+[data-theme="light"] .hero-title .highlight .word {
+    background: none !important;
+    -webkit-text-fill-color: #4f46e5 !important;
+    color: #4f46e5 !important;
 }
 
 [data-theme="light"] .hero-subtitle {
