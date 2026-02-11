@@ -23,7 +23,7 @@
 }
 
 .hero-container {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 0 auto;
     width: 90%;
     position: relative;
@@ -31,21 +31,19 @@
 }
 
 .hero-title {
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-size: clamp(2.2rem, 8vw, 4.5rem);
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 24px;
-    background: linear-gradient(to right, #ffffff 30%, #a5b4fc 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
     letter-spacing: -2px;
     text-align: center;
+    color: white;
+    /* Fallback */
+    display: block;
 }
 
 .hero-title .highlight {
     color: #818cf8;
-    -webkit-text-fill-color: #818cf8;
 }
 
 .hero-subtitle {
@@ -708,7 +706,14 @@
     }
 
     .hero-title {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
+        line-height: 1.2;
+        padding: 0 10px;
+    }
+
+    .hero-title br {
+        display: block;
+        /* Keep the break for structure */
     }
 
     .hero-subtitle {
@@ -963,12 +968,15 @@
     will-change: opacity, transform;
 }
 
-/* Only apply these to the gradient heading */
+/* Only apply these to the gradient heading words */
 .hero-title .word {
-    background: inherit;
+    display: inline-block;
+    background: linear-gradient(135deg, #ffffff 20%, #a5b4fc 70%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-size: 200% 100%;
+    /* Spreads the gradient out more */
 }
 
 .word.visible {
