@@ -12,6 +12,7 @@ app.use(express.json({ limit: "2mb" }));
 
 const uploadRouter = require("./routes/upload");
 const recompileRouter = require("./routes/recompile");
+const compileRouter = require("./routes/compile");
 const templatesRouter = require("./routes/templates");
 const userResumesRouter = require("./routes/user-resumes");
 const chatRouter = require("./routes/chat");
@@ -32,6 +33,7 @@ app.get("/api/config", (req, res) => {
 app.use("/api", chatRouter);
 app.use("/api", uploadRouter);
 app.use("/api", recompileRouter);
+app.use("/api", compileRouter);
 app.use("/api", templatesRouter);
 app.use("/api", userResumesRouter);
 app.use("/api/user", deleteAccountRouter);

@@ -1,35 +1,50 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "..", "..", ".env") });
+
 const GROQ_KEYS = [
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY
 ].filter(Boolean);
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
+const GROQ_MODELS = [
+  process.env.GROQ_MODEL,
+  process.env.GROQ_MODEL_FALLBACK,
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b"
+].filter(Boolean).filter((value, index, arr) => arr.indexOf(value) === index);
 
 async function callGroq(payload) {
-  for (let i = 0; i < GROQ_KEYS.length; i++) {
-    try {
-      const resp = await axios.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${GROQ_KEYS[i]}`,
-            "Content-Type": "application/json"
+  const models = GROQ_MODELS.length > 0 ? GROQ_MODELS : [GROQ_MODEL];
+  let lastErr = null;
+
+  for (const model of models) {
+    const currentPayload = { ...payload, model };
+    for (let i = 0; i < GROQ_KEYS.length; i++) {
+      try {
+        const resp = await axios.post(
+          "https://api.groq.com/openai/v1/chat/completions",
+          currentPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${GROQ_KEYS[i]}`,
+              "Content-Type": "application/json"
+            }
           }
+        );
+        return resp;
+      } catch (err) {
+        lastErr = err;
+        const isRateLimit = err.response && (err.response.status === 429 || err.response.status === 413);
+        if (isRateLimit && i < GROQ_KEYS.length - 1) {
+          console.warn(`⚠️ Groq Key ${i + 1} rate limited for ${model}, trying next key...`);
+          continue;
         }
-      );
-      return resp;
-    } catch (err) {
-      const isRateLimit = err.response && (err.response.status === 429 || err.response.status === 413);
-      if (isRateLimit && i < GROQ_KEYS.length - 1) {
-        console.warn(`⚠️ Groq Key ${i + 1} rate limited, trying next key...`);
-        continue;
       }
-      throw err;
     }
   }
-  throw new Error("All Groq API keys failed or are unavailable.");
+  throw lastErr || new Error("All Groq API keys and models failed or are unavailable.");
 }
 
 /* ================= HELPERS (UNCHANGED) ================= */
@@ -141,7 +156,8 @@ function stripBadUnicode(str) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "")
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
-    .replace(/[–—]/g, "-");
+    .replace(/[–—\u2010-\u2015]/g, "-")
+    .replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g, " ");
 }
 
 function stripMarkdownFences(str) {
@@ -227,7 +243,7 @@ async function chatWithAI(userMessage) {
     const knowledgeBase = fs.readFileSync(kbPath, "utf8");
 
     const payload = {
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       messages: [
         {
           role: "system",
@@ -272,7 +288,7 @@ async function generateViaGroq(text) {
 
   try {
     const payload = {
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       messages: [
         {
           role: "user",
@@ -346,34 +362,17 @@ GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on u
     - Use symbols like % and + to highlight growth and scale.
     - End with career objective or value proposition.
 
-12. **DYNAMIC PAGE LENGTH RULE**: 
-    - **Minimal User Data**: If the user provides very little data, you MUST creatively expand the resume to fill exactly ONE FULL PAGE. Create 3-4 detailed "Personal Projects", add a comprehensive "Relevant Coursework" section (12+ subjects), and expand the "Professional Summary" to ensure the PDF is visually full from top to bottom.
-    - **Extensive User Data**: If the user provides a lot of data, DO NOT force it into one page. Allow it to extend naturally to 1.5 or 2 pages. Ensure important sections (Professional Summary, Skills, Experience) start on the first page.
-    - **NO GAPS**: Regardless of length, the content must feel dense and professional without large awkward blank spaces.
-
-13. **ONE-PAGE FULLNESS** - Use these ADDITIONAL SECTIONS to fill the page (choose based on user data):
-    - **Core Competencies**: List 4-6 key professional strengths or domain expertise areas (e.g., Agile, Cloud Architecture).
-    - **Professional Development**: Recent trainings, seminars, or continuing education courses.
-    - **Relevant Coursework**: EXACTLY 4 most relevant technical subjects based on the user's field.
-    - **Technical Interests**: Areas of focus (AI/ML, Cloud Computing, Full-Stack, Mobile Dev, etc.).
-    
-    1. Professional Summary (ALWAYS)
-    2. Core Competencies (if page not full)
-    3. Skills (ALWAYS)
-    4. Experience (ALWAYS, use Personal Projects if no work experience)
-    5. Education (ALWAYS)
-    6. Projects (Include 2-3 if provided)
-    7. Certifications (if provided)
-    8. Languages (if multilingual)
-    9. Achievements/Awards (if provided)
-    10. Publications & Open Source (if provided)
-    11. Leadership & Extracurricular (if provided)
-    12. Professional Affiliations (if provided)
-    13. Professional Development (if provided)
-    14. Conferences & Workshops (if provided)
-    15. Volunteer Experience (if provided)
-    16. Relevant Coursework (part of Education section)
-    17. Technical Interests (only if page still not full)
+12. **CONCISE & COMPLETE RESUME**:
+    - Focus strictly on standard, high-impact sections:
+      1. Professional Summary (3-4 impactful lines with metrics)
+      2. Technical Skills (categorized: Languages, Frameworks, Databases, Tools)
+      3. Experience (or Personal Projects if no work experience provided)
+      4. Projects (2-3 high-impact projects with measurable STAR bullets)
+      5. Education (degree, institution, key coursework)
+      6. Certifications (if provided)
+    - Do NOT invent superfluous filler sections (no conferences, affiliations, volunteer, or technical interests unless provided).
+    - Keep content concise, professional, and dense so the entire resume completes reliably.
+    - CRITICAL: You MUST finish and close the document with \end{document}.
 
 ═══════════════════════════════════════════════════════════════
                     LATEX RULES
@@ -397,6 +396,8 @@ GOAL: Generate a professional, ATS-OPTIMIZED resume. Scale the length based on u
 19. **NO COMMENTS**: Do NOT include any LaTeX comments (lines starting with %). Comments break compilation when content is on a single line.
 
 20. **FORMATTING**: Use newlines and indentation to make the LaTeX code readable. Each section, environment (itemize), and command (\section, \item, \geometry, etc.) should start on a new line.
+
+21. **CRITICAL COMPLETION**: Ensure the resume is concise, fits on 1 page (unless extensive data warrants 2 pages), and you MUST ALWAYS close the entire document with \end{document}. NEVER truncate or stop mid-sentence.
 
 ═══════════════════════════════════════════════════════════════
 
@@ -472,67 +473,13 @@ Seeking to leverage [Key Strengths] to [Value Proposition].
     \\item Certification Name -- Issuing Organization (Year)
 \\end{itemize}
 
-\\section*{Languages}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item English (Native), Spanish (Fluent), French (Intermediate)
-\\end{itemize}
-
-\\section*{Volunteer Experience}
-\\textbf{Role Name} $|$ Organization Name \\hfill Month Year -- Month Year
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item Description of contribution or impact.
-\\end{itemize}
-
-\\section*{Awards}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item Award Name -- Organization (Year)
-\\end{itemize}
-
-\\section*{Publications \\& Open Source}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Project/Paper Name} $|$ \\href{LINK}{Link} -- Brief description of impact or stack.
-\\end{itemize}
-
-\\section*{Leadership \\& Extracurricular}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Role} $|$ Organization \\hfill Month Year -- Month Year
-    \\item Led team of [X] members to organize [Event Name], attended by [Y] participants.
-\\end{itemize}
-
-\\section*{Professional Affiliations}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item Member, Association for Computing Machinery (ACM) \\hfill 2023 -- Present
-    \\item Member, IEEE Computer Society \\hfill 2022 -- Present
-\\end{itemize}
-
-\\section*{Core Competencies}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Soft Skills}: Team Leadership, Critical Thinking, Project Management, Agile Methodologies.
-    \\item \\textbf{Domain Expertise}: Cloud Architecture, Distributed Systems, Software Design Patterns.
-\\end{itemize}
-
-\\section*{Professional Development}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item Training/Course Name -- Institution or Platform (Year)
-\\end{itemize}
-
-\\section*{Conferences \\& Workshops}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item \\textbf{Conference Name} $|$ Role (Attendee/Speaker) \\hfill Location, Year
-\\end{itemize}
-
-\\section*{Technical Interests}
-\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
-    \\item AI/ML, Cloud Computing, Open Source Contribution, Web3, Distributed Systems.
-\\end{itemize}
-
 \\end{document}
 >>>
 `
         }
       ],
       temperature: 0,
-      max_tokens: 2000
+      max_tokens: 2500
     };
 
     const resp = await callGroq(payload);
