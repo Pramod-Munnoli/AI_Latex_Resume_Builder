@@ -1042,3 +1042,276 @@
 [data-theme="light"] .activity-main {
     border-bottom-color: #f1f5f9 !important;
 }
+
+/* =====================================================
+   LIGHT MODE — AI BUILDER NEW FEATURES
+   ===================================================== */
+
+/* Builder Mode Tabs (Segmented Control) */
+[data-theme="light"] .builder-mode-tabs {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .mode-tab {
+    color: #64748b;
+}
+
+[data-theme="light"] .mode-tab:hover {
+    color: #1e293b;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mode-tab.active {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #1e293b;
+    box-shadow:
+        0 2px 10px -2px rgba(0, 0, 0, 0.1),
+        0 0 16px -4px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+[data-theme="light"] .mode-icon-box {
+    background: rgba(0, 0, 0, 0.04);
+    color: #94a3b8;
+}
+
+[data-theme="light"] .mode-tab:hover .mode-icon-box {
+    color: #475569;
+    background: rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .mode-tab.active .mode-icon-box {
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366f1;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+}
+
+/* Suggestion Banner */
+[data-theme="light"] .jd-suggestion-banner {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+[data-theme="light"] .jd-suggestion-banner::before {
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+}
+
+[data-theme="light"] .suggestion-icon-wrapper {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+[data-theme="light"] .suggestion-content h4 {
+    color: #1e293b;
+}
+
+[data-theme="light"] .suggestion-content p {
+    color: #64748b;
+}
+
+[data-theme="light"] .suggestion-badge {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* Feature Pills */
+[data-theme="light"] .feature-pill {
+    color: #4f46e5;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+[data-theme="light"] .pill-dot {
+    background: #6366f1;
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.4);
+}
+
+/* Toggle Tips Button */
+[data-theme="light"] .btn-toggle-tips {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+
+[data-theme="light"] .btn-toggle-tips:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #4f46e5;
+}
+
+/* Tips Drawer */
+[data-theme="light"] .jd-tips-drawer {
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .tip-card {
+    background: rgba(241, 245, 249, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    color: #64748b;
+}
+
+[data-theme="light"] .tip-card strong {
+    color: #1e293b;
+}
+
+[data-theme="light"] .tip-num {
+    background: rgba(99, 102, 241, 0.12);
+    color: #4f46e5;
+}
+
+/* Sample JD Bar */
+[data-theme="light"] .sample-jd-bar {
+    border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .sample-jd-label {
+    color: #4f46e5;
+}
+
+[data-theme="light"] .sample-chip {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+
+[data-theme="light"] .sample-chip:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.1));
+    border-color: rgba(99, 102, 241, 0.35);
+    color: #4f46e5;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
+}
+
+[data-theme="light"] .sample-chip.active-sample {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+    border-color: #6366f1;
+    color: #4338ca;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+    font-weight: 700;
+}
+
+/* JD Input Wrapper */
+[data-theme="light"] .jd-input-wrapper {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .jd-label {
+    color: #1e293b;
+}
+
+[data-theme="light"] .jd-req-tag {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+/* Sample Lock Badge */
+[data-theme="light"] .sample-lock-badge {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* Unlock & Paste Buttons */
+[data-theme="light"] .btn-unlock-jd {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: #4f46e5;
+}
+
+[data-theme="light"] .btn-unlock-jd:hover {
+    background: rgba(99, 102, 241, 0.18);
+    color: #3730a3;
+    border-color: #6366f1;
+}
+
+[data-theme="light"] .btn-paste-clipboard {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: #4f46e5;
+}
+
+[data-theme="light"] .btn-paste-clipboard:hover {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: #6366f1;
+    color: #3730a3;
+}
+
+[data-theme="light"] .btn-clear-jd {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #64748b;
+}
+
+[data-theme="light"] .btn-clear-jd:hover {
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+/* JD Textarea */
+[data-theme="light"] .jd-textarea {
+    background: rgba(248, 250, 252, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+
+[data-theme="light"] .jd-textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    background: #ffffff;
+}
+
+[data-theme="light"] .jd-textarea.readonly-sample {
+    background: rgba(255, 251, 235, 0.8);
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.06);
+    color: #374151;
+}
+
+[data-theme="light"] .jd-textarea.readonly-sample:focus {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+[data-theme="light"] .jd-textarea::placeholder {
+    color: rgba(100, 116, 139, 0.5);
+}
+
+[data-theme="light"] .jd-textarea::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.8);
+}
+
+[data-theme="light"] .jd-textarea::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+[data-theme="light"] .jd-textarea::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.5);
+}
+
+/* Quality Meter */
+[data-theme="light"] .meter-bar {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .meter-text {
+    color: #64748b;
+}
+
+[data-theme="light"] .jd-char-count {
+    color: #94a3b8;
+}
+
+/* Meter Badge Recommended */
+[data-theme="light"] .mode-badge-recommended {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.22);
+}
