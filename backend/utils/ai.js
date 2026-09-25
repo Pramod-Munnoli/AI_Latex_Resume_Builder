@@ -218,7 +218,6 @@ async function generateLatexWithSource(text) {
   const groq = await generateViaGroq(text);
   if (groq) {
     const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(groq))));
-    // Verify it's valid LaTeX before returning
     if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
       return { latex: cleaned, source: "groq" };
     }
@@ -276,10 +275,241 @@ async function chatWithAI(userMessage) {
 module.exports = {
   generateLatex,
   generateLatexWithSource,
+  generateLatexWithJD,
+  generateJDMatchedResume,
   sanitizeLatex,
   escapeLatex,
   chatWithAI
 };
+
+/* ================= JD-AWARE GENERATORS ================= */
+
+/**
+ * Generates a LaTeX resume from profile text (LinkedIn/any) + a job description.
+ * The AI tailors keywords, skills, and summary to match the JD.
+ */
+async function generateLatexWithJD(profileText, jobDescription) {
+  const combinedPrompt = buildJDPrompt(profileText, jobDescription);
+
+  // Try Groq first
+  const groq = await generateViaGroqJD(combinedPrompt);
+  if (groq) {
+    const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(groq))));
+    if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
+      return { latex: cleaned, source: 'groq' };
+    }
+  }
+
+  // Fallback to Gemini
+  const gemini = await generateViaGeminiJD(combinedPrompt);
+  if (gemini) {
+    const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(gemini))));
+    if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
+      return { latex: cleaned, source: 'gemini' };
+    }
+  }
+
+  return { latex: sanitizeLatex(basicTemplateFromText(profileText)), source: 'fallback' };
+}
+
+/**
+ * Rewrites an existing resume (as raw text extracted from PDF) to match a JD.
+ * Used for the "Old Resume + JD" mode.
+ */
+async function generateJDMatchedResume(oldResumeText, jobDescription) {
+  const combinedPrompt = buildJDMatchPrompt(oldResumeText, jobDescription);
+
+  const groq = await generateViaGroqJD(combinedPrompt);
+  if (groq) {
+    const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(groq))));
+    if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
+      return { latex: cleaned, source: 'groq' };
+    }
+  }
+
+  const gemini = await generateViaGeminiJD(combinedPrompt);
+  if (gemini) {
+    const cleaned = sanitizeLatex(stripBadUnicode(extractLatex(stripMarkdownFences(gemini))));
+    if (/\\documentclass[\s\S]*\\end\{document\}/.test(cleaned)) {
+      return { latex: cleaned, source: 'gemini' };
+    }
+  }
+
+  return { latex: sanitizeLatex(basicTemplateFromText(oldResumeText)), source: 'fallback' };
+}
+
+function buildJDPrompt(profileText, jobDescription) {
+  return `
+You are an expert ATS resume writer. You will receive a user's profile/LinkedIn data AND a target job description.
+Your task: create a LASER-FOCUSED resume that maximizes ATS score for THIS specific job.
+
+ANALYZE THE JOB DESCRIPTION FOR:
+- Required technical skills (mirror exact terminology)
+- Preferred qualifications
+- Key responsibilities (use them to frame bullet points)
+- Industry-specific keywords and acronyms
+- Soft skills mentioned (leadership, collaboration, etc.)
+
+JD TAILORING RULES:
+1. Professional Summary: Rewrite to directly address this role. Mention the job title and top 3 requirements.
+2. Skills: List skills in ORDER of relevance to this JD. Prioritize exact keyword matches.
+3. Experience bullets: Reframe using language from the JD. If JD says "scalable systems", bullets should say "scalable systems".
+4. Quantify everything possible.
+5. ATS Match: Ensure at least 80% keyword overlap with JD requirements.
+6. Do NOT invent fake experience — only reframe existing data more powerfully.
+
+===== USER PROFILE =====
+${profileText}
+
+===== TARGET JOB DESCRIPTION =====
+${jobDescription}
+`;
+}
+
+function buildJDMatchPrompt(oldResumeText, jobDescription) {
+  return `
+You are an expert ATS resume optimizer. You will receive an EXISTING resume AND a target job description.
+Your task: REWRITE and OPTIMIZE the existing resume to be a perfect match for this specific job.
+
+WHAT TO DO:
+1. Preserve ALL factual information (names, companies, dates, degrees) — never invent new experience.
+2. Rewrite every bullet point using action verbs and language mirrored from the JD.
+3. Reorder skills to prioritize those mentioned in the JD.
+4. Rewrite Professional Summary to speak directly to this role and company.
+5. Add missing JD keywords naturally where they can be inferred from existing experience.
+6. Remove or minimize irrelevant sections that don't apply to this role.
+7. Ensure ATS keyword density is high for the top 10 requirements in the JD.
+
+OUTPUT: Return ONLY valid LaTeX code (no markdown fences, no explanation). Use the same ATS-optimized template.
+
+===== EXISTING RESUME =====
+${oldResumeText}
+
+===== TARGET JOB DESCRIPTION =====
+${jobDescription}
+`;
+}
+
+async function generateViaGroqJD(fullPrompt) {
+  if (GROQ_KEYS.length === 0) return null;
+  try {
+    const payload = {
+      model: GROQ_MODEL,
+      messages: [
+        {
+          role: 'user',
+          content: `${fullPrompt}
+
+Now generate the complete ATS-optimized LaTeX resume. Follow ALL the latex rules from the system:
+- Every \\begin{itemize} MUST be closed with \\end{itemize}.
+- Properly escape: &, %, $, #, _, {, }, ^, ~.
+- No LaTeX comments (no % lines).
+- Return ONLY valid LaTeX code starting with \\documentclass.
+- MUST end with \\end{document}.
+
+LATEX TEMPLATE TO USE:
+<<<
+\\documentclass[11pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{geometry}
+\\usepackage{enumitem}
+\\usepackage{hyperref}
+\\usepackage{xcolor}
+\\usepackage{titlesec}
+\\geometry{left=0.6in, top=0.5in, right=0.6in, bottom=0.5in}
+\\definecolor{linkblue}{RGB}{0,51,102}
+\\hypersetup{colorlinks=true, linkcolor=linkblue, urlcolor=linkblue}
+\\titleformat{\\section}{\\large\\bfseries}{}{0em}{}[\\titlerule]
+\\titlespacing{\\section}{0pt}{12pt}{8pt}
+\\begin{document}
+\\pagenumbering{gobble}
+\\begin{center}
+    {\\huge \\textbf{FULL NAME}} \\\\[0.5em]
+    \\small City, State $|$ Phone $|$ Email $|$ \\href{LINKEDIN_URL}{LinkedIn} $|$ \\href{GITHUB_URL}{GitHub}
+\\end{center}
+\\section*{Professional Summary}
+[JD-targeted summary]
+\\section*{Skills}
+\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \\item \\textbf{Languages}: ...
+    \\item \\textbf{Frameworks}: ...
+\\end{itemize}
+\\section*{Experience}
+...
+\\section*{Education}
+...
+\\section*{Projects}
+...
+\\end{document}
+>>>`
+        }
+      ],
+      temperature: 0,
+      max_tokens: 4000
+    };
+    const resp = await callGroq(payload);
+    const latex = resp?.data?.choices?.[0]?.message?.content;
+    if (!latex) return null;
+    console.log('✅ Groq JD-match used');
+    return latex.trim();
+  } catch (err) {
+    console.error('❌ Groq JD API failed:', err.message);
+    return null;
+  }
+}
+
+async function generateViaGeminiJD(fullPrompt) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const url = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+    const resp = await axios.post(url, {
+      contents: [{
+        role: 'user',
+        parts: [{
+          text: `${fullPrompt}
+
+Now generate the complete ATS-optimized LaTeX resume tailored to the job description above.
+Rules:
+- Every \\begin{itemize} MUST be closed with \\end{itemize}.
+- Properly escape: &, %, $, #, _, {, }, ^, ~.
+- No LaTeX comments.
+- Return ONLY valid LaTeX code starting with \\documentclass.
+- MUST end with \\end{document}.
+
+Use this template structure:
+\\documentclass[11pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{geometry}
+\\usepackage{enumitem}
+\\usepackage{hyperref}
+\\usepackage{xcolor}
+\\usepackage{titlesec}
+\\geometry{left=0.6in, top=0.5in, right=0.6in, bottom=0.5in}
+\\definecolor{linkblue}{RGB}{0,51,102}
+\\hypersetup{colorlinks=true, linkcolor=linkblue, urlcolor=linkblue}
+\\titleformat{\\section}{\\large\\bfseries}{}{0em}{}[\\titlerule]
+\\titlespacing{\\section}{0pt}{12pt}{8pt}
+\\begin{document}
+\\pagenumbering{gobble}
+... (full resume content) ...
+\\end{document}`
+        }]
+      }],
+      generationConfig: { temperature: 0, maxOutputTokens: 4000 }
+    });
+    const parts = resp?.data?.candidates?.[0]?.content?.parts;
+    const latex = Array.isArray(parts) ? parts.map(p => p.text || '').join('') : '';
+    if (!latex) return null;
+    console.log('✅ Gemini JD-match used');
+    return latex.trim();
+  } catch (err) {
+    console.error('❌ Gemini JD API failed:', err.message);
+    return null;
+  }
+}
 
 
 /* ================= GROQ ATS-OPTIMIZED GENERATOR ================= */
@@ -479,7 +709,7 @@ Seeking to leverage [Key Strengths] to [Value Proposition].
         }
       ],
       temperature: 0,
-      max_tokens: 2500
+      max_tokens: 4000
     };
 
     const resp = await callGroq(payload);
@@ -760,7 +990,7 @@ Seeking to leverage [Key Strengths] to [Value Proposition].
       }],
       generationConfig: {
         temperature: 0,
-        maxOutputTokens: 2000
+        maxOutputTokens: 4000
       }
     });
 

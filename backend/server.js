@@ -17,6 +17,7 @@ const templatesRouter = require("./routes/templates");
 const userResumesRouter = require("./routes/user-resumes");
 const chatRouter = require("./routes/chat");
 const deleteAccountRouter = require("./routes/delete-account");
+const jdMatchRouter = require("./routes/jd-match");
 
 const frontendDir = path.join(__dirname, "..", "frontend");
 const tempDir = path.join(__dirname, "temp");
@@ -37,6 +38,7 @@ app.use("/api", compileRouter);
 app.use("/api", templatesRouter);
 app.use("/api", userResumesRouter);
 app.use("/api/user", deleteAccountRouter);
+app.use("/api", jdMatchRouter);
 
 // Serve compiled files (PDF) with no-cache for fresh reloads
 app.use("/files", express.static(tempDir, {

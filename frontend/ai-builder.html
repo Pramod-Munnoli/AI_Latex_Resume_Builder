@@ -40,43 +40,150 @@
 
     <main class="main-content">
         <!-- Hero and Upload sections remain unchanged -->
+        <!-- Hero and Upload sections -->
         <section class="ai-builder-hero">
-            <h1>Generate Resume from LinkedIn PDF</h1>
-            <p>Upload your LinkedIn profile PDF and automatically generate a professional LaTeX resume in seconds.</p>
+            <h1 id="heroTitle">AI Resume Builder & Job Matcher</h1>
+            <p id="heroSubtitle">Match your old resume or LinkedIn profile directly to any Job Description with AI-driven ATS optimization.</p>
 
-            <div class="instruction-grid">
+            <div class="instruction-grid" id="instructionGrid">
                 <div class="instruction-step">
                     <span class="step-number">1</span>
-                    <p>Download your LinkedIn profile as a PDF.</p>
+                    <p id="step1Text">Upload your existing resume or LinkedIn profile PDF.</p>
                 </div>
                 <div class="instruction-step">
                     <span class="step-number">2</span>
-                    <p>Upload the PDF to our AI engine below.</p>
+                    <p id="step2Text">Paste the target Job Description to match requirements & keywords.</p>
                 </div>
                 <div class="instruction-step">
                     <span class="step-number">3</span>
-                    <p>Review and edit the generated LaTeX code.</p>
+                    <p id="step3Text">AI tailors bullet points, skills, and summary for high ATS ranking.</p>
                 </div>
                 <div class="instruction-step">
                     <span class="step-number">4</span>
-                    <p>Recompile and download your polished resume.</p>
+                    <p id="step4Text">Review, edit the LaTeX source code, and download your PDF.</p>
                 </div>
             </div>
         </section>
 
         <section class="upload-container">
+            <!-- Mode Switcher Tabs -->
+            <div class="builder-mode-tabs" role="tablist">
+                <button type="button" class="mode-tab active" id="tabOldResumeJd" data-mode="old_resume_jd" role="tab" title="Upload your existing resume and target JD to optimize it">
+                    <span class="mode-icon-box"><i data-lucide="sparkles"></i></span>
+                    <span class="mode-tab-title">Old Resume to JD</span>
+                    <span class="mode-badge-recommended"><span class="badge-pulse-dot"></span>Recommended</span>
+                </button>
+                <button type="button" class="mode-tab" id="tabLinkedInJd" data-mode="linkedin_jd" role="tab" title="Use your LinkedIn profile PDF and target JD to create a tailored resume">
+                    <span class="mode-icon-box"><i data-lucide="briefcase"></i></span>
+                    <span class="mode-tab-title">LinkedIn Profile + JD</span>
+                </button>
+                <button type="button" class="mode-tab" id="tabLinkedInOnly" data-mode="linkedin_only" role="tab" title="Standard generation from LinkedIn profile without JD">
+                    <span class="mode-icon-box"><i data-lucide="file-text"></i></span>
+                    <span class="mode-tab-title">LinkedIn PDF Only</span>
+                </button>
+            </div>
+
+            <!-- Interactive Suggestion Card & Assistant Banner -->
+            <div class="jd-suggestion-banner" id="jdSuggestionBanner">
+                <div class="suggestion-main-row">
+                    <div class="suggestion-icon-wrapper">
+                        <span class="suggestion-icon pulse-glow">💡</span>
+                    </div>
+                    <div class="suggestion-content">
+                        <div class="suggestion-title-row">
+                            <h4 id="suggestionTitle">Optimize Your Resume for a Specific Job Description</h4>
+                            <span class="suggestion-badge" id="suggestionBadge">AI Matcher Active</span>
+                        </div>
+                        <p id="suggestionText">Upload your current resume and paste the target job description below. Our AI will analyze requirements, inject high-value keywords, reframe your achievements, and elevate your ATS score.</p>
+                        
+                        <!-- Interactive Feature Highlights -->
+                        <div class="suggestion-pills">
+                            <span class="feature-pill"><i class="pill-dot"></i> 85%+ ATS Target</span>
+                            <span class="feature-pill"><i class="pill-dot"></i> Exact Keyword Mirroring</span>
+                            <span class="feature-pill"><i class="pill-dot"></i> Fact & Date Preservation</span>
+                            <button type="button" class="btn-toggle-tips" id="toggleTipsBtn">
+                                <span>💡 Pro Tips</span>
+                                <span class="tips-arrow">▼</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible Pro Tips Panel -->
+                <div class="jd-tips-drawer" id="jdTipsDrawer" style="display: none;">
+                    <div class="tips-grid">
+                        <div class="tip-card">
+                            <span class="tip-num">1</span>
+                            <div><strong>Paste full job text</strong>: Include responsibilities, tech stacks, and qualifications for maximum keyword extraction.</div>
+                        </div>
+                        <div class="tip-card">
+                            <span class="tip-num">2</span>
+                            <div><strong>Truth preservation</strong>: AI never fabricates experience—it only spotlights authentic accomplishments aligned with the role.</div>
+                        </div>
+                        <div class="tip-card">
+                            <span class="tip-num">3</span>
+                            <div><strong>Instant live editing</strong>: You can tweak LaTeX code directly in the code editor on the left with live PDF preview.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Quick-Fill Sample JDs -->
+                <div class="sample-jd-bar" id="sampleJdBar">
+                    <span class="sample-jd-label">⚡ Try a Sample JD:</span>
+                    <div class="sample-chips-row">
+                        <button type="button" class="sample-chip" data-sample="fullstack">💻 Fullstack Engineer</button>
+                        <button type="button" class="sample-chip" data-sample="backend">☁️ Backend & Cloud</button>
+                        <button type="button" class="sample-chip" data-sample="ai">🤖 AI / Data Scientist</button>
+                        <button type="button" class="sample-chip" data-sample="pm">🚀 Product Manager</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Drop Zone -->
             <div class="drop-zone is-empty" id="dropZone">
-                <span class="drop-zone-icon">☁️</span>
-                <span class="drop-zone-text">Drop your LinkedIn PDF here</span>
-                <span class="drop-zone-subtext">or click to browse files</span>
+                <span class="drop-zone-icon" id="dropZoneIcon">📄</span>
+                <span class="drop-zone-text" id="dropZoneText">Drop your Old Resume PDF here</span>
+                <span class="drop-zone-subtext" id="dropZoneSubtext">or click to browse from device (.pdf)</span>
                 <input type="file" id="pdfInput" accept=".pdf">
                 <div id="selectedFileName" class="selected-file-name"></div>
+            </div>
+
+            <!-- Job Description Box (Visible for JD modes) -->
+            <div class="jd-input-wrapper" id="jdInputWrapper">
+                <div class="jd-header-row">
+                    <label for="jdInput" class="jd-label">
+                        <span class="jd-label-icon">📋</span>
+                        <span>Target Job Description (JD)</span>
+                        <span class="jd-req-tag" id="jdReqTag">Required for Match</span>
+                    </label>
+                    <div class="jd-header-actions">
+                        <span id="sampleLockBadge" class="sample-lock-badge" style="display: none;">
+                            <span class="lock-icon">🔒</span> Sample JD (Read-Only)
+                        </span>
+                        <button type="button" class="btn-unlock-jd" id="unlockJdBtn" style="display: none;" title="Unlock to edit or paste your own custom JD">
+                            <span>✏️ Custom JD</span>
+                        </button>
+                        <button type="button" class="btn-paste-clipboard" id="pasteClipboardBtn" title="Paste text directly from clipboard">
+                            <span>📋 Paste Clipboard</span>
+                        </button>
+                        <button type="button" class="btn-clear-jd" id="clearJdBtn" title="Clear Job Description">Clear</button>
+                    </div>
+                </div>
+                <textarea id="jdInput" class="jd-textarea" rows="6"
+                    placeholder="Paste the target job description here (Job title, responsibilities, required skills, tech stack, qualifications)..."></textarea>
+                <div class="jd-footer-row">
+                    <div class="jd-quality-meter" id="jdQualityMeter">
+                        <span class="meter-bar"><span class="meter-fill" id="meterFill"></span></span>
+                        <span class="meter-text" id="meterText">Awaiting JD (paste text above)</span>
+                    </div>
+                    <span id="jdCharCount" class="jd-char-count">0 chars</span>
+                </div>
             </div>
 
             <div class="action-buttons-container">
                 <button id="uploadBtn" class="btn btn-primary btn-premium-gen"
                     style="padding: 14px 40px; font-size: 1.1rem;">
-                    ⚡ Start Generation
+                    ⚡ Match Resume to JD
                 </button>
                 <span id="statusBadge" class="status-badge status-ready">Ready</span>
             </div>

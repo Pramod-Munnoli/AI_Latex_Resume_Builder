@@ -45,24 +45,57 @@ async function compileViaRemote(tempDir) {
     }
   }
 
-  // 2. Fallback to reliable online compiler (latexonline.cc)
+  // 2. Try latexonline.cc
   try {
-    console.log("[Latex] Compiling via online LaTeX service (latexonline.cc)...");
+    console.log("[Latex] Compiling via latexonline.cc...");
     const onlineUrl = `https://latexonline.cc/compile?text=${encodeURIComponent(latex)}`;
     const resp = await axios.get(onlineUrl, {
       responseType: "arraybuffer",
       timeout: 45000
     });
 
-    if (resp.status === 200 && resp.data && resp.data.length > 0) {
-      await fs.writeFile(pdfPath, Buffer.from(resp.data));
-      await fs.writeFile(logPath, "Compiled successfully via online LaTeX compiler.", "utf8");
-      console.log(`[Latex] ✅ Successfully compiled via online compiler (${resp.data.length} bytes)`);
-      return { stdout: "Compiled successfully via online compiler", stderr: "" };
+    const buf = Buffer.from(resp.data || "");
+    const isPDF = buf.length > 100 && buf.slice(0, 4).toString() === "%PDF";
+    if (resp.status === 200 && isPDF) {
+      await fs.writeFile(pdfPath, buf);
+      await fs.writeFile(logPath, "Compiled successfully via latexonline.cc.", "utf8");
+      console.log(`[Latex] ✅ Successfully compiled via latexonline.cc (${buf.length} bytes)`);
+      return { stdout: "Compiled successfully via latexonline.cc", stderr: "" };
     }
-    throw new Error(`Online compiler returned HTTP ${resp.status}`);
+    console.warn(`[Latex] latexonline.cc returned non-PDF response (${buf.length} bytes), trying fallback...`);
   } catch (onlineErr) {
-    const errorMsg = onlineErr.response?.data?.toString() || onlineErr.message;
+    console.warn(`[Latex] latexonline.cc failed: ${onlineErr.message}. Trying fallback compiler...`);
+  }
+
+  // 3. Fallback: YtoTex / latex.codecogs.com
+  try {
+    console.log("[Latex] Compiling via LaTeX.js online service...");
+    const resp2 = await axios.post(
+      "https://texlive.net/cgi-bin/latexcgi",
+      new URLSearchParams({
+        filecontents0: latex,
+        filename0: "resume.tex",
+        engine: "pdflatex",
+        return: "pdf"
+      }).toString(),
+      {
+        responseType: "arraybuffer",
+        timeout: 60000,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      }
+    );
+    const buf2 = Buffer.from(resp2.data || "");
+    const isPDF2 = buf2.length > 100 && buf2.slice(0, 4).toString() === "%PDF";
+    if (resp2.status === 200 && isPDF2) {
+      await fs.writeFile(pdfPath, buf2);
+      await fs.writeFile(logPath, "Compiled successfully via texlive.net.", "utf8");
+      console.log(`[Latex] ✅ Successfully compiled via texlive.net (${buf2.length} bytes)`);
+      return { stdout: "Compiled successfully via texlive.net", stderr: "" };
+    }
+    const errText2 = buf2.toString("utf8").substring(0, 500);
+    throw new Error(`texlive.net returned non-PDF: ${errText2}`);
+  } catch (fallbackErr) {
+    const errorMsg = fallbackErr.message;
     await fs.writeFile(logPath, `Compilation failed: ${errorMsg}`, "utf8").catch(() => {});
     throw new Error(`Remote LaTeX compilation failed: ${errorMsg}`);
   }
@@ -85,43 +118,35 @@ function compileLatex(tempDir) {
       }
     } catch (_) { }
 
+    // Delete any stale log file from a previous remote run to avoid reading wrong error messages
+    const logPath = path.join(tempDir, "resume.log");
+    try { await fs.unlink(logPath); } catch (_) { /* ok if it doesn't exist */ }
+
     const cmd = `"${exe}" -interaction=nonstopmode -halt-on-error resume.tex`;
 
     exec(cmd, { cwd: tempDir, maxBuffer: 10 * 1024 * 1024 }, async (error, stdout, stderr) => {
+      if (error) {
+        // pdflatex failed for ANY reason — fall through to remote compiler
+        // (covers: not installed, ENOENT, compilation errors, stale log confusion, etc.)
+        console.log(`[Latex] Local pdflatex failed (code=${error.code}): ${error.message?.substring(0, 100)}. Switching to remote compiler...`);
+        try {
+          const remoteResult = await compileViaRemote(tempDir);
+          return resolve(remoteResult);
+        } catch (remoteError) {
+          return reject(remoteError);
+        }
+      }
+
+      // pdflatex succeeded locally
       let detailedLog = "";
       try {
-        const logPath = path.join(tempDir, "resume.log");
         if (fsSync.existsSync(logPath)) {
           detailedLog = await fs.readFile(logPath, "utf8");
         }
       } catch (logErr) {
         console.warn("[Latex] Could not read resume.log:", logErr.message);
       }
-
-      const finalLog = detailedLog || `${stdout || ""}\n${stderr || ""}`.trim();
-
-      if (error) {
-        const errorMessage = finalLog || error.message || "Unknown compilation error";
-        // If pdflatex is not installed locally on this machine, automatically compile via remote/hosted compiler
-        if (
-          errorMessage.includes("not found") ||
-          errorMessage.includes("is not recognized") ||
-          error.code === 127 ||
-          error.code === "ENOENT"
-        ) {
-          console.log("[Latex] Local pdflatex not found on this machine. Automatically switching to remote compiler...");
-          try {
-            const remoteResult = await compileViaRemote(tempDir);
-            return resolve(remoteResult);
-          } catch (remoteError) {
-            return reject(remoteError);
-          }
-        }
-
-        reject(new Error("LaTeX compilation failed: " + errorMessage));
-      } else {
-        resolve({ stdout: finalLog, stderr });
-      }
+      resolve({ stdout: detailedLog || `${stdout || ""}\n${stderr || ""}`.trim(), stderr });
     });
   });
 }
