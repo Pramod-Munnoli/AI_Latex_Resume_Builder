@@ -1053,11 +1053,6 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
-
-[data-theme="light"] .mode-tab {
-    color: #64748b;
-}
-
 [data-theme="light"] .mode-tab:hover {
     color: #1e293b;
     background: rgba(0, 0, 0, 0.04);
@@ -1314,4 +1309,4 @@
     background: rgba(245, 158, 11, 0.1);
     color: #d97706;
     border: 1px solid rgba(245, 158, 11, 0.22);
-}
+}
